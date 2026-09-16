@@ -1,0 +1,45 @@
+import { router } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { Card, Screen } from '@/components/ui';
+import { Colors, Space } from '@/constants/theme';
+import { useDesk } from '@/hooks/useDesk';
+import { t } from '@/i18n';
+
+export default function EnglishHall() {
+  const { state } = useDesk();
+  return (
+    <Screen title={t('englishHall')} subtitle={`共享词表 ${state.words.length} 个词`} back>
+      <View style={styles.col}>
+        <Tool title={t('vocab')} hint="看词、听发音、点认识或不熟" onPress={() => router.push('/english/vocab')} />
+        <Tool title={t('dictation')} hint="选词 → 填字母 → 排字母（爸爸可再打开看中文写 / 听写）" onPress={() => router.push('/english/dictation')} />
+        <Tool title={t('pictureBooks')} hint="两本短绘本 + 家庭相册书" onPress={() => router.push('/english/books')} />
+      </View>
+    </Screen>
+  );
+}
+
+function Tool({ title, hint, onPress }: { title: string; hint: string; onPress: () => void }) {
+  return (
+    <Card onPress={onPress}>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.hint}>{hint}</Text>
+    </Card>
+  );
+}
+
+const styles = StyleSheet.create({
+  col: {
+    gap: Space.md,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: Colors.ink,
+  },
+  hint: {
+    marginTop: 6,
+    color: Colors.muted,
+    fontSize: 16,
+  },
+});
