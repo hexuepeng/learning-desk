@@ -1,12 +1,15 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState, type ReactNode } from 'react';
+import { Image, PanResponder, StyleSheet, Text, View } from 'react-native';
 
+import { FamilyBookBadge } from '@/components/albumUi';
 import { SpeakButton } from '@/components/SpeakButton';
 import { Card, KidButton, Screen } from '@/components/ui';
 import { MINI_BOOKS } from '@/content/miniBooks';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import { FAMILY_ALBUM_LABEL } from '@/lib/album';
+import { displayAlbumPhotoUri } from '@/lib/albumFiles';
 
 export default function BookReader() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,13 +19,15 @@ export default function BookReader() {
   const [page, setPage] = useState(0);
 
   if (bundled) {
-    const current = bundled.pages[page];
+    const current = bundled.pages[Math.min(page, bundled.pages.length - 1)];
     return (
       <Screen title={bundled.titleZh} subtitle={bundled.titleEn} back>
         <Card>
-          <Text style={styles.art}>{current.art}</Text>
-          <Text style={styles.en}>{current.en}</Text>
-          <Text style={styles.zh}>{current.zh}</Text>
+          <SwipePage page={page} total={bundled.pages.length} onChange={setPage}>
+            <Text style={styles.art}>{current.art}</Text>
+            <Text style={styles.en}>{current.en}</Text>
+            <Text style={styles.zh}>{current.zh}</Text>
+          </SwipePage>
           <SpeakButton text={current.en} />
           <Pager page={page} total={bundled.pages.length} onChange={setPage} />
         </Card>
@@ -31,19 +36,28 @@ export default function BookReader() {
   }
 
   if (album) {
-    const current = album.pages[page];
+    const current = album.pages[Math.min(page, Math.max(album.pages.length - 1, 0))];
     if (!current) {
       return (
         <Screen title={album.title} back>
-          <Text style={styles.zh}>这本还没有页。</Text>
+          <FamilyBookBadge />
+          <Text style={[styles.zh, { marginTop: Space.md }]}>这本还没有页。请爸爸加照片。</Text>
         </Screen>
       );
     }
     return (
-      <Screen title={album.title} subtitle="家庭相册书 · 仅本机" back>
+      <Screen title={album.title} subtitle={`${FAMILY_ALBUM_LABEL} · 仅本机`} back>
         <Card>
-          <Image source={{ uri: current.photoUri }} style={styles.photo} />
-          <Text style={styles.en}>{current.caption || '（还没有说明）'}</Text>
+          <FamilyBookBadge />
+          <SwipePage page={page} total={album.pages.length} onChange={setPage}>
+            <Image
+              source={{ uri: displayAlbumPhotoUri(current.photoUri) }}
+              style={styles.photo}
+              accessibilityLabel={`${album.title} 第 ${page + 1} 页`}
+            />
+            <Text style={styles.en}>{current.caption || '（还没有说明）'}</Text>
+            {current.captionZh ? <Text style={styles.zh}>{current.captionZh}</Text> : null}
+          </SwipePage>
           {current.caption ? <SpeakButton text={current.caption} /> : null}
           <Pager page={page} total={album.pages.length} onChange={setPage} />
         </Card>
@@ -56,6 +70,33 @@ export default function BookReader() {
       <Text style={styles.zh}>找不到这一本。</Text>
     </Screen>
   );
+}
+
+function SwipePage({
+  page,
+  total,
+  onChange,
+  children,
+}: {
+  page: number;
+  total: number;
+  onChange: (page: number) => void;
+  children: ReactNode;
+}) {
+  const pan = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dx) > 20 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.2,
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dx < -48 && page < total - 1) onChange(page + 1);
+          else if (gesture.dx > 48 && page > 0) onChange(page - 1);
+        },
+      }),
+    [page, total, onChange],
+  );
+
+  return <View {...pan.panHandlers}>{children}</View>;
 }
 
 function Pager({
@@ -101,6 +142,7 @@ const styles = StyleSheet.create({
     color: Colors.ink,
     textAlign: 'center',
     marginBottom: 8,
+    marginTop: Space.sm,
   },
   zh: {
     fontSize: 18,
@@ -112,6 +154,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 280,
     borderRadius: Radius.md,
+    marginTop: Space.md,
     marginBottom: Space.md,
     backgroundColor: Colors.paperSoft,
   },

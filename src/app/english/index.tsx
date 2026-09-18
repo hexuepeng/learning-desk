@@ -13,7 +13,7 @@ export default function EnglishHall() {
       <View style={styles.col}>
         <Tool title={t('vocab')} hint="看词、听发音、点认识或不熟" onPress={() => router.push('/english/vocab')} />
         <Tool title={t('dictation')} hint="选词 → 填字母 → 排字母（爸爸可再打开看中文写 / 听写）" onPress={() => router.push('/english/dictation')} />
-        <Tool title={t('pictureBooks')} hint="两本短绘本 + 家庭相册书" onPress={() => router.push('/english/books')} />
+        <Tool title={t('pictureBooks')} hint="两本短绘本 + 我家的书（本机相册）" onPress={() => router.push('/english/books')} />
       </View>
     </Screen>
   );

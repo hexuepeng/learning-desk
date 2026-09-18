@@ -1,11 +1,13 @@
-import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { AlbumPageEditor } from '@/components/albumUi';
 import { Card, KidButton, Screen } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import { FAMILY_ALBUM_LABEL } from '@/lib/album';
+import { pickDevicePhoto, photoPermissionCopy, type PhotoSource } from '@/lib/pickAlbumPhoto';
 import { createId } from '@/lib/util';
 import type { AlbumPage } from '@/types/models';
 
@@ -13,64 +15,80 @@ export default function NewAlbumBook() {
   const { addAlbumBook } = useDesk();
   const [title, setTitle] = useState('我家的一天');
   const [pages, setPages] = useState<AlbumPage[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  const addPhoto = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('需要相册权限', '相册书只把照片存在这台设备上，不会上传。');
+  const addPhoto = async (source: PhotoSource) => {
+    const result = await pickDevicePhoto(source);
+    if (!result.ok) {
+      if (result.reason === 'permission') {
+        const copy = photoPermissionCopy(source);
+        Alert.alert(copy.title, copy.body);
+      }
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.7,
-    });
-    if (result.canceled || !result.assets[0]) return;
     setPages((current) => [
       ...current,
-      { id: createId('page'), photoUri: result.assets[0].uri, caption: '' },
+      { id: createId('page'), photoUri: result.uri, caption: '', captionZh: '' },
     ]);
   };
 
-  const save = () => {
+  const save = async () => {
+    if (saving) return;
     if (pages.length === 0) {
-      Alert.alert('先加一页', '至少选一张照片。');
+      Alert.alert('先加一页', '至少选一张或拍一张照片。');
       return;
     }
-    const id = addAlbumBook({ title, pages });
-    router.replace(`/english/books/${id}`);
+    setSaving(true);
+    try {
+      const id = await addAlbumBook({ title, pages });
+      router.replace(`/english/books/${id}`);
+    } catch {
+      Alert.alert('没做成', '照片还在这台设备上，请再试一次。');
+      setSaving(false);
+    }
   };
 
   return (
-    <Screen title="做一本相册书" subtitle="照片和说明只保存在本机。" back>
+    <Screen title="做一本相册书" subtitle="照片和说明只保存在本机，不会上传。" back>
       <Card>
         <Text style={styles.label}>书名</Text>
         <TextInput value={title} onChangeText={setTitle} style={styles.input} />
-        <KidButton label="从相册加一页" variant="secondary" onPress={() => void addPhoto()} />
-      </Card>
-      {pages.map((page, index) => (
-        <Card key={page.id} style={styles.page}>
-          <Image source={{ uri: page.photoUri }} style={styles.photo} />
-          <TextInput
-            placeholder="英文说明，例如：This is my cat."
-            placeholderTextColor={Colors.muted}
-            style={styles.input}
-            value={page.caption}
-            onChangeText={(caption) =>
-              setPages((current) =>
-                current.map((item) => (item.id === page.id ? { ...item, caption } : item)),
-              )
-            }
+        <View style={styles.row}>
+          <KidButton
+            label="从相册加一页"
+            variant="secondary"
+            onPress={() => void addPhoto('library')}
+            style={styles.flex}
           />
           <KidButton
-            label={`去掉第 ${index + 1} 页`}
-            variant="ghost"
-            compact
-            onPress={() => setPages((current) => current.filter((item) => item.id !== page.id))}
+            label="拍一张"
+            variant="secondary"
+            onPress={() => void addPhoto('camera')}
+            style={styles.flex}
           />
-        </Card>
+        </View>
+        <Text style={styles.hint}>做成后孩子会在绘本里看到「{FAMILY_ALBUM_LABEL}」。</Text>
+      </Card>
+      {pages.map((page, index) => (
+        <AlbumPageEditor
+          key={page.id}
+          page={page}
+          index={index}
+          onCaption={(caption) =>
+            setPages((current) =>
+              current.map((item) => (item.id === page.id ? { ...item, caption } : item)),
+            )
+          }
+          onCaptionZh={(captionZh) =>
+            setPages((current) =>
+              current.map((item) => (item.id === page.id ? { ...item, captionZh } : item)),
+            )
+          }
+          onRemove={() => setPages((current) => current.filter((item) => item.id !== page.id))}
+        />
       ))}
       <View style={{ height: Space.md }} />
-      <KidButton label="做成绘本" onPress={save} />
+      <KidButton label={saving ? '正在保存到本机…' : '做成绘本'} onPress={() => void save()} />
     </Screen>
   );
 }
@@ -91,14 +109,16 @@ const styles = StyleSheet.create({
     color: Colors.ink,
     marginBottom: Space.md,
   },
-  page: {
-    marginTop: Space.md,
+  row: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  photo: {
-    width: '100%',
-    height: 180,
-    borderRadius: Radius.sm,
-    marginBottom: Space.sm,
-    backgroundColor: Colors.paperSoft,
+  flex: {
+    flex: 1,
+  },
+  hint: {
+    color: Colors.muted,
+    marginTop: Space.sm,
+    fontSize: 15,
   },
 });

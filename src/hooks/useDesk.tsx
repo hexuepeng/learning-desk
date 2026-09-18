@@ -10,6 +10,22 @@ import {
 
 import { createSampleWords } from '@/content/sampleWords';
 import {
+  addPageToBook,
+  buildAlbumBook,
+  buildAlbumPage,
+  patchPageInBook,
+  removeAlbumBookById,
+  removePageFromBook,
+  replaceBook,
+  upsertAlbumBook,
+} from '@/lib/album';
+import {
+  clearAllAlbumFiles,
+  deleteAlbumBookFiles,
+  deleteAlbumPhoto,
+  persistAlbumPhoto,
+} from '@/lib/albumFiles';
+import {
   clampEnabledTypes,
   currentDictationType,
   emptyProgress,
@@ -27,6 +43,7 @@ import { applyDailyComplete } from '@/lib/streak';
 import { createId, todayKey } from '@/lib/util';
 import type {
   AlbumBook,
+  AlbumPage,
   DictationType,
   PersistedState,
   Word,
@@ -50,8 +67,19 @@ type DeskContextValue = {
   markDictation: (wordId: string, correct: boolean, daily?: boolean) => WordProgress;
   addFeedback: (text: string) => void;
   markFeedbackRead: (id: string) => void;
-  addAlbumBook: (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => string;
-  removeAlbumBook: (id: string) => void;
+  addAlbumBook: (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => Promise<string>;
+  updateAlbumBook: (id: string, patch: { title?: string }) => void;
+  addAlbumPage: (
+    bookId: string,
+    page: Omit<AlbumPage, 'id'> & { id?: string },
+  ) => Promise<string | null>;
+  updateAlbumPage: (
+    bookId: string,
+    pageId: string,
+    patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri'>>,
+  ) => void;
+  removeAlbumPage: (bookId: string, pageId: string) => Promise<void>;
+  removeAlbumBook: (id: string) => Promise<void>;
   resetDemo: () => Promise<void>;
   progressFor: (wordId: string) => WordProgress;
   dictationTypeFor: (wordId: string) => DictationType;
@@ -297,36 +325,122 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const addAlbumBook = useCallback(
-    (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => {
+    async (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => {
       const id = book.id ?? createId('album');
-      update((current) => {
-        const next: AlbumBook = {
-          id,
-          title: book.title.trim() || '家庭相册书',
-          pages: book.pages,
-          createdAt: new Date().toISOString(),
-        };
-        const albums = current.albumBooks.some((item) => item.id === id)
-          ? current.albumBooks.map((item) => (item.id === id ? next : item))
-          : [next, ...current.albumBooks];
-        return { ...current, albumBooks: albums };
-      });
+      const pages: AlbumPage[] = [];
+      for (const page of book.pages) {
+        const pageId = page.id || createId('page');
+        pages.push(
+          buildAlbumPage(
+            {
+              id: pageId,
+              photoUri: await persistAlbumPhoto(page.photoUri, id, pageId),
+              caption: page.caption,
+              captionZh: page.captionZh,
+            },
+            () => pageId,
+          ),
+        );
+      }
+      const next = buildAlbumBook(
+        { id, title: book.title, pages, createdAt: new Date().toISOString() },
+        () => id,
+        () => new Date().toISOString(),
+      );
+      update((current) => ({
+        ...current,
+        albumBooks: upsertAlbumBook(current.albumBooks, next),
+      }));
       return id;
     },
     [update],
   );
 
-  const removeAlbumBook = useCallback(
-    (id: string) => {
+  const updateAlbumBook = useCallback(
+    (id: string, patch: { title?: string }) => {
       update((current) => ({
         ...current,
-        albumBooks: current.albumBooks.filter((item) => item.id !== id),
+        albumBooks: current.albumBooks.map((item) =>
+          item.id === id
+            ? { ...item, title: patch.title !== undefined ? patch.title : item.title }
+            : item,
+        ),
+      }));
+    },
+    [update],
+  );
+
+  const addAlbumPage = useCallback(
+    async (bookId: string, page: Omit<AlbumPage, 'id'> & { id?: string }) => {
+      const pageId = page.id ?? createId('page');
+      const photoUri = await persistAlbumPhoto(page.photoUri, bookId, pageId);
+      const nextPage = buildAlbumPage(
+        { id: pageId, photoUri, caption: page.caption, captionZh: page.captionZh },
+        () => pageId,
+      );
+      let added = false;
+      update((current) => {
+        const book = current.albumBooks.find((item) => item.id === bookId);
+        if (!book) return current;
+        added = true;
+        return {
+          ...current,
+          albumBooks: replaceBook(current.albumBooks, addPageToBook(book, nextPage)),
+        };
+      });
+      return added ? pageId : null;
+    },
+    [update],
+  );
+
+  const updateAlbumPage = useCallback(
+    (
+      bookId: string,
+      pageId: string,
+      patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri'>>,
+    ) => {
+      update((current) => {
+        const book = current.albumBooks.find((item) => item.id === bookId);
+        if (!book) return current;
+        return {
+          ...current,
+          albumBooks: replaceBook(current.albumBooks, patchPageInBook(book, pageId, patch)),
+        };
+      });
+    },
+    [update],
+  );
+
+  const removeAlbumPage = useCallback(
+    async (bookId: string, pageId: string) => {
+      let photoUri: string | undefined;
+      update((current) => {
+        const book = current.albumBooks.find((item) => item.id === bookId);
+        photoUri = book?.pages.find((item) => item.id === pageId)?.photoUri;
+        if (!book) return current;
+        return {
+          ...current,
+          albumBooks: replaceBook(current.albumBooks, removePageFromBook(book, pageId)),
+        };
+      });
+      if (photoUri) await deleteAlbumPhoto(photoUri);
+    },
+    [update],
+  );
+
+  const removeAlbumBook = useCallback(
+    async (id: string) => {
+      await deleteAlbumBookFiles(id);
+      update((current) => ({
+        ...current,
+        albumBooks: removeAlbumBookById(current.albumBooks, id),
       }));
     },
     [update],
   );
 
   const resetDemo = useCallback(async () => {
+    await clearAllAlbumFiles();
     await clearState();
     const fresh = defaultState();
     setState({
@@ -355,6 +469,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       addFeedback,
       markFeedbackRead,
       addAlbumBook,
+      updateAlbumBook,
+      addAlbumPage,
+      updateAlbumPage,
+      removeAlbumPage,
       removeAlbumBook,
       resetDemo,
       progressFor,
@@ -378,6 +496,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       addFeedback,
       markFeedbackRead,
       addAlbumBook,
+      updateAlbumBook,
+      addAlbumPage,
+      updateAlbumPage,
+      removeAlbumPage,
       removeAlbumBook,
       resetDemo,
       progressFor,

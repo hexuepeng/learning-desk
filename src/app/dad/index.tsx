@@ -13,14 +13,17 @@ export default function DadDesk() {
   const { done, total } = dailyProgress(state.daily);
 
   return (
-    <Screen title={t('dadDesk')} subtitle="进度、词表、默写台阶、孩子留言。v0.1 全部本机。" back>
+    <Screen title={t('dadDesk')} subtitle="进度、词表、默写台阶、我家的书、孩子留言。全部本机。" back>
       <Card style={styles.summary}>
         <Text style={styles.line}>连胜 {state.streak.current} 天 · 今日卡 {done}/{total}</Text>
-        <Text style={styles.line}>词表 {state.words.length} · 未读留言 {unread}</Text>
+        <Text style={styles.line}>
+          词表 {state.words.length} · 我家的书 {state.albumBooks.length} · 未读留言 {unread}
+        </Text>
       </Card>
       <View style={styles.col}>
         <KidButton label={t('progress')} variant="secondary" onPress={() => router.push('/dad/progress')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
+        <KidButton label={t('familyBooks')} variant="secondary" onPress={() => router.push('/dad/albums')} />
         <KidButton label={t('dictationSettings')} variant="secondary" onPress={() => router.push('/dad/dictation')} />
         <KidButton
           label={`${t('feedbackInbox')}${unread ? `（${unread}）` : ''}`}

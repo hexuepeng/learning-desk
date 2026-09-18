@@ -6,6 +6,7 @@ import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { dailyProgress, isDailyComplete } from '@/lib/daily';
+import { APP_VERSION } from '@/constants/version';
 import { t } from '@/i18n';
 
 export default function HomeScreen() {
@@ -64,7 +65,7 @@ export default function HomeScreen() {
       <KidButton label={`💬 ${t('tellDad')}`} variant="secondary" onPress={() => router.push('/tell-dad')} />
 
       <Pressable onPress={openDad} style={styles.version}>
-        <Text style={styles.versionText}>v0.1.0{hint ? ' · 再点几次打开爸爸书桌' : ''}</Text>
+        <Text style={styles.versionText}>v{APP_VERSION}{hint ? ' · 再点几次打开爸爸书桌' : ''}</Text>
       </Pressable>
     </Screen>
   );
