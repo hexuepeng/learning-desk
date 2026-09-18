@@ -2,7 +2,7 @@
   "expo": {
     "name": "学习台",
     "slug": "learning-desk",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "learningdesk",
@@ -40,7 +40,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "学习台用相册照片做家庭绘本，照片只保存在这台设备上。"
+          "photosPermission": "学习台用相册照片做家庭绘本，照片只保存在这台设备上。",
+          "cameraPermission": "学习台用相机拍家庭绘本，照片只保存在这台设备上。"
         }
       ]
     ],

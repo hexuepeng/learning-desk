@@ -41,8 +41,11 @@ export type FeedbackItem = {
 
 export type AlbumPage = {
   id: string;
+  /** 本机文档目录相对路径，或尚未拷贝时的临时 URI */
   photoUri: string;
   caption: string;
+  /** 可选中文释义，仅展示不朗读 */
+  captionZh: string;
 };
 
 export type AlbumBook = {

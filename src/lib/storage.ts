@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { createSampleWords } from '../content/sampleWords.ts';
+import { normalizeAlbumBooks } from './album.ts';
 import { clampEnabledTypes, defaultDictationSettings } from './dictation.ts';
 import { emptyStreak } from './streak.ts';
 import type { PersistedState } from '../types/models.ts';
@@ -37,7 +38,7 @@ function migrate(raw: unknown): PersistedState {
       autoAdjust: data.dictationSettings?.autoAdjust ?? true,
     },
     feedback: Array.isArray(data.feedback) ? data.feedback : [],
-    albumBooks: Array.isArray(data.albumBooks) ? data.albumBooks : [],
+    albumBooks: normalizeAlbumBooks(data.albumBooks),
     streak: data.streak ?? emptyStreak(),
     daily: data.daily ?? null,
     parentPin: data.parentPin?.match(/^\d{4}$/) ? data.parentPin : DEFAULT_PARENT_PIN,
