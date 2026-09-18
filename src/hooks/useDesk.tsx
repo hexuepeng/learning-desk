@@ -26,6 +26,17 @@ import {
   persistAlbumPhoto,
 } from '@/lib/albumFiles';
 import {
+  albumPageRecordingRelativePath,
+  guessAudioExt,
+  wordRecordingRelativePath,
+} from '@/lib/recording';
+import {
+  clearAllRecordingFiles,
+  deleteAlbumBookRecordings,
+  deleteRecordingFile,
+  persistRecordingFile,
+} from '@/lib/recordingFiles';
+import {
   clampEnabledTypes,
   currentDictationType,
   emptyProgress,
@@ -59,6 +70,7 @@ type DeskContextValue = {
   changePin: (pin: string) => boolean;
   upsertWord: (input: { id?: string; en: string; zh: string }) => void;
   removeWord: (id: string) => void;
+  setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
   importWordText: (text: string) => number;
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
@@ -76,8 +88,13 @@ type DeskContextValue = {
   updateAlbumPage: (
     bookId: string,
     pageId: string,
-    patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri'>>,
+    patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri' | 'recordingUri'>>,
   ) => void;
+  setAlbumPageRecording: (
+    bookId: string,
+    pageId: string,
+    sourceUri: string | null,
+  ) => Promise<void>;
   removeAlbumPage: (bookId: string, pageId: string) => Promise<void>;
   removeAlbumBook: (id: string) => Promise<void>;
   resetDemo: () => Promise<void>;
@@ -159,10 +176,51 @@ export function DeskProvider({ children }: { children: ReactNode }) {
 
   const removeWord = useCallback(
     (id: string) => {
-      update((current) => ({
-        ...current,
-        words: current.words.filter((word) => word.id !== id),
-      }));
+      let recordingUri: string | null | undefined;
+      update((current) => {
+        recordingUri = current.words.find((word) => word.id === id)?.recordingUri;
+        return {
+          ...current,
+          words: current.words.filter((word) => word.id !== id),
+        };
+      });
+      if (recordingUri) void deleteRecordingFile(recordingUri);
+    },
+    [update],
+  );
+
+  const setWordRecording = useCallback(
+    async (wordId: string, sourceUri: string | null) => {
+      if (!sourceUri) {
+        let previous: string | null | undefined;
+        update((current) => {
+          previous = current.words.find((word) => word.id === wordId)?.recordingUri;
+          return {
+            ...current,
+            words: current.words.map((word) =>
+              word.id === wordId ? { ...word, recordingUri: null } : word,
+            ),
+          };
+        });
+        if (previous) await deleteRecordingFile(previous);
+        return;
+      }
+      const stored = await persistRecordingFile(
+        sourceUri,
+        wordRecordingRelativePath(wordId, guessAudioExt(sourceUri)),
+      );
+      let previous: string | null | undefined;
+      update((current) => {
+        previous = current.words.find((word) => word.id === wordId)?.recordingUri;
+        if (!current.words.some((word) => word.id === wordId)) return current;
+        return {
+          ...current,
+          words: current.words.map((word) =>
+            word.id === wordId ? { ...word, recordingUri: stored } : word,
+          ),
+        };
+      });
+      if (previous && previous !== stored) await deleteRecordingFile(previous);
     },
     [update],
   );
@@ -193,6 +251,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const restoreSampleWords = useCallback(() => {
+    const removed = state.words
+      .filter((word) => word.source === 'sample' && word.recordingUri)
+      .map((word) => word.recordingUri as string);
     update((current) => {
       const samples = createSampleWords();
       const parentWords = current.words.filter((word) => word.source === 'parent');
@@ -202,7 +263,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         words: [...parentWords, ...samples.filter((word) => !have.has(word.en.toLowerCase()))],
       };
     });
-  }, [update]);
+    for (const uri of removed) void deleteRecordingFile(uri);
+  }, [state.words, update]);
 
   const setDictationType = useCallback(
     (type: DictationType, on: boolean) => {
@@ -337,6 +399,12 @@ export function DeskProvider({ children }: { children: ReactNode }) {
               photoUri: await persistAlbumPhoto(page.photoUri, id, pageId),
               caption: page.caption,
               captionZh: page.captionZh,
+              recordingUri: page.recordingUri
+                ? await persistRecordingFile(
+                    page.recordingUri,
+                    albumPageRecordingRelativePath(id, pageId, guessAudioExt(page.recordingUri)),
+                  )
+                : null,
             },
             () => pageId,
           ),
@@ -374,8 +442,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     async (bookId: string, page: Omit<AlbumPage, 'id'> & { id?: string }) => {
       const pageId = page.id ?? createId('page');
       const photoUri = await persistAlbumPhoto(page.photoUri, bookId, pageId);
+      const recordingUri = page.recordingUri
+        ? await persistRecordingFile(
+            page.recordingUri,
+            albumPageRecordingRelativePath(bookId, pageId, guessAudioExt(page.recordingUri)),
+          )
+        : null;
       const nextPage = buildAlbumPage(
-        { id: pageId, photoUri, caption: page.caption, captionZh: page.captionZh },
+        { id: pageId, photoUri, caption: page.caption, captionZh: page.captionZh, recordingUri },
         () => pageId,
       );
       let added = false;
@@ -397,7 +471,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     (
       bookId: string,
       pageId: string,
-      patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri'>>,
+      patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri' | 'recordingUri'>>,
     ) => {
       update((current) => {
         const book = current.albumBooks.find((item) => item.id === bookId);
@@ -411,12 +485,56 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const setAlbumPageRecording = useCallback(
+    async (bookId: string, pageId: string, sourceUri: string | null) => {
+      if (!sourceUri) {
+        let previous: string | null | undefined;
+        update((current) => {
+          const book = current.albumBooks.find((item) => item.id === bookId);
+          previous = book?.pages.find((item) => item.id === pageId)?.recordingUri;
+          if (!book) return current;
+          return {
+            ...current,
+            albumBooks: replaceBook(
+              current.albumBooks,
+              patchPageInBook(book, pageId, { recordingUri: null }),
+            ),
+          };
+        });
+        if (previous) await deleteRecordingFile(previous);
+        return;
+      }
+      const stored = await persistRecordingFile(
+        sourceUri,
+        albumPageRecordingRelativePath(bookId, pageId, guessAudioExt(sourceUri)),
+      );
+      let previous: string | null | undefined;
+      update((current) => {
+        const book = current.albumBooks.find((item) => item.id === bookId);
+        previous = book?.pages.find((item) => item.id === pageId)?.recordingUri;
+        if (!book) return current;
+        return {
+          ...current,
+          albumBooks: replaceBook(
+            current.albumBooks,
+            patchPageInBook(book, pageId, { recordingUri: stored }),
+          ),
+        };
+      });
+      if (previous && previous !== stored) await deleteRecordingFile(previous);
+    },
+    [update],
+  );
+
   const removeAlbumPage = useCallback(
     async (bookId: string, pageId: string) => {
       let photoUri: string | undefined;
+      let recordingUri: string | null | undefined;
       update((current) => {
         const book = current.albumBooks.find((item) => item.id === bookId);
-        photoUri = book?.pages.find((item) => item.id === pageId)?.photoUri;
+        const page = book?.pages.find((item) => item.id === pageId);
+        photoUri = page?.photoUri;
+        recordingUri = page?.recordingUri;
         if (!book) return current;
         return {
           ...current,
@@ -424,6 +542,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         };
       });
       if (photoUri) await deleteAlbumPhoto(photoUri);
+      if (recordingUri) await deleteRecordingFile(recordingUri);
     },
     [update],
   );
@@ -431,6 +550,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   const removeAlbumBook = useCallback(
     async (id: string) => {
       await deleteAlbumBookFiles(id);
+      await deleteAlbumBookRecordings(id);
       update((current) => ({
         ...current,
         albumBooks: removeAlbumBookById(current.albumBooks, id),
@@ -441,6 +561,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
 
   const resetDemo = useCallback(async () => {
     await clearAllAlbumFiles();
+    await clearAllRecordingFiles();
     await clearState();
     const fresh = defaultState();
     setState({
@@ -460,6 +581,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       changePin,
       upsertWord,
       removeWord,
+      setWordRecording,
       importWordText,
       restoreSampleWords,
       setDictationType,
@@ -472,6 +594,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       updateAlbumBook,
       addAlbumPage,
       updateAlbumPage,
+      setAlbumPageRecording,
       removeAlbumPage,
       removeAlbumBook,
       resetDemo,
@@ -487,6 +610,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       changePin,
       upsertWord,
       removeWord,
+      setWordRecording,
       importWordText,
       restoreSampleWords,
       setDictationType,
@@ -499,6 +623,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       updateAlbumBook,
       addAlbumPage,
       updateAlbumPage,
+      setAlbumPageRecording,
       removeAlbumPage,
       removeAlbumBook,
       resetDemo,

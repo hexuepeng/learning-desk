@@ -52,11 +52,16 @@ export function normalizeAlbumPage(raw: unknown): AlbumPage | null {
   const data = raw as Record<string, unknown>;
   if (typeof data.id !== 'string' || !data.id.trim()) return null;
   if (typeof data.photoUri !== 'string' || !data.photoUri.trim()) return null;
+  const recordingUri =
+    typeof data.recordingUri === 'string' && data.recordingUri.trim()
+      ? data.recordingUri.trim()
+      : null;
   return {
     id: data.id,
     photoUri: data.photoUri.trim(),
     caption: typeof data.caption === 'string' ? data.caption : '',
     captionZh: typeof data.captionZh === 'string' ? data.captionZh : '',
+    recordingUri,
   };
 }
 
@@ -81,7 +86,13 @@ export function normalizeAlbumBooks(raw: unknown): AlbumBook[] {
 }
 
 export function buildAlbumPage(
-  input: { id?: string; photoUri: string; caption?: string; captionZh?: string },
+  input: {
+    id?: string;
+    photoUri: string;
+    caption?: string;
+    captionZh?: string;
+    recordingUri?: string | null;
+  },
   makeId: () => string,
 ): AlbumPage {
   return {
@@ -89,6 +100,7 @@ export function buildAlbumPage(
     photoUri: input.photoUri,
     caption: input.caption ?? '',
     captionZh: input.captionZh ?? '',
+    recordingUri: input.recordingUri ?? null,
   };
 }
 
@@ -131,7 +143,7 @@ export function addPageToBook(book: AlbumBook, page: AlbumPage): AlbumBook {
 export function patchPageInBook(
   book: AlbumBook,
   pageId: string,
-  patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri'>>,
+  patch: Partial<Pick<AlbumPage, 'caption' | 'captionZh' | 'photoUri' | 'recordingUri'>>,
 ): AlbumBook {
   return {
     ...book,

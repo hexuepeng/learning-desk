@@ -1,5 +1,7 @@
 import * as Speech from 'expo-speech';
 
+export { hasRecordingOverride, resolveSpeakSource } from './speakSource.ts';
+
 export function speakEnglish(text: string): void {
   const trimmed = text.trim();
   if (!trimmed) return;
@@ -13,9 +15,4 @@ export function speakEnglish(text: string): void {
 
 export function stopSpeaking(): void {
   Speech.stop();
-}
-
-/** v0.1：家长录音覆盖尚未接通，仅保留钩子。 */
-export function hasRecordingOverride(uri?: string | null): boolean {
-  return Boolean(uri);
 }

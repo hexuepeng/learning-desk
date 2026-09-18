@@ -4,18 +4,48 @@ import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AlbumPageEditor } from '@/components/albumUi';
 import { Card, KidButton, Screen } from '@/components/ui';
+import { voiceClipStatus } from '@/components/VoiceClipBar';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import {
+  MIC_PERMISSION_COPY,
+  clipKey,
+  useParentClipRecorder,
+} from '@/hooks/useParentClipRecorder';
 import { FAMILY_ALBUM_LABEL } from '@/lib/album';
+import { playCue } from '@/lib/playCue';
 import { pickDevicePhoto, photoPermissionCopy, type PhotoSource } from '@/lib/pickAlbumPhoto';
 import { createId } from '@/lib/util';
 import type { AlbumPage } from '@/types/models';
+
+const DRAFT_BOOK = 'draft';
 
 export default function NewAlbumBook() {
   const { addAlbumBook } = useDesk();
   const [title, setTitle] = useState('我家的一天');
   const [pages, setPages] = useState<AlbumPage[]>([]);
   const [saving, setSaving] = useState(false);
+  const clip = useParentClipRecorder((target, uri) => {
+    if (target.kind !== 'album') return;
+    setPages((current) =>
+      current.map((item) => (item.id === target.pageId ? { ...item, recordingUri: uri } : item)),
+    );
+  });
+
+  const startClip = async (pageId: string) => {
+    const outcome = await clip.start({ kind: 'album', bookId: DRAFT_BOOK, pageId });
+    if (outcome === 'permission') {
+      Alert.alert(MIC_PERMISSION_COPY.title, MIC_PERMISSION_COPY.body);
+    } else if (outcome === 'failed') {
+      Alert.alert('没录上', '请再试一次。');
+    }
+  };
+
+  const stopClip = async () => {
+    const hadTarget = Boolean(clip.target);
+    const result = await clip.stop();
+    if (!result && hadTarget) Alert.alert('没录上', '请对着麦克风再说一次。');
+  };
 
   const addPhoto = async (source: PhotoSource) => {
     const result = await pickDevicePhoto(source);
@@ -84,6 +114,32 @@ export default function NewAlbumBook() {
               current.map((item) => (item.id === page.id ? { ...item, captionZh } : item)),
             )
           }
+          clip={{
+            status: voiceClipStatus(
+              page.recordingUri,
+              Boolean(
+                clip.target &&
+                  clipKey(clip.target) ===
+                    clipKey({ kind: 'album', bookId: DRAFT_BOOK, pageId: page.id }),
+              ),
+            ),
+            disabled: Boolean(clip.target) && clip.target?.kind === 'album'
+              ? clip.target.pageId !== page.id
+              : Boolean(clip.target),
+            elapsedMs:
+              clip.target?.kind === 'album' && clip.target.pageId === page.id
+                ? clip.durationMillis
+                : 0,
+            onRecord: () => void startClip(page.id),
+            onStop: () => void stopClip(),
+            onPreview: () => playCue(page.caption, page.recordingUri),
+            onDelete: () =>
+              setPages((current) =>
+                current.map((item) =>
+                  item.id === page.id ? { ...item, recordingUri: null } : item,
+                ),
+              ),
+          }}
           onRemove={() => setPages((current) => current.filter((item) => item.id !== page.id))}
         />
       ))}

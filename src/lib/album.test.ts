@@ -69,6 +69,7 @@ describe('album normalize and persist shape', () => {
       photoUri: 'albums/b/p.jpg',
       caption: 'This is my cat.',
       captionZh: '',
+      recordingUri: null,
     });
 
     const book = normalizeAlbumBook({
@@ -79,6 +80,13 @@ describe('album normalize and persist shape', () => {
     });
     assert.equal(book?.title, FAMILY_ALBUM_LABEL);
     assert.equal(book?.pages.length, 1);
+
+    const withVoice = normalizeAlbumPage({
+      id: 'p2',
+      photoUri: 'albums/b/p2.jpg',
+      recordingUri: '  recordings/albums/b/p2.m4a  ',
+    });
+    assert.equal(withVoice?.recordingUri, 'recordings/albums/b/p2.m4a');
 
     assert.deepEqual(normalizeAlbumBooks('nope'), []);
     assert.equal(normalizeAlbumBooks([{ id: 'ok', pages: [] }])[0]?.id, 'ok');
@@ -104,6 +112,14 @@ describe('album normalize and persist shape', () => {
     const patched = patchPageInBook(added, page.id, { caption: 'This is my cat.' });
     assert.equal(patched.pages[0]?.caption, 'This is my cat.');
     assert.equal(patched.pages[0]?.captionZh, '你好。');
+    assert.equal(patched.pages[0]?.recordingUri, null);
+
+    const withVoice = patchPageInBook(patched, page.id, {
+      recordingUri: 'recordings/albums/b/p.m4a',
+    });
+    assert.equal(withVoice.pages[0]?.recordingUri, 'recordings/albums/b/p.m4a');
+    const clearedVoice = patchPageInBook(withVoice, page.id, { recordingUri: null });
+    assert.equal(clearedVoice.pages[0]?.recordingUri, null);
 
     const trimmed = removePageFromBook(patched, page.id);
     assert.equal(trimmed.pages.length, 1);

@@ -19,7 +19,7 @@ import {
 } from '@/lib/dictation';
 import { hapticError, hapticLight, hapticSuccess } from '@/lib/haptics';
 import { answersMatch } from '@/lib/parseWordList';
-import { speakEnglish } from '@/lib/tts';
+import { playCue } from '@/lib/playCue';
 import type { DictationType, Word } from '@/types/models';
 
 export function DictationPlay({
@@ -38,8 +38,8 @@ export function DictationPlay({
 
   useEffect(() => {
     setResult(null);
-    if (type === 'listen-write') speakEnglish(word.en);
-  }, [word.id, type, word.en]);
+    if (type === 'listen-write') playCue(word.en, word.recordingUri);
+  }, [word.id, type, word.en, word.recordingUri]);
 
   const finish = (correct: boolean) => {
     if (result != null) return;
@@ -76,7 +76,7 @@ export function DictationPlay({
           <Text style={styles.answer}>
             {word.en} · {word.zh}
           </Text>
-          <SpeakButton text={word.en} />
+          <SpeakButton text={word.en} recordingUri={word.recordingUri} />
           <KidButton label={t('next')} onPress={() => onResolved(result)} />
         </View>
       )}
@@ -99,7 +99,7 @@ function PickWord({
   return (
     <View style={styles.block}>
       <Text style={styles.prompt}>{word.zh}</Text>
-      <SpeakButton text={word.en} label="提示发音" />
+      <SpeakButton text={word.en} label="提示发音" recordingUri={word.recordingUri} />
       <View style={styles.options}>
         {options.map((item, index) => (
           <KidButton
@@ -284,7 +284,7 @@ function WriteWord({
   return (
     <View style={styles.block}>
       {showZh ? <Text style={styles.prompt}>{word.zh}</Text> : <Text style={styles.prompt}>？</Text>}
-      {listen ? <SpeakButton text={word.en} /> : null}
+      {listen ? <SpeakButton text={word.en} recordingUri={word.recordingUri} /> : null}
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}

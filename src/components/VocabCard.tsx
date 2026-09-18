@@ -20,7 +20,7 @@ export function VocabCard({
   return (
     <View style={styles.wrap}>
       <Text style={styles.en}>{word.en}</Text>
-      <SpeakButton text={word.en} />
+      <SpeakButton text={word.en} recordingUri={word.recordingUri} />
       <Text style={styles.zh}>{showZh ? word.zh : ' '}</Text>
       <KidButton
         label={showZh ? '盖上中文' : '看中文'}

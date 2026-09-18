@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Card, KidButton } from '@/components/ui';
+import { VoiceClipBar, type VoiceClipStatus } from '@/components/VoiceClipBar';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { FAMILY_ALBUM_LABEL } from '@/lib/album';
 import { displayAlbumPhotoUri } from '@/lib/albumFiles';
@@ -20,12 +21,22 @@ export function AlbumPageEditor({
   onCaption,
   onCaptionZh,
   onRemove,
+  clip,
 }: {
   page: AlbumPage;
   index: number;
   onCaption: (caption: string) => void;
   onCaptionZh: (captionZh: string) => void;
   onRemove: () => void;
+  clip?: {
+    status: VoiceClipStatus;
+    disabled?: boolean;
+    elapsedMs?: number;
+    onRecord: () => void;
+    onStop: () => void;
+    onPreview: () => void;
+    onDelete: () => void;
+  };
 }) {
   return (
     <Card style={styles.page}>
@@ -51,6 +62,20 @@ export function AlbumPageEditor({
         value={page.captionZh}
         onChangeText={onCaptionZh}
       />
+      {clip ? (
+        <>
+          <Text style={styles.fieldLabel}>说明的发音</Text>
+          <VoiceClipBar
+            status={clip.status}
+            disabled={clip.disabled}
+            elapsedMs={clip.elapsedMs}
+            onRecord={clip.onRecord}
+            onStop={clip.onStop}
+            onPreview={clip.onPreview}
+            onDelete={clip.onDelete}
+          />
+        </>
+      ) : null}
       <KidButton label={`去掉第 ${index + 1} 页`} variant="ghost" compact onPress={onRemove} />
     </Card>
   );

@@ -3,28 +3,33 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { Colors, Radius } from '@/constants/theme';
 import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
-import { speakEnglish } from '@/lib/tts';
+import { playCue } from '@/lib/playCue';
+import { hasRecordingOverride } from '@/lib/speakSource';
 
 export function SpeakButton({
   text,
   label,
+  recordingUri,
 }: {
   text: string;
   label?: string;
+  recordingUri?: string | null;
 }) {
   const { tap } = useLayout();
+  const dadVoice = hasRecordingOverride(recordingUri);
+  const caption = label ?? (dadVoice ? t('listenDad') : t('listen'));
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label ?? t('listen')}
-      onPress={() => speakEnglish(text)}
+      accessibilityLabel={caption}
+      onPress={() => playCue(text, recordingUri)}
       style={({ pressed }) => [
         styles.btn,
         { minHeight: tap, minWidth: tap, opacity: pressed ? 0.85 : 1 },
       ]}
     >
       <Text style={styles.icon}>🔊</Text>
-      <Text style={styles.label}>{label ?? t('listen')}</Text>
+      <Text style={styles.label}>{caption}</Text>
     </Pressable>
   );
 }
