@@ -2,7 +2,7 @@ export type SpeakSource =
   | { kind: 'recording'; uri: string; text: string }
   | { kind: 'tts'; text: string };
 
-export type VoiceClipStatus = 'empty' | 'ready' | 'recording';
+export type VoiceClipStatus = 'empty' | 'ready' | 'recording' | 'arming';
 
 /** 有家长录音时优先播录音，否则用设备英语 TTS。 */
 export function hasRecordingOverride(uri?: string | null): boolean {
@@ -20,8 +20,10 @@ export function resolveSpeakSource(text: string, recordingUri?: string | null): 
 
 export function voiceClipStatus(
   recordingUri: string | null | undefined,
-  recording: boolean,
+  selected: boolean,
+  isRecording = false,
 ): VoiceClipStatus {
-  if (recording) return 'recording';
+  if (selected && isRecording) return 'recording';
+  if (selected) return 'arming';
   return hasRecordingOverride(recordingUri) ? 'ready' : 'empty';
 }

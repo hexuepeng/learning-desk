@@ -26,10 +26,15 @@ export function VoiceClipBar({
 }) {
   const seconds = Math.max(1, Math.ceil(elapsedMs / 1000));
 
-  if (status === 'recording') {
+  if (status === 'arming' || status === 'recording') {
     return (
-      <View style={styles.wrap} accessibilityLabel="正在录音">
-        <Text style={styles.live}>正在录音… {seconds} 秒</Text>
+      <View
+        style={styles.wrap}
+        accessibilityLabel={status === 'recording' ? '正在录音' : '正在打开麦克风'}
+      >
+        <Text style={styles.live}>
+          {status === 'recording' ? `正在录音… ${seconds} 秒` : '正在打开麦克风…'}
+        </Text>
         <Text style={styles.meta}>录音只留在这台设备上。</Text>
         <KidButton label="停止" variant="danger" onPress={onStop} />
       </View>

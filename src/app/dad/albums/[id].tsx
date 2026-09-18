@@ -125,6 +125,7 @@ export default function DadAlbumEditor() {
                     clipKey(clip.target) ===
                       clipKey({ kind: 'album', bookId: book.id, pageId: page.id }),
                 ),
+                clip.isRecording,
               ),
               disabled: Boolean(clip.target) && clip.target?.kind === 'album'
                 ? clip.target.pageId !== page.id

@@ -38,10 +38,11 @@ describe('resolveSpeakSource prefers parent recording over TTS', () => {
     }
   });
 
-  it('maps UI states: empty, has recording, recording in progress', () => {
+  it('maps UI states: empty, has recording, arming, recording in progress', () => {
     assert.equal(voiceClipStatus(null, false), 'empty');
     assert.equal(voiceClipStatus('recordings/words/w1.m4a', false), 'ready');
-    assert.equal(voiceClipStatus(null, true), 'recording');
-    assert.equal(voiceClipStatus('recordings/words/w1.m4a', true), 'recording');
+    assert.equal(voiceClipStatus(null, true, false), 'arming');
+    assert.equal(voiceClipStatus(null, true, true), 'recording');
+    assert.equal(voiceClipStatus('recordings/words/w1.m4a', true, true), 'recording');
   });
 });

@@ -32,6 +32,7 @@ export function useParentClipRecorder(
   const [target, setTarget] = useState<ClipTarget | null>(null);
   const targetRef = useRef<ClipTarget | null>(null);
   const finishing = useRef(false);
+  const liveRef = useRef(false);
   const persistRef = useRef(persistClip);
   persistRef.current = persistClip;
 
@@ -46,12 +47,14 @@ export function useParentClipRecorder(
     if (finishing.current) return null;
     finishing.current = true;
     const current = targetRef.current;
+    const didRecord = liveRef.current;
     try {
       if (recorder.isRecording) {
         await recorder.stop();
       }
       const uri = recorder.uri;
       targetRef.current = null;
+      liveRef.current = false;
       setTarget(null);
       try {
         await setAudioModeAsync({
@@ -62,11 +65,12 @@ export function useParentClipRecorder(
       } catch {
         // 模式切回失败不影响已录文件
       }
-      if (!current || !uri) return null;
+      if (!didRecord || !current || !uri) return null;
       await persistRef.current?.(current, uri);
       return { target: current, uri };
     } catch {
       targetRef.current = null;
+      liveRef.current = false;
       setTarget(null);
       return null;
     } finally {
@@ -77,9 +81,17 @@ export function useParentClipRecorder(
   const start = useCallback(
     async (next: ClipTarget): Promise<'ok' | 'permission' | 'busy' | 'failed'> => {
       if (targetRef.current) return 'busy';
-      const granted = await ensureMic();
-      if (!granted) return 'permission';
+      targetRef.current = next;
+      liveRef.current = false;
+      setTarget(next);
       try {
+        const granted = await ensureMic();
+        if (targetRef.current !== next) return 'busy';
+        if (!granted) {
+          targetRef.current = null;
+          setTarget(null);
+          return 'permission';
+        }
         stopCue();
         await setAudioModeAsync({
           playsInSilentMode: true,
@@ -87,14 +99,18 @@ export function useParentClipRecorder(
           shouldPlayInBackground: false,
           interruptionMode: 'doNotMix',
         });
+        if (targetRef.current !== next) return 'busy';
         await recorder.prepareToRecordAsync();
-        targetRef.current = next;
-        setTarget(next);
+        if (targetRef.current !== next) return 'busy';
         recorder.record();
+        liveRef.current = true;
         return 'ok';
       } catch {
-        targetRef.current = null;
-        setTarget(null);
+        if (targetRef.current === next) {
+          targetRef.current = null;
+          setTarget(null);
+        }
+        liveRef.current = false;
         return 'failed';
       }
     },

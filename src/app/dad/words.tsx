@@ -110,7 +110,7 @@ export default function DadWords() {
                 />
               </View>
               <VoiceClipBar
-                status={voiceClipStatus(word.recordingUri, recording)}
+                status={voiceClipStatus(word.recordingUri, recording, clip.isRecording)}
                 disabled={Boolean(clip.target) && !recording}
                 elapsedMs={recording ? clip.durationMillis : 0}
                 onRecord={() => void startClip(word.id)}
