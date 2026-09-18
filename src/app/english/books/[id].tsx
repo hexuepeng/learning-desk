@@ -58,7 +58,9 @@ export default function BookReader() {
             <Text style={styles.en}>{current.caption || '（还没有说明）'}</Text>
             {current.captionZh ? <Text style={styles.zh}>{current.captionZh}</Text> : null}
           </SwipePage>
-          {current.caption ? <SpeakButton text={current.caption} /> : null}
+          {current.caption || current.recordingUri ? (
+            <SpeakButton text={current.caption} recordingUri={current.recordingUri} />
+          ) : null}
           <Pager page={page} total={album.pages.length} onChange={setPage} />
         </Card>
       </Screen>

@@ -36,7 +36,7 @@ export default function DadDesk() {
           label="恢复示例数据"
           variant="ghost"
           onPress={() =>
-            Alert.alert('恢复示例？', '词表、进度、留言会回到 v0.1 示例。', [
+            Alert.alert('恢复示例？', '词表、进度、留言和本机录音会回到示例。', [
               { text: '取消', style: 'cancel' },
               { text: '恢复', onPress: () => void resetDemo() },
             ])

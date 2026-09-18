@@ -2,7 +2,7 @@
   "expo": {
     "name": "学习台",
     "slug": "learning-desk",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "learningdesk",
@@ -42,6 +42,14 @@
         {
           "photosPermission": "学习台用相册照片做家庭绘本，照片只保存在这台设备上。",
           "cameraPermission": "学习台用相机拍家庭绘本，照片只保存在这台设备上。"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "学习台用麦克风录爸爸的发音，录音只保存在这台设备上。",
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
         }
       ]
     ],

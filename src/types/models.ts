@@ -13,7 +13,7 @@ export type Word = {
   zh: string;
   source: WordSource;
   createdAt: string;
-  /** 家长录音覆盖；v0.1 仅预留 */
+  /** 本机家长录音相对路径；有则播放优先于 TTS */
   recordingUri?: string | null;
 };
 
@@ -46,6 +46,8 @@ export type AlbumPage = {
   caption: string;
   /** 可选中文释义，仅展示不朗读 */
   captionZh: string;
+  /** 本机家长录音相对路径；有则朗读说明时优先播放 */
+  recordingUri?: string | null;
 };
 
 export type AlbumBook = {
