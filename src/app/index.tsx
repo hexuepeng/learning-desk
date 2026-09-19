@@ -3,11 +3,14 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DailyProgress } from '@/components/DailyProgress';
+import { StarsRow } from '@/components/StarsRow';
 import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { useLayout } from '@/hooks/useLayout';
 import { formatDailyProgress, isDailyComplete } from '@/lib/daily';
+import { consecutiveThreeStarDays, todaysStars } from '@/lib/stars';
+import { todayKey } from '@/lib/util';
 import { APP_VERSION } from '@/constants/version';
 import { t } from '@/i18n';
 
@@ -21,6 +24,8 @@ export default function HomeScreen() {
   const daily = state.daily;
   const complete = isDailyComplete(daily);
   const hasWords = (daily?.vocabWordIds.length ?? 0) + (daily?.dictationWordIds.length ?? 0) > 0;
+  const todayStars = todaysStars(state.stars, todayKey());
+  const threeStarRun = consecutiveThreeStarDays(state.stars.byDate, todayKey());
 
   const openDad = () => {
     taps.current += 1;
@@ -55,7 +60,16 @@ export default function HomeScreen() {
           ) : (
             <Text style={[styles.muted, { fontSize: bodySize }]}>请爸爸先加词表</Text>
           )}
-          <Text style={[styles.muted, { fontSize: bodySize }]}>绘本可另外看，不计入今日进度</Text>
+          {todayStars ? (
+            <>
+              <StarsRow stars={todayStars} size={isTablet ? 32 : 26} />
+              <Text style={[styles.muted, { fontSize: bodySize }]}>
+                {threeStarRun >= 2 ? `连续 ${threeStarRun} 天默写满分` : '今天默写的星'}
+              </Text>
+            </>
+          ) : (
+            <Text style={[styles.muted, { fontSize: bodySize }]}>绘本可另外看，不计入今日进度</Text>
+          )}
           <KidButton label={complete ? '再练一会儿' : t('startToday')} onPress={() => router.push('/daily')} />
         </Card>
 

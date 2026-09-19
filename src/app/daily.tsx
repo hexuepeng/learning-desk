@@ -4,11 +4,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Celebration } from '@/components/Celebration';
 import { DailyProgress } from '@/components/DailyProgress';
 import { DictationPlay } from '@/components/DictationPlay';
+import { StarsRow } from '@/components/StarsRow';
 import { VocabCard } from '@/components/VocabCard';
 import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { formatDailyProgress, isDailyComplete, nextDailyStep } from '@/lib/daily';
+import { consecutiveThreeStarDays, shouldShowThreeStarCelebration, todaysStars } from '@/lib/stars';
+import { todayKey } from '@/lib/util';
 
 export default function DailyScreen() {
   const { ready, state, markVocab, markDictation, dictationTypeFor } = useDesk();
@@ -27,13 +30,21 @@ export default function DailyScreen() {
   }
 
   if (isDailyComplete(daily)) {
+    const date = todayKey();
+    const stars = todaysStars(state.stars, date);
+    const celebrateStars = shouldShowThreeStarCelebration(state.stars, date);
     return (
       <Screen title="今日完成" back>
         <Card>
           <Celebration
             title="今日英语做完啦"
-            subtitle={`连胜 ${state.streak.current} 天。绘本想看可以去英语馆，不计入今日卡。`}
+            subtitle={
+              celebrateStars
+                ? `连续 ${consecutiveThreeStarDays(state.stars.byDate, date)} 天默写满分！`
+                : '默写按对错给星：全对三星，错一两个两星。'
+            }
           />
+          {stars ? <StarsRow stars={stars} /> : null}
           <KidButton label="回首页" onPress={() => router.replace('/')} />
         </Card>
       </Screen>
