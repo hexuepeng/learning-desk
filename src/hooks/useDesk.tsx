@@ -41,6 +41,7 @@ import {
   currentDictationType,
   emptyProgress,
   applyDictationResult,
+  withChallengeModes,
 } from '@/lib/dictation';
 import {
   ensureTodayLesson,
@@ -85,6 +86,7 @@ type DeskContextValue = {
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
   setAutoAdjust: (on: boolean) => void;
+  enableChallengeModes: () => void;
   markVocab: (wordId: string, known: boolean, daily?: boolean) => void;
   markDictation: (wordId: string, correct: boolean, daily?: boolean) => WordProgress;
   awardDictationStars: (correct: number, wrong: number) => { stars: StarRating; celebrate: boolean };
@@ -321,6 +323,16 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     },
     [update],
   );
+
+  const enableChallengeModes = useCallback(() => {
+    update((current) => ({
+      ...current,
+      dictationSettings: {
+        ...current.dictationSettings,
+        enabledTypes: withChallengeModes(current.dictationSettings.enabledTypes),
+      },
+    }));
+  }, [update]);
 
   const progressFor = useCallback(
     (wordId: string) => state.progress[wordId] ?? emptyProgress(wordId),
@@ -684,6 +696,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       restoreSampleWords,
       setDictationType,
       setAutoAdjust,
+      enableChallengeModes,
       markVocab,
       markDictation,
       awardDictationStars,
@@ -715,6 +728,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       restoreSampleWords,
       setDictationType,
       setAutoAdjust,
+      enableChallengeModes,
       markVocab,
       markDictation,
       awardDictationStars,

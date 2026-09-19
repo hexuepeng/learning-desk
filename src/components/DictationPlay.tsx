@@ -15,6 +15,7 @@ import {
   makeArrangeTiles,
   makeFillPuzzle,
   pickWordOptions,
+  writingHint,
   type LetterTile,
 } from '@/lib/dictation';
 import { hapticError, hapticLight, hapticSuccess } from '@/lib/haptics';
@@ -353,32 +354,39 @@ function WriteWord({
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
 }) {
-  const { titleSize, tap } = useLayout();
+  const { titleSize, tap, bodySize } = useLayout();
   const [value, setValue] = useState('');
   useEffect(() => setValue(''), [word.id]);
+  const submit = () => {
+    if (disabled || value.trim().length === 0) return;
+    onAnswer(answersMatch(value, word.en));
+  };
   return (
     <View style={styles.block}>
       {showZh ? (
         <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
       ) : (
-        <Text style={[styles.prompt, { fontSize: titleSize }]}>？</Text>
+        <Text style={[styles.prompt, { fontSize: titleSize }]}>只听，不看词</Text>
       )}
-      {listen ? <SpeakButton text={word.en} recordingUri={word.recordingUri} /> : null}
+      <Text style={[styles.hint, { fontSize: bodySize, textAlign: 'center' }]}>{writingHint(word.en)}</Text>
+      {listen ? (
+        <SpeakButton text={word.en} label="再听一遍" recordingUri={word.recordingUri} />
+      ) : null}
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
+        autoComplete="off"
         editable={!disabled}
         placeholder="在这里写下英语单词"
         placeholderTextColor={Colors.muted}
         style={[styles.input, { minHeight: tap + 8 }]}
         value={value}
         onChangeText={setValue}
+        onSubmitEditing={submit}
+        returnKeyType="done"
+        blurOnSubmit
       />
-      <KidButton
-        label={t('check')}
-        disabled={disabled || value.trim().length === 0}
-        onPress={() => onAnswer(answersMatch(value, word.en))}
-      />
+      <KidButton label={t('check')} disabled={disabled || value.trim().length === 0} onPress={submit} />
     </View>
   );
 }

@@ -1,13 +1,18 @@
 import { StyleSheet, Switch, Text, View } from 'react-native';
 
-import { Card, Screen } from '@/components/ui';
+import { Card, KidButton, Screen } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
-import { DICTATION_LADDER, DICTATION_TYPE_LABELS } from '@/lib/dictation';
+import {
+  challengeModesEnabled,
+  DICTATION_LADDER,
+  DICTATION_TYPE_LABELS,
+} from '@/lib/dictation';
 
 export default function DadDictation() {
-  const { state, setDictationType, setAutoAdjust } = useDesk();
+  const { state, setDictationType, setAutoAdjust, enableChallengeModes } = useDesk();
   const enabled = new Set(state.dictationSettings.enabledTypes);
+  const challengesOn = challengeModesEnabled(state.dictationSettings.enabledTypes);
 
   return (
     <Screen
@@ -15,6 +20,18 @@ export default function DadDictation() {
       subtitle="台阶顺序固定：选单词 → 填字母 → 排字母 → 看中文写 → 听写。默认前三档打开，自动升降打开。"
       back
     >
+      <Card style={{ marginBottom: Space.md }}>
+        <Text style={styles.title}>挑战档</Text>
+        <Text style={styles.meta}>
+          一看中文写、二听写。孩子键盘会提示几个字母，听写可反复点「再听一遍」。
+        </Text>
+        <KidButton
+          label={challengesOn ? '挑战档已打开' : '一键打开挑战档'}
+          variant={challengesOn ? 'success' : 'primary'}
+          disabled={challengesOn}
+          onPress={enableChallengeModes}
+        />
+      </Card>
       <Card style={styles.row}>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>答对/答错后自动升降台阶</Text>
