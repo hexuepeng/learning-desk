@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { Celebration } from '@/components/Celebration';
+import { DailyProgress } from '@/components/DailyProgress';
 import { DictationPlay } from '@/components/DictationPlay';
 import { VocabCard } from '@/components/VocabCard';
 import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
-import { isDailyComplete, nextDailyStep } from '@/lib/daily';
+import { formatDailyProgress, isDailyComplete, nextDailyStep } from '@/lib/daily';
 
 export default function DailyScreen() {
   const { ready, state, markVocab, markDictation, dictationTypeFor } = useDesk();
@@ -28,11 +30,10 @@ export default function DailyScreen() {
     return (
       <Screen title="今日完成" back>
         <Card>
-          <Text style={styles.big}>贴纸 +1</Text>
-          <Text style={styles.body}>
-            连胜 {state.streak.current} 天。绘本想看可以去英语馆，不计入今日卡。
-          </Text>
-          <Text style={styles.stickers}>{state.streak.stickers.join(' ')}</Text>
+          <Celebration
+            title="今日英语做完啦"
+            subtitle={`连胜 ${state.streak.current} 天。绘本想看可以去英语馆，不计入今日卡。`}
+          />
           <KidButton label="回首页" onPress={() => router.replace('/')} />
         </Card>
       </Screen>
@@ -60,9 +61,12 @@ export default function DailyScreen() {
   return (
     <Screen
       title="今日英语"
-      subtitle={step.kind === 'vocab' ? '先背词' : '再默写'}
+      subtitle={`${step.kind === 'vocab' ? '先背词' : '再默写'} · ${formatDailyProgress(daily)}`}
       back
     >
+      <Card style={styles.progressCard}>
+        <DailyProgress daily={daily} />
+      </Card>
       {step.kind === 'vocab' ? (
         <Card>
           <VocabCard
@@ -93,15 +97,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: Space.md,
   },
-  big: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: Colors.ink,
-    marginBottom: Space.sm,
-  },
-  stickers: {
-    fontSize: 28,
+  progressCard: {
     marginBottom: Space.md,
+    paddingVertical: Space.md,
   },
   foot: {
     marginTop: Space.lg,

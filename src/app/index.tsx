@@ -2,11 +2,12 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { DailyProgress } from '@/components/DailyProgress';
 import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { useLayout } from '@/hooks/useLayout';
-import { dailyProgress, isDailyComplete } from '@/lib/daily';
+import { formatDailyProgress, isDailyComplete } from '@/lib/daily';
 import { APP_VERSION } from '@/constants/version';
 import { t } from '@/i18n';
 
@@ -18,8 +19,8 @@ export default function HomeScreen() {
   if (!ready) return <LoadingScreen />;
 
   const daily = state.daily;
-  const { done, total } = dailyProgress(daily);
   const complete = isDailyComplete(daily);
+  const hasWords = (daily?.vocabWordIds.length ?? 0) + (daily?.dictationWordIds.length ?? 0) > 0;
 
   const openDad = () => {
     taps.current += 1;
@@ -47,16 +48,14 @@ export default function HomeScreen() {
         <Card style={[styles.daily, isTablet && isLandscape && styles.landCol]} onPress={() => router.push('/daily')}>
           <Text style={[styles.kicker, { fontSize: bodySize }]}>{t('todayEnglish')}</Text>
           <Text style={[styles.dailyTitle, { fontSize: Math.min(titleSize, 32) }]}>
-            {complete ? t('todayDone') : `背词 ${daily?.vocabWordIds.length ?? 0} · 默写 ${daily?.dictationWordIds.length ?? 0}`}
+            {complete ? t('todayDone') : formatDailyProgress(daily)}
           </Text>
-          <Text style={[styles.muted, { fontSize: bodySize }]}>
-            {total === 0 ? '请爸爸先加词表' : `进度 ${done}/${total}（绘本可另外看）`}
-          </Text>
-          <View style={styles.dots}>
-            {Array.from({ length: Math.max(total, 1) }).map((_, index) => (
-              <View key={index} style={[styles.dot, index < done && styles.dotOn]} />
-            ))}
-          </View>
+          {hasWords ? (
+            <DailyProgress daily={daily} />
+          ) : (
+            <Text style={[styles.muted, { fontSize: bodySize }]}>请爸爸先加词表</Text>
+          )}
+          <Text style={[styles.muted, { fontSize: bodySize }]}>绘本可另外看，不计入今日进度</Text>
           <KidButton label={complete ? '再练一会儿' : t('startToday')} onPress={() => router.push('/daily')} />
         </Card>
 
@@ -144,20 +143,6 @@ const styles = StyleSheet.create({
   muted: {
     color: Colors.muted,
     fontSize: 16,
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: 8,
-    marginVertical: 8,
-  },
-  dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.paperSoft,
-  },
-  dotOn: {
-    backgroundColor: Colors.success,
   },
   section: {
     fontSize: 20,
