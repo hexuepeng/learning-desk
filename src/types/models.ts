@@ -11,6 +11,8 @@ export type Word = {
   id: string;
   en: string;
   zh: string;
+  source: WordSource;
+  createdAt: string;
   /**
    * 可选英式 IPA。约定写成带斜杠：`/ˈæpl/`。
    * 导入或输入时可省略斜杠，存盘时归一成带斜杠；缺省或空字符串表示没有音标。
