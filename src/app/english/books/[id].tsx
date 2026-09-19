@@ -4,6 +4,7 @@ import { Image, PanResponder, StyleSheet, Text, View } from 'react-native';
 
 import { FamilyBookBadge } from '@/components/albumUi';
 import { SpeakButton } from '@/components/SpeakButton';
+import { TappableWords } from '@/components/TappableWords';
 import { Card, KidButton, Screen } from '@/components/ui';
 import { MINI_BOOKS } from '@/content/miniBooks';
 import { Colors, Radius, Space } from '@/constants/theme';
@@ -14,30 +15,41 @@ import { displayAlbumPhotoUri } from '@/lib/albumFiles';
 
 export default function BookReader() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { state } = useDesk();
+  const { state, addBookWordToToday } = useDesk();
   const { isTablet, isLandscape, compact, titleSize, bodySize } = useLayout();
   const photoHeight = isLandscape ? (isTablet ? 220 : 160) : isTablet ? 360 : 280;
   const pageText = { en: isTablet ? Math.min(titleSize, 32) : 28, zh: bodySize };
   const bundled = MINI_BOOKS.find((book) => book.id === id);
   const album = state.albumBooks.find((book) => book.id === id);
   const [page, setPage] = useState(0);
+  const [toast, setToast] = useState('');
+  const goPage = (next: number) => {
+    setPage(next);
+    setToast('');
+  };
+
+  const pickWord = (en: string, zh: string) => {
+    const result = addBookWordToToday(en, zh);
+    setToast(result === 'already' ? `「${en}」已经在今日词表里` : `已把「${en}」加进今日词表`);
+  };
 
   if (bundled) {
     const current = bundled.pages[Math.min(page, bundled.pages.length - 1)];
     return (
       <Screen title={bundled.titleZh} subtitle={bundled.titleEn} back>
         <Card>
-          <SwipePage page={page} total={bundled.pages.length} onChange={setPage}>
+          <SwipePage page={page} total={bundled.pages.length} onChange={goPage}>
             <View style={isLandscape && isTablet ? styles.landPage : undefined}>
               <Text style={[styles.art, compact && styles.artCompact]}>{current.art}</Text>
               <View style={styles.pageCopy}>
-                <Text style={[styles.en, { fontSize: pageText.en }]}>{current.en}</Text>
+                <TappableWords text={current.en} onPick={(word) => pickWord(word, current.zh)} />
                 <Text style={[styles.zh, { fontSize: pageText.zh }]}>{current.zh}</Text>
+                {toast ? <Text style={styles.toast}>{toast}</Text> : null}
               </View>
             </View>
           </SwipePage>
           <SpeakButton text={current.en} />
-          <Pager page={page} total={bundled.pages.length} onChange={setPage} />
+          <Pager page={page} total={bundled.pages.length} onChange={goPage} />
         </Card>
       </Screen>
     );
@@ -57,7 +69,7 @@ export default function BookReader() {
       <Screen title={album.title} subtitle={`${FAMILY_ALBUM_LABEL} · 仅本机`} back>
         <Card>
           <FamilyBookBadge />
-          <SwipePage page={page} total={album.pages.length} onChange={setPage}>
+          <SwipePage page={page} total={album.pages.length} onChange={goPage}>
             <View style={isLandscape && isTablet ? styles.landPage : undefined}>
               <Image
                 source={{ uri: displayAlbumPhotoUri(current.photoUri) }}
@@ -65,19 +77,25 @@ export default function BookReader() {
                 accessibilityLabel={`${album.title} 第 ${page + 1} 页`}
               />
               <View style={styles.pageCopy}>
-                <Text style={[styles.en, { fontSize: pageText.en }]}>
-                  {current.caption || '（还没有说明）'}
-                </Text>
+                {current.caption ? (
+                  <TappableWords
+                    text={current.caption}
+                    onPick={(word) => pickWord(word, current.captionZh || current.caption)}
+                  />
+                ) : (
+                  <Text style={[styles.en, { fontSize: pageText.en }]}>（还没有说明）</Text>
+                )}
                 {current.captionZh ? (
                   <Text style={[styles.zh, { fontSize: pageText.zh }]}>{current.captionZh}</Text>
                 ) : null}
+                {toast ? <Text style={styles.toast}>{toast}</Text> : null}
               </View>
             </View>
           </SwipePage>
           {current.caption || current.recordingUri ? (
             <SpeakButton text={current.caption} recordingUri={current.recordingUri} />
           ) : null}
-          <Pager page={page} total={album.pages.length} onChange={setPage} />
+          <Pager page={page} total={album.pages.length} onChange={goPage} />
         </Card>
       </Screen>
     );
@@ -167,6 +185,12 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     textAlign: 'center',
     marginBottom: Space.md,
+  },
+  toast: {
+    color: Colors.success,
+    textAlign: 'center',
+    fontWeight: '700',
+    marginBottom: Space.sm,
   },
   landPage: {
     flexDirection: 'row',

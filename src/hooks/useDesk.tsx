@@ -44,6 +44,7 @@ import {
   withChallengeModes,
 } from '@/lib/dictation';
 import {
+  addWordToDaily,
   ensureTodayLesson,
   isDailyComplete,
   markDictationDone,
@@ -83,6 +84,7 @@ type DeskContextValue = {
   removeWord: (id: string) => void;
   setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
   importWordText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
+  addBookWordToToday: (en: string, zh: string) => 'added' | 'already';
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
   setAutoAdjust: (on: boolean) => void;
@@ -276,6 +278,36 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       });
       for (const uri of removedRecordings) void deleteRecordingFile(uri);
       return { added, skipped };
+    },
+    [update],
+  );
+
+  const addBookWordToToday = useCallback(
+    (en: string, zh: string): 'added' | 'already' => {
+      const cleanEn = en.trim().replace(/\s+/g, ' ');
+      const cleanZh = zh.trim() || cleanEn;
+      if (!cleanEn) return 'already';
+      let result: 'added' | 'already' = 'added';
+      update((current) => {
+        let words = current.words;
+        let word = words.find((item) => item.en.toLowerCase() === cleanEn.toLowerCase());
+        if (!word) {
+          word = {
+            id: createId('word'),
+            en: cleanEn,
+            zh: cleanZh,
+            source: 'parent',
+            createdAt: new Date().toISOString(),
+          };
+          words = [word, ...words];
+        }
+        const today = ensureTodayLesson(current.daily, words, current.progress);
+        const already =
+          today.vocabWordIds.includes(word.id) || today.dictationWordIds.includes(word.id);
+        result = already ? 'already' : 'added';
+        return { ...current, words, daily: addWordToDaily(today, word.id) };
+      });
+      return result;
     },
     [update],
   );
@@ -693,6 +725,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeWord,
       setWordRecording,
       importWordText,
+      addBookWordToToday,
       restoreSampleWords,
       setDictationType,
       setAutoAdjust,
@@ -725,6 +758,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeWord,
       setWordRecording,
       importWordText,
+      addBookWordToToday,
       restoreSampleWords,
       setDictationType,
       setAutoAdjust,
