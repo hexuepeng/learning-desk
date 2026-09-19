@@ -163,6 +163,13 @@ export function ensureTodayLesson(
   return buildDailyLesson(words, progress, date, DAILY_SIZE, random);
 }
 
+export function addWordToDaily(daily: DailyLesson, wordId: string): DailyLesson {
+  if (daily.vocabWordIds.includes(wordId) || daily.dictationWordIds.includes(wordId)) {
+    return daily;
+  }
+  return { ...daily, vocabWordIds: [...daily.vocabWordIds, wordId] };
+}
+
 export function markVocabDone(daily: DailyLesson, wordId: string): DailyLesson {
   if (daily.completedVocabIds.includes(wordId)) return daily;
   return { ...daily, completedVocabIds: [...daily.completedVocabIds, wordId] };
