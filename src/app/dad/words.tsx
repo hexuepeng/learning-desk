@@ -62,23 +62,48 @@ export default function DadWords() {
 
       <Card style={styles.block}>
         <Text style={styles.label}>粘贴词表</Text>
-        <Text style={styles.meta}>每行：apple 苹果 或 ice cream,冰淇淋</Text>
+        <Text style={styles.meta}>
+          每行 english,chinese，也认空格/分号/CSV。可追加，或清空后整表替换。不要把整本剑桥词表打进应用包，由你粘贴导入。
+        </Text>
         <TextInput
           multiline
           value={bulk}
           onChangeText={setBulk}
-          placeholder={'cat 猫\ndog 狗'}
+          placeholder={'apple,苹果\nice cream,冰淇淋'}
           placeholderTextColor={Colors.muted}
           style={[styles.input, styles.bulk]}
         />
+        <Text style={styles.meta}>
+          预览 {preview.length} 个词 · 当前词表 {state.words.length} 个
+        </Text>
         <KidButton
-          label={preview.length ? `导入 ${preview.length} 个词` : '导入'}
+          label={preview.length ? `追加 ${preview.length} 个词` : '追加到词表'}
           disabled={preview.length === 0}
           onPress={() => {
-            const n = importWordText(bulk);
-            Alert.alert('已处理', `解析到 ${n} 行（重复英文会跳过）。`);
+            const result = importWordText(bulk, 'append');
+            Alert.alert('已追加', `新增 ${result.added} 个，跳过重复 ${result.skipped} 个。`);
             setBulk('');
           }}
+        />
+        <KidButton
+          label="清空后导入（替换）"
+          variant="danger"
+          style={{ marginTop: Space.sm }}
+          disabled={preview.length === 0}
+          onPress={() =>
+            Alert.alert('替换全部词表？', '现有词和本机录音会清掉，换成这次粘贴的内容。', [
+              { text: '取消', style: 'cancel' },
+              {
+                text: '替换',
+                style: 'destructive',
+                onPress: () => {
+                  const result = importWordText(bulk, 'replace');
+                  Alert.alert('已替换', `现在有 ${result.added} 个词。`);
+                  setBulk('');
+                },
+              },
+            ])
+          }
         />
       </Card>
 

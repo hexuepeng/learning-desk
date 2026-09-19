@@ -1,25 +1,78 @@
 export type ParsedWord = { en: string; zh: string };
 
-const LINE_RE = /^(.*?)[\s,，;；:：\-|—–\t]+([\u3400-\u9fff].*)$/;
+const HEADER_RE = /^(en|english|word|单词)\s*[,，;；]\s*(zh|chinese|中文|释义|translation)/i;
+const QUOTED_RE = /^"([^"]+)"\s*[,，;；]\s*(.+)$/;
+const SPACE_RE = /^(.*?)\s+([\u3400-\u9fff].*)$/;
+const SPACED_DASH_RE = /^(.*?)\s+[-—–]\s+(.+)$/;
+const PUNCT_MARKS = [',', '，', ';', '；', ':', '：', '\t', '|'] as const;
 
-/** 解析家长粘贴的词表。每行：英文 + 中文释义。 */
+/** 解析家长粘贴的词表。每行：英文 + 中文释义，也认 CSV / 带引号。 */
 export function parseWordList(text: string): ParsedWord[] {
   const seen = new Set<string>();
   const out: ParsedWord[] = [];
-  for (const raw of text.split(/\r?\n/)) {
+  const body = text.replace(/^\uFEFF/, '');
+  for (const raw of body.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith('#')) continue;
-    const match = line.match(LINE_RE);
-    if (!match) continue;
-    const en = match[1].trim().replace(/\s+/g, ' ');
-    const zh = match[2].trim();
-    if (!en || !zh) continue;
-    const key = en.toLowerCase();
+    if (HEADER_RE.test(line) && !/[\u3400-\u9fff]/.test(line)) continue;
+    const parsed = parseWordLine(line);
+    if (!parsed) continue;
+    const key = parsed.en.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ en, zh });
+    out.push(parsed);
   }
   return out;
+}
+
+export function parseWordLine(line: string): ParsedWord | null {
+  const quoted = line.match(QUOTED_RE);
+  if (quoted && hasChinese(quoted[2])) {
+    return pack(quoted[1], quoted[2]);
+  }
+  const punct = splitOnPunct(line);
+  if (punct) return punct;
+  const dashed = line.match(SPACED_DASH_RE);
+  if (dashed && hasChinese(dashed[2])) return pack(dashed[1], dashed[2]);
+  const spaced = line.match(SPACE_RE);
+  if (spaced) return pack(spaced[1], spaced[2]);
+  return null;
+}
+
+function splitOnPunct(line: string): ParsedWord | null {
+  let earliest = -1;
+  let markLen = 1;
+  for (const mark of PUNCT_MARKS) {
+    const idx = line.indexOf(mark);
+    if (idx > 0 && (earliest < 0 || idx < earliest) && hasChinese(line.slice(idx + mark.length))) {
+      earliest = idx;
+      markLen = mark.length;
+    }
+  }
+  if (earliest < 0) return null;
+  return pack(line.slice(0, earliest), line.slice(earliest + markLen));
+}
+
+function hasChinese(value: string): boolean {
+  return /[\u3400-\u9fff]/.test(value);
+}
+
+function pack(enRaw: string, zhRaw: string): ParsedWord | null {
+  const en = stripWrap(enRaw).replace(/\s+/g, ' ');
+  const zh = stripWrap(zhRaw);
+  if (!en || !zh || !hasChinese(zh)) return null;
+  return { en, zh };
+}
+
+function stripWrap(value: string): string {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
 }
 
 export function normalizeAnswer(value: string): string {

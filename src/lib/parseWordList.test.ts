@@ -29,4 +29,20 @@ describe('parseWordList', () => {
     assert.equal(answersMatch('ice  cream', 'ice cream'), true);
     assert.equal(answersMatch('cat', 'dog'), false);
   });
+
+  it('parses csv with header, quotes and a gloss that starts with brackets', () => {
+    const text = [
+      'english,chinese',
+      'a/an,第一个字母 A',
+      '"ice cream",冰淇淋',
+      'apartment building,<美>公寓大楼',
+      'a.m.,上午',
+    ].join('\n');
+    assert.deepEqual(parseWordList(text), [
+      { en: 'a/an', zh: '第一个字母 A' },
+      { en: 'ice cream', zh: '冰淇淋' },
+      { en: 'apartment building', zh: '<美>公寓大楼' },
+      { en: 'a.m.', zh: '上午' },
+    ]);
+  });
 });
