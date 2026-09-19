@@ -10,10 +10,12 @@ export function SpeakButton({
   text,
   label,
   recordingUri,
+  onPlayed,
 }: {
   text: string;
   label?: string;
   recordingUri?: string | null;
+  onPlayed?: () => void;
 }) {
   const { tap, buttonLabelSize } = useLayout();
   const dadVoice = hasRecordingOverride(recordingUri);
@@ -22,7 +24,10 @@ export function SpeakButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={caption}
-      onPress={() => playCue(text, recordingUri)}
+      onPress={() => {
+        playCue(text, recordingUri);
+        onPlayed?.();
+      }}
       style={({ pressed }) => [
         styles.btn,
         { minHeight: tap, minWidth: tap, opacity: pressed ? 0.85 : 1 },

@@ -30,4 +30,42 @@ describe('storage migration', () => {
     assert.ok(defaultState().words.some((word) => word.ipa === '/ˈæpl/'));
     assert.ok(defaultState().words.some((word) => word.en === 'desk' && !word.ipa));
   });
+
+  it('fills empty sentences and keeps short-sentence daily counting off', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [],
+    });
+    assert.deepEqual(next.sentences, []);
+    assert.deepEqual(next.sentenceProgress, {});
+    assert.equal(next.sentenceSettings.countTowardDaily, false);
+    assert.deepEqual(defaultState().sentences, []);
+  });
+
+  it('stamps a default profile on imported sentences', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [],
+      sentences: [{ id: 's1', en: 'I like apples.', createdAt: 't' }],
+      sentenceSettings: { countTowardDaily: true },
+    });
+    assert.equal(next.sentences[0]?.en, 'I like apples.');
+    assert.equal(next.sentences[0]?.profileId, 'profile_child');
+    assert.equal(next.sentenceSettings.countTowardDaily, true);
+  });
+
+  it('keeps the same English sentence on two child profiles', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [],
+      sentences: [
+        { id: 's1', en: 'I like apples.', createdAt: 't', profileId: 'p1' },
+        { id: 's2', en: 'I like apples.', createdAt: 't', profileId: 'p2' },
+      ],
+    });
+    assert.deepEqual(
+      next.sentences.map((item) => item.id),
+      ['s1', 's2'],
+    );
+  });
 });

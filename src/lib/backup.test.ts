@@ -22,6 +22,8 @@ describe('backup', () => {
     if (!parsed.ok) return;
     assert.equal(parsed.state.words[0]?.en, 'apple');
     assert.equal(parsed.state.parentPin, state.parentPin);
+    assert.deepEqual(parsed.state.sentences, []);
+    assert.equal(parsed.state.sentenceSettings.countTowardDaily, false);
   });
 
   it('accepts a raw persisted state json', () => {

@@ -97,6 +97,11 @@ export default function HomeScreen() {
 
       <View style={styles.extra}>
         <KidButton
+          label={t('todaySentences')}
+          variant="secondary"
+          onPress={() => router.push('/english/sentences')}
+        />
+        <KidButton
           label="错词复习（5 分钟）"
           variant="secondary"
           onPress={() => router.push('/english/review')}

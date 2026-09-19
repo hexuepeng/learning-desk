@@ -9,9 +9,16 @@ import {
   normalizeProfiles,
   resolveActiveProfileId,
   stampBooks,
+  stampSentences,
   stampWords,
 } from './profile.ts';
 import { normalizeStoredWords } from './ipa.ts';
+import {
+  defaultSentenceSettings,
+  normalizeSentenceProgress,
+  normalizeSentenceSettings,
+  normalizeSentences,
+} from './sentences.ts';
 import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
 import type { PersistedState, PracticeEvent, Word } from '../types/models.ts';
@@ -28,6 +35,9 @@ export function defaultState(): PersistedState {
     showIpa: true,
     feedback: [],
     albumBooks: [],
+    sentences: [],
+    sentenceProgress: {},
+    sentenceSettings: defaultSentenceSettings(),
     streak: emptyStreak(),
     stars: emptyStarState(),
     practiceLog: [],
@@ -67,6 +77,9 @@ function migrate(raw: unknown): PersistedState {
     },
     feedback: normalizeFeedbackList(data.feedback),
     albumBooks: stampBooks(normalizeAlbumBooks(data.albumBooks), DEFAULT_PROFILE_ID),
+    sentences: stampSentences(normalizeSentences(data.sentences), DEFAULT_PROFILE_ID),
+    sentenceProgress: normalizeSentenceProgress(data.sentenceProgress),
+    sentenceSettings: normalizeSentenceSettings(data.sentenceSettings),
     streak: data.streak ?? emptyStreak(),
     stars: normalizeStarState(data.stars),
     practiceLog: Array.isArray(data.practiceLog) ? (data.practiceLog as PracticeEvent[]) : [],

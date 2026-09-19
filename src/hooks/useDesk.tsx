@@ -28,6 +28,7 @@ import {
 import {
   albumPageRecordingRelativePath,
   guessAudioExt,
+  sentenceRecordingRelativePath,
   wordRecordingRelativePath,
 } from '@/lib/recording';
 import {
@@ -52,13 +53,24 @@ import {
 } from '@/lib/daily';
 import { normalizeIpa } from '@/lib/ipa';
 import { parseWordList } from '@/lib/parseWordList';
+import { normalizeSentenceKey, parseSentenceList } from '@/lib/parseSentenceList';
 import {
   profileIdOf,
   projectProfile,
   renameProfile,
   resolveActiveProfileId,
   setProfileArchived,
+  wordsForProfile,
 } from '@/lib/profile';
+import {
+  composeSentenceDrafts as buildSentenceDrafts,
+  linkSentenceWordIds,
+  markSentenceCanSay as applySentenceCanSay,
+  markSentenceHeard as applySentenceHeard,
+  normalizeTags,
+  parseTagInput,
+  type SentenceDraft,
+} from '@/lib/sentences';
 import {
   applySessionStars,
   capPracticeLog,
@@ -77,6 +89,7 @@ import type {
   PersistedState,
   PracticeEvent,
   Profile,
+  Sentence,
   StarRating,
   Word,
   WordProgress,
@@ -100,6 +113,14 @@ type DeskContextValue = {
   removeWord: (id: string) => void;
   setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
   importWordText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
+  upsertSentence: (input: { id?: string; en: string; zh?: string; tags?: string | string[] }) => void;
+  removeSentence: (id: string) => void;
+  importSentenceText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
+  setSentenceRecording: (sentenceId: string, sourceUri: string | null) => Promise<void>;
+  composeSentenceDrafts: () => SentenceDraft[];
+  saveSentenceDrafts: (drafts: Array<{ en: string; zh?: string }>) => { added: number; skipped: number };
+  markSentenceHeard: (id: string) => void;
+  markSentenceCanSay: (id: string) => void;
   addBookWordToToday: (en: string, zh: string) => 'added' | 'already';
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
@@ -321,6 +342,239 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       });
       for (const uri of removedRecordings) void deleteRecordingFile(uri);
       return { added, skipped };
+    },
+    [update],
+  );
+
+  const upsertSentence = useCallback(
+    (input: { id?: string; en: string; zh?: string; tags?: string | string[] }) => {
+      const en = input.en.trim().replace(/\s+/g, ' ');
+      if (!en || !/[A-Za-z]/.test(en)) return;
+      const zh = input.zh?.trim() ?? '';
+      const tags = Array.isArray(input.tags) ? normalizeTags(input.tags) : parseTagInput(input.tags ?? '');
+      update((current) => {
+        const wordIds = linkSentenceWordIds(en, wordsForProfile(current.words, current.activeProfileId));
+        const patch = {
+          en,
+          zh: zh || undefined,
+          tags: tags.length ? tags : undefined,
+          wordIds: wordIds.length ? wordIds : undefined,
+        };
+        if (input.id) {
+          return {
+            ...current,
+            sentences: current.sentences.map((item) =>
+              item.id === input.id ? { ...item, ...patch } : item,
+            ),
+          };
+        }
+        const key = normalizeSentenceKey(en);
+        const exists = current.sentences.some(
+          (item) =>
+            profileIdOf(item) === current.activeProfileId && normalizeSentenceKey(item.en) === key,
+        );
+        if (exists) return current;
+        const sentence: Sentence = {
+          id: createId('sentence'),
+          en,
+          createdAt: new Date().toISOString(),
+          profileId: current.activeProfileId,
+        };
+        if (zh) sentence.zh = zh;
+        if (tags.length) sentence.tags = tags;
+        if (wordIds.length) sentence.wordIds = wordIds;
+        return { ...current, sentences: [sentence, ...current.sentences] };
+      });
+    },
+    [update],
+  );
+
+  const removeSentence = useCallback(
+    (id: string) => {
+      let recordingUri: string | null | undefined;
+      update((current) => {
+        recordingUri = current.sentences.find((item) => item.id === id)?.recordingUri;
+        return {
+          ...current,
+          sentences: current.sentences.filter((item) => item.id !== id),
+        };
+      });
+      if (recordingUri) void deleteRecordingFile(recordingUri);
+    },
+    [update],
+  );
+
+  const importSentenceText = useCallback(
+    (text: string, mode: 'append' | 'replace' = 'append') => {
+      const parsed = parseSentenceList(text);
+      if (parsed.length === 0) return { added: 0, skipped: 0 };
+      const removedRecordings: string[] = [];
+      let added = 0;
+      let skipped = 0;
+      update((current) => {
+        const activeId = current.activeProfileId;
+        if (mode === 'replace') {
+          for (const item of current.sentences) {
+            if (profileIdOf(item) === activeId && item.recordingUri) {
+              removedRecordings.push(item.recordingUri);
+            }
+          }
+        }
+        const base =
+          mode === 'replace'
+            ? current.sentences.filter((item) => profileIdOf(item) !== activeId)
+            : current.sentences;
+        const have = new Set(
+          base
+            .filter((item) => profileIdOf(item) === activeId)
+            .map((item) => normalizeSentenceKey(item.en)),
+        );
+        const incoming: Sentence[] = [];
+        added = 0;
+        skipped = 0;
+        const profileWords = wordsForProfile(current.words, activeId);
+        for (const item of parsed) {
+          const key = normalizeSentenceKey(item.en);
+          if (have.has(key)) {
+            skipped += 1;
+            continue;
+          }
+          have.add(key);
+          added += 1;
+          const wordIds = linkSentenceWordIds(item.en, profileWords);
+          const sentence: Sentence = {
+            id: createId('sentence'),
+            en: item.en,
+            createdAt: new Date().toISOString(),
+            profileId: activeId,
+          };
+          if (item.zh) sentence.zh = item.zh;
+          if (wordIds.length) sentence.wordIds = wordIds;
+          incoming.push(sentence);
+        }
+        return { ...current, sentences: [...incoming, ...base] };
+      });
+      for (const uri of removedRecordings) void deleteRecordingFile(uri);
+      return { added, skipped };
+    },
+    [update],
+  );
+
+  const setSentenceRecording = useCallback(
+    async (sentenceId: string, sourceUri: string | null) => {
+      if (!sourceUri) {
+        let previous: string | null | undefined;
+        update((current) => {
+          previous = current.sentences.find((item) => item.id === sentenceId)?.recordingUri;
+          return {
+            ...current,
+            sentences: current.sentences.map((item) =>
+              item.id === sentenceId ? { ...item, recordingUri: null } : item,
+            ),
+          };
+        });
+        if (previous) await deleteRecordingFile(previous);
+        return;
+      }
+      const stored = await persistRecordingFile(
+        sourceUri,
+        sentenceRecordingRelativePath(sentenceId, guessAudioExt(sourceUri)),
+      );
+      let previous: string | null | undefined;
+      update((current) => {
+        previous = current.sentences.find((item) => item.id === sentenceId)?.recordingUri;
+        if (!current.sentences.some((item) => item.id === sentenceId)) return current;
+        return {
+          ...current,
+          sentences: current.sentences.map((item) =>
+            item.id === sentenceId ? { ...item, recordingUri: stored } : item,
+          ),
+        };
+      });
+      if (previous && previous !== stored) await deleteRecordingFile(previous);
+    },
+    [update],
+  );
+
+  const composeSentenceDrafts = useCallback(() => {
+    return buildSentenceDrafts(
+      wordsForProfile(state.words, state.activeProfileId),
+      state.progress,
+      state.daily,
+    );
+  }, [state]);
+
+  const saveSentenceDrafts = useCallback(
+    (drafts: Array<{ en: string; zh?: string }>) => {
+      let added = 0;
+      let skipped = 0;
+      update((current) => {
+        const activeId = current.activeProfileId;
+        const have = new Set(
+          current.sentences
+            .filter((item) => profileIdOf(item) === activeId)
+            .map((item) => normalizeSentenceKey(item.en)),
+        );
+        const incoming: Sentence[] = [];
+        added = 0;
+        skipped = 0;
+        const profileWords = wordsForProfile(current.words, activeId);
+        for (const draft of drafts) {
+          const en = draft.en.trim().replace(/\s+/g, ' ');
+          if (!en) {
+            skipped += 1;
+            continue;
+          }
+          const key = normalizeSentenceKey(en);
+          if (have.has(key)) {
+            skipped += 1;
+            continue;
+          }
+          have.add(key);
+          added += 1;
+          const zh = draft.zh?.trim() ?? '';
+          const wordIds = linkSentenceWordIds(en, profileWords);
+          const sentence: Sentence = {
+            id: createId('sentence'),
+            en,
+            createdAt: new Date().toISOString(),
+            profileId: activeId,
+          };
+          if (zh) sentence.zh = zh;
+          if (wordIds.length) sentence.wordIds = wordIds;
+          incoming.push(sentence);
+        }
+        return incoming.length
+          ? { ...current, sentences: [...incoming, ...current.sentences] }
+          : current;
+      });
+      return { added, skipped };
+    },
+    [update],
+  );
+
+  const markSentenceHeard = useCallback(
+    (id: string) => {
+      update((current) => ({
+        ...current,
+        sentenceProgress: {
+          ...current.sentenceProgress,
+          [id]: applySentenceHeard(current.sentenceProgress[id], id),
+        },
+      }));
+    },
+    [update],
+  );
+
+  const markSentenceCanSay = useCallback(
+    (id: string) => {
+      update((current) => ({
+        ...current,
+        sentenceProgress: {
+          ...current.sentenceProgress,
+          [id]: applySentenceCanSay(current.sentenceProgress[id], id),
+        },
+      }));
     },
     [update],
   );
@@ -847,6 +1101,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeWord,
       setWordRecording,
       importWordText,
+      upsertSentence,
+      removeSentence,
+      importSentenceText,
+      setSentenceRecording,
+      composeSentenceDrafts,
+      saveSentenceDrafts,
+      markSentenceHeard,
+      markSentenceCanSay,
       addBookWordToToday,
       restoreSampleWords,
       setDictationType,
@@ -888,6 +1150,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeWord,
       setWordRecording,
       importWordText,
+      upsertSentence,
+      removeSentence,
+      importSentenceText,
+      setSentenceRecording,
+      composeSentenceDrafts,
+      saveSentenceDrafts,
+      markSentenceHeard,
+      markSentenceCanSay,
       addBookWordToToday,
       restoreSampleWords,
       setDictationType,
