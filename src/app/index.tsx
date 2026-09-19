@@ -26,6 +26,7 @@ export default function HomeScreen() {
   const hasWords = (daily?.vocabWordIds.length ?? 0) + (daily?.dictationWordIds.length ?? 0) > 0;
   const todayStars = todaysStars(state.stars, todayKey());
   const threeStarRun = consecutiveThreeStarDays(state.stars.byDate, todayKey());
+  const hasStickers = state.streak.stickers.length > 0;
 
   const openDad = () => {
     taps.current += 1;
@@ -44,8 +45,13 @@ export default function HomeScreen() {
           <Text style={[styles.streakNum, { fontSize: isTablet ? 32 : 28 }]}>{state.streak.current}</Text>
           <Text style={styles.streakLabel}>{t('streak')}</Text>
         </View>
-        <Text style={[styles.stickers, { fontSize: isTablet ? 26 : 22 }]}>
-          {state.streak.stickers.join(' ') || '完成今日卡可集贴纸'}
+        <Text
+          style={[
+            hasStickers ? styles.stickers : styles.stickerHint,
+            { fontSize: hasStickers ? (isTablet ? 26 : 22) : bodySize },
+          ]}
+        >
+          {hasStickers ? state.streak.stickers.join(' ') : '完成今日卡可集贴纸'}
         </Text>
       </View>
 
@@ -75,10 +81,16 @@ export default function HomeScreen() {
 
         <View style={isTablet && isLandscape ? styles.landCol : undefined}>
           <Text style={[styles.section, { fontSize: isTablet ? 22 : 20 }]}>{t('subjects')}</Text>
-          <View style={styles.subjects}>
-            <SubjectTile title={t('english')} live onPress={() => router.push('/english')} />
-            <SubjectTile title={t('math')} onPress={() => router.push('/math')} />
-            <SubjectTile title={t('chinese')} onPress={() => router.push('/chinese')} />
+          <SubjectTile
+            title={t('english')}
+            live
+            color={Colors.english}
+            onPress={() => router.push('/english')}
+          />
+          <Text style={[styles.soonLabel, { fontSize: bodySize }]}>还在搭建</Text>
+          <View style={styles.soonRow}>
+            <SubjectTile title={t('math')} color={Colors.math} onPress={() => router.push('/math')} compact />
+            <SubjectTile title={t('chinese')} color={Colors.chinese} onPress={() => router.push('/chinese')} compact />
           </View>
         </View>
       </View>
@@ -102,14 +114,26 @@ export default function HomeScreen() {
 function SubjectTile({
   title,
   live = false,
+  color,
+  compact = false,
   onPress,
 }: {
   title: string;
   live?: boolean;
+  color: string;
+  compact?: boolean;
   onPress: () => void;
 }) {
   return (
-    <Card onPress={onPress} style={styles.subject}>
+    <Card
+      onPress={onPress}
+      style={[
+        styles.subject,
+        { borderLeftColor: color },
+        compact && styles.subjectCompact,
+        !live && styles.subjectSoon,
+      ]}
+    >
       <Text style={styles.subjectTitle}>{title}</Text>
       <Text style={styles.subjectMeta}>{live ? '可以学' : t('comingSoon')}</Text>
     </Card>
@@ -148,6 +172,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: Colors.ink,
   },
+  stickerHint: {
+    flex: 1,
+    color: Colors.muted,
+    fontWeight: '600',
+  },
   daily: {
     gap: Space.sm,
     marginBottom: Space.lg,
@@ -181,16 +210,29 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 0,
   },
-  subjects: {
+  soonLabel: {
+    color: Colors.muted,
+    fontWeight: '700',
+    marginTop: Space.sm,
+    marginBottom: 8,
+  },
+  soonRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 12,
     marginBottom: Space.lg,
   },
   subject: {
-    flexGrow: 1,
-    minWidth: 140,
     minHeight: 112,
+    marginBottom: Space.sm,
+    borderLeftWidth: 6,
+  },
+  subjectCompact: {
+    flex: 1,
+    minHeight: 84,
+    marginBottom: 0,
+  },
+  subjectSoon: {
+    opacity: 0.72,
   },
   subjectTitle: {
     fontSize: 22,

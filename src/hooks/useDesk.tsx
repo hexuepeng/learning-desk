@@ -133,6 +133,8 @@ type DeskContextValue = {
   removeAlbumPage: (bookId: string, pageId: string) => Promise<void>;
   removeAlbumBook: (id: string) => Promise<void>;
   resetDemo: () => Promise<void>;
+  exportSnapshot: () => PersistedState;
+  replaceState: (next: PersistedState) => void;
   progressFor: (wordId: string) => WordProgress;
   dictationTypeFor: (wordId: string) => DictationType;
 };
@@ -801,6 +803,15 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     setParentUnlocked(false);
   }, []);
 
+  const exportSnapshot = useCallback(() => state, [state]);
+
+  const replaceState = useCallback((next: PersistedState) => {
+    setState({
+      ...next,
+      daily: ensureTodayLesson(next.daily, next.words, next.progress),
+    });
+  }, []);
+
   const visibleState = useMemo(() => projectProfile(state), [state]);
 
   const value = useMemo<DeskContextValue>(
@@ -840,6 +851,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeAlbumPage,
       removeAlbumBook,
       resetDemo,
+      exportSnapshot,
+      replaceState,
       progressFor,
       dictationTypeFor,
     }),
@@ -878,6 +891,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeAlbumPage,
       removeAlbumBook,
       resetDemo,
+      exportSnapshot,
+      replaceState,
       progressFor,
       dictationTypeFor,
     ],

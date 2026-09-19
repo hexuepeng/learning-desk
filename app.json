@@ -2,7 +2,7 @@
   "expo": {
     "name": "学习台",
     "slug": "learning-desk",
-    "version": "0.1.12",
+    "version": "0.1.13",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "learningdesk",

@@ -36,6 +36,10 @@ export function defaultState(): PersistedState {
   };
 }
 
+export function hydrateState(raw: unknown): PersistedState {
+  return migrate(raw);
+}
+
 function migrate(raw: unknown): PersistedState {
   const base = defaultState();
   if (!raw || typeof raw !== 'object') return base;
@@ -71,7 +75,7 @@ export async function loadState(): Promise<PersistedState> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    return migrate(JSON.parse(raw) as unknown);
+    return hydrateState(JSON.parse(raw) as unknown);
   } catch {
     return defaultState();
   }

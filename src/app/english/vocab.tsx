@@ -5,15 +5,16 @@ import { VocabCard } from '@/components/VocabCard';
 import { Card, KidButton, Screen } from '@/components/ui';
 import { Colors } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import { orderVocabDeck } from '@/lib/wordsView';
 
 export default function VocabScreen() {
   const { state, markVocab } = useDesk();
-  const words = state.words;
+  const [deck] = useState(() => orderVocabDeck(state.words, state.progress));
   const [index, setIndex] = useState(0);
-  const word = words[index];
+  const word = deck[index];
   const knownCount = useMemo(
-    () => words.filter((item) => state.progress[item.id]?.vocabKnown).length,
-    [words, state.progress],
+    () => state.words.filter((item) => state.progress[item.id]?.vocabKnown).length,
+    [state.words, state.progress],
   );
 
   if (!word) {
@@ -28,18 +29,18 @@ export default function VocabScreen() {
 
   const advance = (known: boolean) => {
     markVocab(word.id, known, false);
-    setIndex((value) => (value + 1) % words.length);
+    setIndex((value) => (value + 1) % Math.max(deck.length, 1));
   };
 
   return (
-    <Screen title="背单词" subtitle={`认识 ${knownCount}/${words.length}`} back>
+    <Screen title="背单词" subtitle={`还不熟优先 · 认识 ${knownCount}/${state.words.length}`} back>
       <Card>
         <VocabCard word={word} onKnown={() => advance(true)} onNotYet={() => advance(false)} />
       </Card>
       <KidButton
         label="换一个"
         variant="ghost"
-        onPress={() => setIndex((value) => (value + 1) % words.length)}
+        onPress={() => setIndex((value) => (value + 1) % Math.max(deck.length, 1))}
       />
     </Screen>
   );

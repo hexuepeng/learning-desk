@@ -1,36 +1,43 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
+import { Celebration } from '@/components/Celebration';
 import { DictationPlay } from '@/components/DictationPlay';
 import { Card, KidButton, Screen } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
-import { formatCountdown, pickReviewWords, REVIEW_MINUTES } from '@/lib/review';
+import {
+  applyReviewAnswer,
+  createReviewSession,
+  currentReviewWordId,
+  formatCountdown,
+  pickReviewWords,
+  REVIEW_MINUTES,
+} from '@/lib/review';
 
 export default function ReviewScreen() {
   const { state, markDictation, dictationTypeFor } = useDesk();
-  const pool = useMemo(
-    () => pickReviewWords(state.words, state.progress, state.practiceLog),
-    [state.words, state.progress, state.practiceLog],
+  const [pool] = useState(() =>
+    pickReviewWords(state.words, state.progress, state.practiceLog),
   );
-  const [index, setIndex] = useState(0);
+  const [session, setSession] = useState(() => createReviewSession(pool));
   const [left, setLeft] = useState(REVIEW_MINUTES * 60);
-  const [done, setDone] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    if (done || left <= 0) return;
+    if (timedOut || session.cleared || left <= 0) return;
     const timer = setInterval(() => {
       setLeft((value) => {
         if (value <= 1) {
-          setDone(true);
+          setTimedOut(true);
           return 0;
         }
         return value - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [done, left]);
+  }, [timedOut, session.cleared, left]);
 
   if (pool.length === 0) {
     return (
@@ -43,7 +50,18 @@ export default function ReviewScreen() {
     );
   }
 
-  if (done || left <= 0) {
+  if (session.cleared) {
+    return (
+      <Screen title="复习结束" back>
+        <Card>
+          <Celebration title="这轮错词都过关了" subtitle="连对两次就收工，不必硬撑满 5 分钟。" />
+          <KidButton label="回首页" onPress={() => router.replace('/')} />
+        </Card>
+      </Screen>
+    );
+  }
+
+  if (timedOut || left <= 0) {
     return (
       <Screen title="复习结束" back>
         <Card>
@@ -55,16 +73,21 @@ export default function ReviewScreen() {
     );
   }
 
-  const word = pool[index % pool.length];
+  const wordId = currentReviewWordId(session);
+  const word = pool.find((item) => item.id === wordId) ?? pool[0];
   return (
-    <Screen title="错词复习" subtitle={`还剩 ${formatCountdown(left)} · 不计入今日卡`} back>
+    <Screen
+      title="错词复习"
+      subtitle={`还剩 ${formatCountdown(left)} · 连对两次过关 · 不计入今日卡`}
+      back
+    >
       <DictationPlay
         word={word}
         pool={state.words}
         type={dictationTypeFor(word.id)}
         onResolved={(correct) => {
           markDictation(word.id, correct, false, 'review');
-          setIndex((value) => value + 1);
+          setSession((current) => applyReviewAnswer(current, word.id, correct));
         }}
       />
     </Screen>
