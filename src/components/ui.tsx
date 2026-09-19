@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors, MIN_TAP, Radius, Space } from '@/constants/theme';
 import { useLayout } from '@/hooks/useLayout';
+import { goBackOrHome } from '@/lib/nav';
 
 export function Screen({
   children,
@@ -37,7 +38,7 @@ export function Screen({
       {(title || back) && (
         <View style={[styles.header, compact && styles.headerCompact]}>
           {back ? (
-            <KidButton label="返回" variant="ghost" onPress={() => router.back()} compact />
+            <KidButton label="返回" variant="ghost" onPress={() => goBackOrHome(router)} compact />
           ) : (
             <View />
           )}
