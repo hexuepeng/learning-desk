@@ -85,6 +85,23 @@ export type DailyLesson = {
   completedDictationIds: string[];
 };
 
+export type StarRating = 1 | 2 | 3;
+
+export type PracticeEvent = {
+  id: string;
+  date: string;
+  kind: 'vocab' | 'dictation';
+  source: 'daily' | 'free';
+  wordId: string;
+  correct?: boolean;
+};
+
+export type StarState = {
+  /** 按日保存最好的一轮默写星级，用于连续满分日 */
+  byDate: Record<string, StarRating>;
+  celebrationKey: string | null;
+};
+
 export type PersistedState = {
   version: 1;
   words: Word[];
@@ -93,6 +110,8 @@ export type PersistedState = {
   feedback: FeedbackItem[];
   albumBooks: AlbumBook[];
   streak: StreakState;
+  stars: StarState;
+  practiceLog: PracticeEvent[];
   daily: DailyLesson | null;
   parentPin: string;
 };

@@ -49,6 +49,12 @@ import {
   markVocabDone,
 } from '@/lib/daily';
 import { parseWordList } from '@/lib/parseWordList';
+import {
+  applySessionStars,
+  capPracticeLog,
+  countSession,
+  starsForSession,
+} from '@/lib/stars';
 import { clearState, defaultState, loadState, saveState } from '@/lib/storage';
 import { applyDailyComplete } from '@/lib/streak';
 import { createId, todayKey } from '@/lib/util';
@@ -57,6 +63,8 @@ import type {
   AlbumPage,
   DictationType,
   PersistedState,
+  PracticeEvent,
+  StarRating,
   Word,
   WordProgress,
 } from '@/types/models';
@@ -77,6 +85,7 @@ type DeskContextValue = {
   setAutoAdjust: (on: boolean) => void;
   markVocab: (wordId: string, known: boolean, daily?: boolean) => void;
   markDictation: (wordId: string, correct: boolean, daily?: boolean) => WordProgress;
+  awardDictationStars: (correct: number, wrong: number) => { stars: StarRating; celebrate: boolean };
   addFeedback: (text: string) => void;
   markFeedbackRead: (id: string) => void;
   addAlbumBook: (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => Promise<string>;
@@ -327,7 +336,20 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         };
         const nextDaily =
           daily && current.daily ? markVocabDone(current.daily, wordId) : current.daily;
-        return maybeAwardStreak({ ...current, progress, daily: nextDaily });
+        const event: PracticeEvent = {
+          id: createId('pr'),
+          date: todayKey(),
+          kind: 'vocab',
+          source: daily ? 'daily' : 'free',
+          wordId,
+          correct: known,
+        };
+        return maybeAwardStreak({
+          ...current,
+          progress,
+          daily: nextDaily,
+          practiceLog: capPracticeLog([event, ...current.practiceLog]),
+        });
       });
     },
     [update],
@@ -347,9 +369,52 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         const progress = { ...current.progress, [wordId]: nextProgress };
         const nextDaily =
           daily && current.daily ? markDictationDone(current.daily, wordId) : current.daily;
-        return maybeAwardStreak({ ...current, progress, daily: nextDaily });
+        const event: PracticeEvent = {
+          id: createId('pr'),
+          date: todayKey(),
+          kind: 'dictation',
+          source: daily ? 'daily' : 'free',
+          wordId,
+          correct,
+        };
+        const practiceLog = capPracticeLog([event, ...current.practiceLog]);
+        const dictationJustFinished =
+          Boolean(daily) &&
+          nextDaily != null &&
+          nextDaily.dictationWordIds.length > 0 &&
+          nextDaily.dictationWordIds.every((id) => nextDaily.completedDictationIds.includes(id));
+        let stars = current.stars;
+        if (dictationJustFinished) {
+          const counted = countSession(practiceLog, todayKey(), 'daily');
+          stars = applySessionStars(
+            current.stars,
+            todayKey(),
+            starsForSession(counted.correct, counted.wrong),
+          ).next;
+        }
+        return maybeAwardStreak({
+          ...current,
+          progress,
+          daily: nextDaily,
+          practiceLog,
+          stars,
+        });
       });
       return nextProgress;
+    },
+    [update],
+  );
+
+  const awardDictationStars = useCallback(
+    (correct: number, wrong: number) => {
+      const stars = starsForSession(correct, wrong);
+      let celebrate = false;
+      update((current) => {
+        const applied = applySessionStars(current.stars, todayKey(), stars);
+        celebrate = applied.celebrate;
+        return { ...current, stars: applied.next };
+      });
+      return { stars, celebrate };
     },
     [update],
   );
@@ -588,6 +653,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setAutoAdjust,
       markVocab,
       markDictation,
+      awardDictationStars,
       addFeedback,
       markFeedbackRead,
       addAlbumBook,
@@ -617,6 +683,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setAutoAdjust,
       markVocab,
       markDictation,
+      awardDictationStars,
       addFeedback,
       markFeedbackRead,
       addAlbumBook,

@@ -3,8 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSampleWords } from '../content/sampleWords.ts';
 import { normalizeAlbumBooks } from './album.ts';
 import { clampEnabledTypes, defaultDictationSettings } from './dictation.ts';
+import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
-import type { PersistedState } from '../types/models.ts';
+import type { PersistedState, PracticeEvent } from '../types/models.ts';
 
 export const STORAGE_KEY = 'learning-desk/v1';
 export const DEFAULT_PARENT_PIN = '1234';
@@ -18,6 +19,8 @@ export function defaultState(): PersistedState {
     feedback: [],
     albumBooks: [],
     streak: emptyStreak(),
+    stars: emptyStarState(),
+    practiceLog: [],
     daily: null,
     parentPin: DEFAULT_PARENT_PIN,
   };
@@ -40,6 +43,10 @@ function migrate(raw: unknown): PersistedState {
     feedback: Array.isArray(data.feedback) ? data.feedback : [],
     albumBooks: normalizeAlbumBooks(data.albumBooks),
     streak: data.streak ?? emptyStreak(),
+    stars: normalizeStarState(data.stars),
+    practiceLog: Array.isArray(data.practiceLog)
+      ? (data.practiceLog as PracticeEvent[])
+      : [],
     daily: data.daily ?? null,
     parentPin: data.parentPin?.match(/^\d{4}$/) ? data.parentPin : DEFAULT_PARENT_PIN,
   };
