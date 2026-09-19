@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
-import { Card, KidButton, Screen } from '@/components/ui';
+import { Card, KidButton, Screen, SectionLabel } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { dailyProgress } from '@/lib/daily';
@@ -22,17 +22,21 @@ export default function DadDesk() {
         </Text>
       </Card>
       <View style={styles.col}>
+        <SectionLabel>学习</SectionLabel>
         <KidButton label={t('progress')} variant="secondary" onPress={() => router.push('/dad/progress')} />
         <KidButton label="本周小结" variant="secondary" onPress={() => router.push('/dad/report')} />
+        <KidButton label={t('dictationSettings')} variant="secondary" onPress={() => router.push('/dad/dictation')} />
+        <SectionLabel>内容</SectionLabel>
         <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
         <KidButton label={t('familyBooks')} variant="secondary" onPress={() => router.push('/dad/albums')} />
-        <KidButton label={t('dictationSettings')} variant="secondary" onPress={() => router.push('/dad/dictation')} />
         <KidButton
           label={`${t('feedbackInbox')}${unhandled ? `（${unhandled}）` : unread ? `（未读 ${unread}）` : ''}`}
           variant="secondary"
           onPress={() => router.push('/dad/feedback')}
         />
+        <SectionLabel>本机</SectionLabel>
+        <KidButton label="导出 / 导入备份" variant="secondary" onPress={() => router.push('/dad/backup')} />
         <KidButton label="改密码锁" variant="ghost" onPress={() => router.push('/dad/pin')} />
         <KidButton label="锁上书桌" variant="dad" onPress={lockParent} />
         <KidButton

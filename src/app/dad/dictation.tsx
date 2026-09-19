@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Card, KidButton, Screen } from '@/components/ui';
@@ -8,11 +9,13 @@ import {
   DICTATION_LADDER,
   DICTATION_TYPE_LABELS,
 } from '@/lib/dictation';
+import { runEnglishVoiceCheck } from '@/lib/voiceCheckRun';
 
 export default function DadDictation() {
   const { state, setDictationType, setAutoAdjust, enableChallengeModes } = useDesk();
   const enabled = new Set(state.dictationSettings.enabledTypes);
   const challengesOn = challengeModesEnabled(state.dictationSettings.enabledTypes);
+  const [voiceNote, setVoiceNote] = useState('');
 
   return (
     <Screen
@@ -20,6 +23,18 @@ export default function DadDictation() {
       subtitle="台阶顺序固定：选单词 → 填字母 → 排字母 → 看中文写 → 听写。默认前三档打开，自动升降打开。"
       back
     >
+      <Card style={{ marginBottom: Space.md }}>
+        <Text style={styles.title}>英语语音自检</Text>
+        <Text style={styles.meta}>听写依赖系统英语语音包。点一下听 apple，确认这台设备能出声。</Text>
+        <KidButton
+          label="检查并试听 apple"
+          variant="secondary"
+          onPress={() => {
+            void runEnglishVoiceCheck().then((result) => setVoiceNote(result.message));
+          }}
+        />
+        {voiceNote ? <Text style={styles.meta}>{voiceNote}</Text> : null}
+      </Card>
       <Card style={{ marginBottom: Space.md }}>
         <Text style={styles.title}>挑战档</Text>
         <Text style={styles.meta}>

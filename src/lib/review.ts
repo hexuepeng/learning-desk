@@ -30,3 +30,44 @@ export function formatCountdown(seconds: number): string {
   const s = safe % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
+
+export const REVIEW_CLEAR_STREAK = 2;
+
+export type ReviewSession = {
+  remainingIds: string[];
+  streaks: Record<string, number>;
+  cleared: boolean;
+};
+
+export function createReviewSession(words: Word[]): ReviewSession {
+  const remainingIds = words.map((word) => word.id);
+  return {
+    remainingIds,
+    streaks: {},
+    cleared: remainingIds.length === 0,
+  };
+}
+
+export function currentReviewWordId(session: ReviewSession): string | null {
+  return session.remainingIds[0] ?? null;
+}
+
+/** 本轮连对两次就移出队列；答错清零并排到队尾。全清则可提前结束。 */
+export function applyReviewAnswer(
+  session: ReviewSession,
+  wordId: string,
+  correct: boolean,
+  need = REVIEW_CLEAR_STREAK,
+): ReviewSession {
+  const rest = session.remainingIds.filter((id) => id !== wordId);
+  const streaks = { ...session.streaks };
+  if (!correct) {
+    streaks[wordId] = 0;
+    return { remainingIds: [...rest, wordId], streaks, cleared: false };
+  }
+  streaks[wordId] = (streaks[wordId] ?? 0) + 1;
+  if (streaks[wordId] >= need) {
+    return { remainingIds: rest, streaks, cleared: rest.length === 0 };
+  }
+  return { remainingIds: [...rest, wordId], streaks, cleared: false };
+}

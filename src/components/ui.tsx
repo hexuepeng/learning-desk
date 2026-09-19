@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
   type StyleProp,
   type ViewStyle,
@@ -32,7 +33,7 @@ export function Screen({
 }) {
   const { maxWidth, titleSize, bodySize, pad, compact } = useLayout();
   const inner = (
-    <View style={[styles.inner, { maxWidth }]}>
+    <View style={[styles.inner, { maxWidth }, !scroll && styles.fill]}>
       {(title || back) && (
         <View style={[styles.header, compact && styles.headerCompact]}>
           {back ? (
@@ -73,7 +74,7 @@ export function Screen({
           {inner}
         </ScrollView>
       ) : (
-        <View style={[styles.scroll, { paddingHorizontal: pad }]}>{inner}</View>
+        <View style={[styles.scroll, styles.fill, { paddingHorizontal: pad }]}>{inner}</View>
       )}
     </SafeAreaView>
   );
@@ -148,6 +149,32 @@ export function Card({
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
+export function SearchField({
+  value,
+  onChangeText,
+  placeholder = '搜索',
+}: {
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={Colors.muted}
+      autoCapitalize="none"
+      autoCorrect={false}
+      style={styles.search}
+    />
+  );
+}
+
+export function SectionLabel({ children }: { children: string }) {
+  return <Text style={styles.sectionLabel}>{children}</Text>;
+}
+
 export function LoadingScreen() {
   return (
     <SafeAreaView style={[styles.safe, styles.center]}>
@@ -170,9 +197,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.md,
     paddingBottom: Space.xl,
   },
+  fill: {
+    flex: 1,
+  },
   inner: {
     width: '100%',
     alignSelf: 'center',
+  },
+  search: {
+    minHeight: 52,
+    borderWidth: 1,
+    borderColor: Colors.line,
+    borderRadius: Radius.sm,
+    paddingHorizontal: 12,
+    fontSize: 17,
+    color: Colors.ink,
+    backgroundColor: Colors.paper,
+    marginBottom: Space.sm,
+  },
+  sectionLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.muted,
+    marginTop: Space.sm,
+    marginBottom: 6,
   },
   header: {
     minHeight: MIN_TAP,
