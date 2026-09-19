@@ -7,6 +7,7 @@ import {
   guessAudioExt,
   isManagedRecordingRef,
   resolveStoredRecordingRef,
+  sentenceRecordingRelativePath,
   toStoredRecordingRef,
   wordRecordingRelativePath,
 } from './recording.ts';
@@ -24,6 +25,10 @@ describe('parent recording paths', () => {
     assert.equal(
       albumPageRecordingRelativePath('b1', 'p1', '.webm'),
       `${RECORDING_DIR_NAME}/albums/b1/p1.webm`,
+    );
+    assert.equal(
+      sentenceRecordingRelativePath('s1', '.m4a'),
+      `${RECORDING_DIR_NAME}/sentences/s1.m4a`,
     );
     assert.equal(
       toStoredRecordingRef('file:///docs/recordings/words/w1.m4a', root),

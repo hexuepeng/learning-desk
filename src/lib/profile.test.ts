@@ -6,6 +6,7 @@ import {
   defaultProfile,
   projectProfile,
   renameProfile,
+  sentencesForProfile,
   setProfileArchived,
   wordsForProfile,
 } from './profile.ts';
@@ -40,6 +41,17 @@ describe('profiles', () => {
     assert.equal(renameProfile(two, 'p2', '妹妹')[1].name, '妹妹');
   });
 
+  it('keeps untagged sentences under the default child profile', () => {
+    const sentences = [
+      { id: 's1', en: 'I like cats.', createdAt: 't' },
+      { id: 's2', en: 'I like dogs.', createdAt: 't', profileId: 'other' },
+    ];
+    assert.deepEqual(
+      sentencesForProfile(sentences, DEFAULT_PROFILE_ID).map((item) => item.id),
+      ['s1'],
+    );
+  });
+
   it('projects words and books for the active profile', () => {
     const state = {
       version: 1 as const,
@@ -61,6 +73,10 @@ describe('profiles', () => {
         { id: 'b1', title: '我家', pages: [], createdAt: 't' },
         { id: 'b2', title: '另一本', pages: [], createdAt: 't', profileId: 'p2' },
       ],
+      sentences: [
+        { id: 's1', en: 'I like cats.', createdAt: 't' },
+        { id: 's2', en: 'I like dogs.', createdAt: 't', profileId: 'p2' },
+      ],
       streak: emptyStreak(),
       stars: emptyStarState(),
       practiceLog: [],
@@ -77,6 +93,10 @@ describe('profiles', () => {
     assert.deepEqual(
       view.albumBooks.map((book) => book.id),
       ['b1'],
+    );
+    assert.deepEqual(
+      view.sentences.map((item) => item.id),
+      ['s1'],
     );
   });
 });

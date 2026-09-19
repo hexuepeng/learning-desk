@@ -121,6 +121,34 @@ export type StarState = {
   celebrationKey: string | null;
 };
 
+export type Sentence = {
+  id: string;
+  /** 英文短句，必填 */
+  en: string;
+  /** 可选中文对照 */
+  zh?: string;
+  createdAt: string;
+  /** 句中能对上当前词表的词 id */
+  wordIds?: string[];
+  /** 可选标签，如 weekly */
+  tags?: string[];
+  profileId?: string;
+  /** 本机家长录音相对路径；有则播放优先于 TTS */
+  recordingUri?: string | null;
+};
+
+export type SentenceProgress = {
+  sentenceId: string;
+  heard: number;
+  canSay: boolean;
+  lastPracticedAt?: string;
+};
+
+export type SentenceSettings = {
+  /** 短句练习是否计入今日卡。默认关。 */
+  countTowardDaily: boolean;
+};
+
 export type PersistedState = {
   version: 1;
   words: Word[];
@@ -130,6 +158,9 @@ export type PersistedState = {
   showIpa: boolean;
   feedback: FeedbackItem[];
   albumBooks: AlbumBook[];
+  sentences: Sentence[];
+  sentenceProgress: Record<string, SentenceProgress>;
+  sentenceSettings: SentenceSettings;
   streak: StreakState;
   stars: StarState;
   practiceLog: PracticeEvent[];

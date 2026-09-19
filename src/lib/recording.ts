@@ -20,6 +20,10 @@ export function albumPageRecordingRelativePath(
   return `${RECORDING_DIR_NAME}/albums/${bookId}/${pageId}${ext}`;
 }
 
+export function sentenceRecordingRelativePath(sentenceId: string, ext = '.m4a'): string {
+  return `${RECORDING_DIR_NAME}/sentences/${sentenceId}${ext}`;
+}
+
 export function toStoredRecordingRef(uri: string, documentDirectory: string | null): string {
   if (documentDirectory && uri.startsWith(documentDirectory)) {
     return uri.slice(documentDirectory.length);

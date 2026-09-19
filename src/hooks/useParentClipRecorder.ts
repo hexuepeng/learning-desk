@@ -18,10 +18,13 @@ export const MIC_PERMISSION_COPY = {
 
 export type ClipTarget =
   | { kind: 'word'; id: string }
+  | { kind: 'sentence'; id: string }
   | { kind: 'album'; bookId: string; pageId: string };
 
 export function clipKey(target: ClipTarget): string {
-  return target.kind === 'word' ? `word:${target.id}` : `album:${target.bookId}:${target.pageId}`;
+  if (target.kind === 'word') return `word:${target.id}`;
+  if (target.kind === 'sentence') return `sentence:${target.id}`;
+  return `album:${target.bookId}:${target.pageId}`;
 }
 
 export function useParentClipRecorder(

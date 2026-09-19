@@ -1,4 +1,4 @@
-import type { AlbumBook, PersistedState, Profile, Word } from '../types/models.ts';
+import type { AlbumBook, PersistedState, Profile, Sentence, Word } from '../types/models.ts';
 
 export const DEFAULT_PROFILE_ID = 'profile_child';
 
@@ -39,6 +39,10 @@ export function booksForProfile(books: AlbumBook[], profileId: string): AlbumBoo
   return books.filter((book) => profileIdOf(book) === profileId);
 }
 
+export function sentencesForProfile(sentences: Sentence[], profileId: string): Sentence[] {
+  return sentences.filter((item) => profileIdOf(item) === profileId);
+}
+
 export function activeProfiles(profiles: Profile[]): Profile[] {
   return profiles.filter((item) => !item.archived);
 }
@@ -56,6 +60,7 @@ export function projectProfile(state: PersistedState): PersistedState {
     activeProfileId,
     words: wordsForProfile(state.words, activeProfileId),
     albumBooks: booksForProfile(state.albumBooks, activeProfileId),
+    sentences: sentencesForProfile(state.sentences ?? [], activeProfileId),
   };
 }
 
@@ -65,6 +70,10 @@ export function stampWords(words: Word[], profileId: string): Word[] {
 
 export function stampBooks(books: AlbumBook[], profileId: string): AlbumBook[] {
   return books.map((book) => (book.profileId ? book : { ...book, profileId }));
+}
+
+export function stampSentences(sentences: Sentence[], profileId: string): Sentence[] {
+  return sentences.map((item) => (item.profileId ? item : { ...item, profileId }));
 }
 
 export function renameProfile(profiles: Profile[], id: string, name: string): Profile[] {

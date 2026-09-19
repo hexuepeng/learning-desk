@@ -18,7 +18,8 @@ export default function DadDesk() {
       <Card style={styles.summary}>
         <Text style={styles.line}>连胜 {state.streak.current} 天 · 今日卡 {done}/{total}</Text>
         <Text style={styles.line}>
-          词表 {state.words.length} · 我家的书 {state.albumBooks.length} · 未处理留言 {unhandled}
+          词表 {state.words.length} · 短句 {state.sentences.length} · 我家的书 {state.albumBooks.length} · 未处理留言{' '}
+          {unhandled}
         </Text>
       </Card>
       <View style={styles.col}>
@@ -29,6 +30,7 @@ export default function DadDesk() {
         <SectionLabel>内容</SectionLabel>
         <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
+        <KidButton label={t('sentenceList')} variant="secondary" onPress={() => router.push('/dad/sentences')} />
         <Card style={styles.toggle}>
           <View style={{ flex: 1 }}>
             <Text style={styles.toggleTitle}>显示音标</Text>
