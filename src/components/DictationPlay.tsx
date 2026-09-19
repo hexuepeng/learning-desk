@@ -18,6 +18,7 @@ import {
   type LetterTile,
 } from '@/lib/dictation';
 import { hapticError, hapticLight, hapticSuccess } from '@/lib/haptics';
+import { arrangeTileSize, nextEmptySlot } from '@/lib/layout';
 import { answersMatch } from '@/lib/parseWordList';
 import { playCue } from '@/lib/playCue';
 import type { DictationType, Word } from '@/types/models';
@@ -33,6 +34,7 @@ export function DictationPlay({
   type: DictationType;
   onResolved: (correct: boolean) => void;
 }) {
+  const { titleSize, bodySize, isLandscape, isTablet } = useLayout();
   const meta = DICTATION_TYPE_LABELS[type];
   const [result, setResult] = useState<null | boolean>(null);
 
@@ -50,8 +52,8 @@ export function DictationPlay({
 
   return (
     <Card>
-      <Text style={styles.kicker}>{meta.zh}</Text>
-      <Text style={styles.hint}>{meta.hint}</Text>
+      <Text style={[styles.kicker, { fontSize: isTablet ? 18 : 16 }]}>{meta.zh}</Text>
+      <Text style={[styles.hint, { fontSize: bodySize }]}>{meta.hint}</Text>
       {type === 'pick-word' && (
         <PickWord word={word} pool={pool} disabled={result != null} onAnswer={finish} />
       )}
@@ -59,7 +61,12 @@ export function DictationPlay({
         <FillLetters word={word} disabled={result != null} onAnswer={finish} />
       )}
       {type === 'arrange-letters' && (
-        <ArrangeLetters word={word} disabled={result != null} onAnswer={finish} />
+        <ArrangeLetters
+          word={word}
+          disabled={result != null}
+          onAnswer={finish}
+          landscapeSplit={isLandscape && isTablet}
+        />
       )}
       {(type === 'write-from-chinese' || type === 'listen-write') && (
         <WriteWord
@@ -72,8 +79,10 @@ export function DictationPlay({
       )}
       {result != null && (
         <View style={styles.result}>
-          <Text style={styles.resultTitle}>{result ? '对啦！' : '再看一眼'}</Text>
-          <Text style={styles.answer}>
+          <Text style={[styles.resultTitle, { fontSize: Math.min(titleSize, 28) }]}>
+            {result ? '对啦！' : '再看一眼'}
+          </Text>
+          <Text style={[styles.answer, { fontSize: bodySize }]}>
             {word.en} · {word.zh}
           </Text>
           <SpeakButton text={word.en} recordingUri={word.recordingUri} />
@@ -95,10 +104,11 @@ function PickWord({
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
 }) {
+  const { titleSize } = useLayout();
   const options = useMemo(() => pickWordOptions(word, pool), [word, pool]);
   return (
     <View style={styles.block}>
-      <Text style={styles.prompt}>{word.zh}</Text>
+      <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
       <SpeakButton text={word.en} label="提示发音" recordingUri={word.recordingUri} />
       <View style={styles.options}>
         {options.map((item, index) => (
@@ -124,7 +134,7 @@ function FillLetters({
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
 }) {
-  const { tile } = useLayout();
+  const { tile, tileGap, titleSize } = useLayout();
   const puzzle = useMemo(() => makeFillPuzzle(word.en), [word.en]);
   const choices = useMemo(() => fillChoices(puzzle.missing), [puzzle]);
   const [guesses, setGuesses] = useState<Record<number, string>>({});
@@ -139,8 +149,8 @@ function FillLetters({
 
   return (
     <View style={styles.block}>
-      <Text style={styles.prompt}>{word.zh}</Text>
-      <View style={styles.rowWrap}>
+      <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
+      <View style={[styles.rowWrap, { gap: tileGap }]}>
         {puzzle.chars.map((item) => (
           <Pressable
             key={item.index}
@@ -164,7 +174,7 @@ function FillLetters({
           </Pressable>
         ))}
       </View>
-      <View style={styles.rowWrap}>
+      <View style={[styles.rowWrap, { gap: tileGap }]}>
         {choices.map((letter) => (
           <Pressable
             key={letter}
@@ -189,79 +199,143 @@ function ArrangeLetters({
   word,
   disabled,
   onAnswer,
+  landscapeSplit,
 }: {
   word: Word;
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
+  landscapeSplit: boolean;
 }) {
-  const { tile } = useLayout();
+  const { tileGap, titleSize, bodySize, isTablet, width, maxWidth, pad } = useLayout();
   const startTiles = useMemo(() => makeArrangeTiles(word.en), [word.en]);
   const [bank, setBank] = useState<LetterTile[]>(startTiles);
   const [slots, setSlots] = useState<Array<LetterTile | null>>(
     Array.from({ length: word.en.length }, () => null),
   );
+  const [target, setTarget] = useState(0);
+
+  const boardWidth = Math.min(width, maxWidth) - pad * 2 - 48;
+  const tile = arrangeTileSize(word.en.length, landscapeSplit ? boardWidth * 0.46 : boardWidth, isTablet);
+  const letterSize = Math.max(22, Math.round(tile * 0.42));
 
   useEffect(() => {
     setBank(startTiles);
     setSlots(Array.from({ length: word.en.length }, () => null));
+    setTarget(0);
   }, [startTiles, word.en.length]);
 
   const place = (tileItem: LetterTile) => {
     if (disabled) return;
-    const empty = slots.findIndex((slot) => slot == null);
+    const empty = nextEmptySlot(slots, target);
     if (empty < 0) return;
     hapticLight();
+    const next = [...slots];
+    next[empty] = tileItem;
     setBank((current) => current.filter((item) => item.id !== tileItem.id));
-    setSlots((current) => {
-      const next = [...current];
-      next[empty] = tileItem;
-      return next;
-    });
+    setSlots(next);
+    const following = nextEmptySlot(next, empty + 1);
+    setTarget(following >= 0 ? following : empty);
   };
 
-  const remove = (index: number) => {
+  const onSlotPress = (index: number) => {
+    if (disabled) return;
     const tileItem = slots[index];
-    if (!tileItem || disabled) return;
-    setSlots((current) => {
-      const next = [...current];
-      next[index] = null;
-      return next;
-    });
-    setBank((current) => [...current, tileItem]);
+    if (tileItem) {
+      hapticLight();
+      setSlots((current) => {
+        const next = [...current];
+        next[index] = null;
+        return next;
+      });
+      setBank((current) => [...current, tileItem]);
+      setTarget(index);
+      return;
+    }
+    hapticLight();
+    setTarget(index);
   };
+
+  const clearAll = () => {
+    if (disabled) return;
+    setBank(startTiles);
+    setSlots(Array.from({ length: word.en.length }, () => null));
+    setTarget(0);
+  };
+
+  const slotRow = (
+    <View style={[styles.rowWrap, { gap: tileGap }]}>
+      {slots.map((slot, index) => (
+        <Pressable
+          key={`s-${index}`}
+          onPress={() => onSlotPress(index)}
+          accessibilityRole="button"
+          accessibilityLabel={slot ? `第 ${index + 1} 格 ${slot.letter}` : `第 ${index + 1} 格，空`}
+          style={[
+            styles.slot,
+            styles.slotBlank,
+            { minWidth: tile, minHeight: tile },
+            index === target && slot == null && styles.slotTarget,
+          ]}
+        >
+          <Text style={[styles.slotText, { fontSize: letterSize }]}>
+            {slot?.letter.toUpperCase() ?? ''}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+
+  const bankRow = (
+    <View style={[styles.rowWrap, { gap: tileGap }]}>
+      {bank.map((tileItem) => (
+        <Pressable
+          key={tileItem.id}
+          disabled={disabled}
+          onPress={() => place(tileItem)}
+          accessibilityRole="button"
+          accessibilityLabel={`字母 ${tileItem.letter}`}
+          style={[styles.tile, { minWidth: tile, minHeight: tile }]}
+        >
+          <Text style={[styles.tileText, { fontSize: letterSize }]}>
+            {tileItem.letter.toUpperCase()}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
 
   return (
     <View style={styles.block}>
-      <Text style={styles.prompt}>{word.zh}</Text>
-      <Text style={styles.live}>{arrangedWord(slots).toUpperCase() || '把字母点进格子'}</Text>
-      <View style={styles.rowWrap}>
-        {slots.map((slot, index) => (
-          <Pressable
-            key={`s-${index}`}
-            onPress={() => remove(index)}
-            style={[styles.slot, styles.slotBlank, { minWidth: tile, minHeight: tile }]}
-          >
-            <Text style={styles.slotText}>{slot?.letter.toUpperCase() ?? ''}</Text>
-          </Pressable>
-        ))}
+      <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
+      <Text style={[styles.live, { fontSize: bodySize }]}>
+        {arrangedWord(slots).toUpperCase() || '先点空格，再点下面的字母'}
+      </Text>
+      {landscapeSplit ? (
+        <View style={styles.split}>
+          <View style={styles.splitPane}>
+            <Text style={[styles.paneLabel, { fontSize: bodySize }]}>单词格子</Text>
+            {slotRow}
+          </View>
+          <View style={styles.splitPane}>
+            <Text style={[styles.paneLabel, { fontSize: bodySize }]}>字母</Text>
+            {bankRow}
+          </View>
+        </View>
+      ) : (
+        <>
+          {slotRow}
+          {bankRow}
+        </>
+      )}
+      <View style={styles.arrangeActions}>
+        <KidButton label="清空重排" variant="ghost" disabled={disabled} onPress={clearAll} style={styles.flex} />
+        <KidButton
+          label={t('check')}
+          disabled={disabled || slots.some((slot) => slot == null)}
+          onPress={() => onAnswer(isArrangeCorrect(word.en, slots))}
+          style={styles.flex}
+        />
       </View>
-      <View style={styles.rowWrap}>
-        {bank.map((tileItem) => (
-          <Pressable
-            key={tileItem.id}
-            disabled={disabled}
-            onPress={() => place(tileItem)}
-            style={[styles.tile, { minWidth: tile, minHeight: tile }]}
-          >
-            <Text style={styles.tileText}>{tileItem.letter.toUpperCase()}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <KidButton
-        label={t('check')}
-        disabled={disabled || slots.some((slot) => slot == null)}
-        onPress={() => onAnswer(isArrangeCorrect(word.en, slots))}
-      />
     </View>
   );
 }
@@ -279,11 +353,16 @@ function WriteWord({
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
 }) {
+  const { titleSize, tap } = useLayout();
   const [value, setValue] = useState('');
   useEffect(() => setValue(''), [word.id]);
   return (
     <View style={styles.block}>
-      {showZh ? <Text style={styles.prompt}>{word.zh}</Text> : <Text style={styles.prompt}>？</Text>}
+      {showZh ? (
+        <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
+      ) : (
+        <Text style={[styles.prompt, { fontSize: titleSize }]}>？</Text>
+      )}
       {listen ? <SpeakButton text={word.en} recordingUri={word.recordingUri} /> : null}
       <TextInput
         autoCapitalize="none"
@@ -291,7 +370,7 @@ function WriteWord({
         editable={!disabled}
         placeholder="在这里写下英语单词"
         placeholderTextColor={Colors.muted}
-        style={styles.input}
+        style={[styles.input, { minHeight: tap + 8 }]}
         value={value}
         onChangeText={setValue}
       />
@@ -341,6 +420,27 @@ const styles = StyleSheet.create({
     gap: 10,
     justifyContent: 'center',
   },
+  split: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Space.md,
+  },
+  splitPane: {
+    flex: 1,
+    gap: Space.sm,
+  },
+  paneLabel: {
+    color: Colors.muted,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  arrangeActions: {
+    flexDirection: 'row',
+    gap: Space.sm,
+  },
+  flex: {
+    flex: 1,
+  },
   tile: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.sm,
@@ -364,6 +464,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.primary,
     backgroundColor: '#fff',
+  },
+  slotTarget: {
+    borderWidth: 4,
+    borderColor: Colors.accent,
+    backgroundColor: '#E8F4F1',
   },
   slotText: {
     color: Colors.ink,

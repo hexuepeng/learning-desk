@@ -30,11 +30,11 @@ export function Screen({
   right?: ReactNode;
   scroll?: boolean;
 }) {
-  const { maxWidth } = useLayout();
+  const { maxWidth, titleSize, bodySize, pad, compact } = useLayout();
   const inner = (
     <View style={[styles.inner, { maxWidth }]}>
       {(title || back) && (
-        <View style={styles.header}>
+        <View style={[styles.header, compact && styles.headerCompact]}>
           {back ? (
             <KidButton label="返回" variant="ghost" onPress={() => router.back()} compact />
           ) : (
@@ -43,8 +43,21 @@ export function Screen({
           {right}
         </View>
       )}
-      {title ? <Text style={styles.title}>{title}</Text> : null}
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      {title ? (
+        <Text style={[styles.title, { fontSize: titleSize, marginBottom: compact ? 4 : 6 }]}>
+          {title}
+        </Text>
+      ) : null}
+      {subtitle ? (
+        <Text
+          style={[
+            styles.subtitle,
+            { fontSize: bodySize, lineHeight: Math.round(bodySize * 1.4), marginBottom: compact ? 10 : Space.md },
+          ]}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
       {children}
     </View>
   );
@@ -53,14 +66,14 @@ export function Screen({
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       {scroll ? (
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, { paddingHorizontal: pad }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {inner}
         </ScrollView>
       ) : (
-        <View style={styles.scroll}>{inner}</View>
+        <View style={[styles.scroll, { paddingHorizontal: pad }]}>{inner}</View>
       )}
     </SafeAreaView>
   );
@@ -81,7 +94,7 @@ export function KidButton({
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { tap } = useLayout();
+  const { tap, buttonLabelSize } = useLayout();
   const palette = {
     primary: { bg: Colors.primary, fg: Colors.primaryInk },
     secondary: { bg: Colors.paperSoft, fg: Colors.ink },
@@ -108,7 +121,7 @@ export function KidButton({
         style,
       ]}
     >
-      <Text style={[styles.buttonLabel, { color: palette.fg }]}>{label}</Text>
+      <Text style={[styles.buttonLabel, { color: palette.fg, fontSize: buttonLabelSize }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -167,6 +180,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Space.xs,
+  },
+  headerCompact: {
+    minHeight: 48,
+    marginBottom: 0,
   },
   title: {
     color: Colors.ink,

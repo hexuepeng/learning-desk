@@ -5,12 +5,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import { useLayout } from '@/hooks/useLayout';
 import { dailyProgress, isDailyComplete } from '@/lib/daily';
 import { APP_VERSION } from '@/constants/version';
 import { t } from '@/i18n';
 
 export default function HomeScreen() {
   const { ready, state } = useDesk();
+  const { isTablet, isLandscape, titleSize, bodySize, tap } = useLayout();
   const taps = useRef(0);
   const [hint, setHint] = useState(false);
   if (!ready) return <LoadingScreen />;
@@ -32,34 +34,40 @@ export default function HomeScreen() {
   return (
     <Screen title={t('appName')} subtitle="给孩子的家庭学习台 · 英语先行">
       <View style={styles.topRow}>
-        <View style={styles.streak}>
-          <Text style={styles.streakNum}>{state.streak.current}</Text>
+        <View style={[styles.streak, { minWidth: tap + 8, minHeight: tap + 8 }]}>
+          <Text style={[styles.streakNum, { fontSize: isTablet ? 32 : 28 }]}>{state.streak.current}</Text>
           <Text style={styles.streakLabel}>{t('streak')}</Text>
         </View>
-        <Text style={styles.stickers}>{state.streak.stickers.join(' ') || '完成今日卡可集贴纸'}</Text>
+        <Text style={[styles.stickers, { fontSize: isTablet ? 26 : 22 }]}>
+          {state.streak.stickers.join(' ') || '完成今日卡可集贴纸'}
+        </Text>
       </View>
 
-      <Card style={styles.daily} onPress={() => router.push('/daily')}>
-        <Text style={styles.kicker}>{t('todayEnglish')}</Text>
-        <Text style={styles.dailyTitle}>
-          {complete ? t('todayDone') : `背词 ${daily?.vocabWordIds.length ?? 0} · 默写 ${daily?.dictationWordIds.length ?? 0}`}
-        </Text>
-        <Text style={styles.muted}>
-          {total === 0 ? '请爸爸先加词表' : `进度 ${done}/${total}（绘本可另外看）`}
-        </Text>
-        <View style={styles.dots}>
-          {Array.from({ length: Math.max(total, 1) }).map((_, index) => (
-            <View key={index} style={[styles.dot, index < done && styles.dotOn]} />
-          ))}
-        </View>
-        <KidButton label={complete ? '再练一会儿' : t('startToday')} onPress={() => router.push('/daily')} />
-      </Card>
+      <View style={isTablet && isLandscape ? styles.landRow : undefined}>
+        <Card style={[styles.daily, isTablet && isLandscape && styles.landCol]} onPress={() => router.push('/daily')}>
+          <Text style={[styles.kicker, { fontSize: bodySize }]}>{t('todayEnglish')}</Text>
+          <Text style={[styles.dailyTitle, { fontSize: Math.min(titleSize, 32) }]}>
+            {complete ? t('todayDone') : `背词 ${daily?.vocabWordIds.length ?? 0} · 默写 ${daily?.dictationWordIds.length ?? 0}`}
+          </Text>
+          <Text style={[styles.muted, { fontSize: bodySize }]}>
+            {total === 0 ? '请爸爸先加词表' : `进度 ${done}/${total}（绘本可另外看）`}
+          </Text>
+          <View style={styles.dots}>
+            {Array.from({ length: Math.max(total, 1) }).map((_, index) => (
+              <View key={index} style={[styles.dot, index < done && styles.dotOn]} />
+            ))}
+          </View>
+          <KidButton label={complete ? '再练一会儿' : t('startToday')} onPress={() => router.push('/daily')} />
+        </Card>
 
-      <Text style={styles.section}>{t('subjects')}</Text>
-      <View style={styles.subjects}>
-        <SubjectTile title={t('english')} live onPress={() => router.push('/english')} />
-        <SubjectTile title={t('math')} onPress={() => router.push('/math')} />
-        <SubjectTile title={t('chinese')} onPress={() => router.push('/chinese')} />
+        <View style={isTablet && isLandscape ? styles.landCol : undefined}>
+          <Text style={[styles.section, { fontSize: isTablet ? 22 : 20 }]}>{t('subjects')}</Text>
+          <View style={styles.subjects}>
+            <SubjectTile title={t('english')} live onPress={() => router.push('/english')} />
+            <SubjectTile title={t('math')} onPress={() => router.push('/math')} />
+            <SubjectTile title={t('chinese')} onPress={() => router.push('/chinese')} />
+          </View>
+        </View>
       </View>
 
       <KidButton label={`💬 ${t('tellDad')}`} variant="secondary" onPress={() => router.push('/tell-dad')} />
@@ -157,6 +165,16 @@ const styles = StyleSheet.create({
     color: Colors.ink,
     marginBottom: Space.sm,
   },
+  landRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: Space.lg,
+    marginBottom: Space.md,
+  },
+  landCol: {
+    flex: 1,
+    marginBottom: 0,
+  },
   subjects: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -166,7 +184,7 @@ const styles = StyleSheet.create({
   subject: {
     flexGrow: 1,
     minWidth: 140,
-    minHeight: 96,
+    minHeight: 112,
   },
   subjectTitle: {
     fontSize: 22,

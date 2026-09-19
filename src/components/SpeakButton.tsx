@@ -15,7 +15,7 @@ export function SpeakButton({
   label?: string;
   recordingUri?: string | null;
 }) {
-  const { tap } = useLayout();
+  const { tap, buttonLabelSize } = useLayout();
   const dadVoice = hasRecordingOverride(recordingUri);
   const caption = label ?? (dadVoice ? t('listenDad') : t('listen'));
   return (
@@ -29,7 +29,7 @@ export function SpeakButton({
       ]}
     >
       <Text style={styles.icon}>🔊</Text>
-      <Text style={styles.label}>{caption}</Text>
+      <Text style={[styles.label, { fontSize: buttonLabelSize }]}>{caption}</Text>
     </Pressable>
   );
 }

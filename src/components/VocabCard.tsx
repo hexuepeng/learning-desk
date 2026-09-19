@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SpeakButton } from '@/components/SpeakButton';
 import { KidButton } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
+import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
 import type { Word } from '@/types/models';
 
@@ -16,10 +17,11 @@ export function VocabCard({
   onKnown: () => void;
   onNotYet: () => void;
 }) {
+  const { isTablet, compact } = useLayout();
   const [showZh, setShowZh] = useState(false);
   return (
     <View style={styles.wrap}>
-      <Text style={styles.en}>{word.en}</Text>
+      <Text style={[styles.en, { fontSize: isTablet ? (compact ? 44 : 56) : 48 }]}>{word.en}</Text>
       <SpeakButton text={word.en} recordingUri={word.recordingUri} />
       <Text style={styles.zh}>{showZh ? word.zh : ' '}</Text>
       <KidButton
