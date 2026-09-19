@@ -79,7 +79,7 @@ type DeskContextValue = {
   upsertWord: (input: { id?: string; en: string; zh: string }) => void;
   removeWord: (id: string) => void;
   setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
-  importWordText: (text: string) => number;
+  importWordText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
   setAutoAdjust: (on: boolean) => void;
@@ -235,16 +235,31 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const importWordText = useCallback(
-    (text: string) => {
+    (text: string, mode: 'append' | 'replace' = 'append') => {
       const parsed = parseWordList(text);
-      if (parsed.length === 0) return 0;
+      if (parsed.length === 0) return { added: 0, skipped: 0 };
+      const removedRecordings: string[] = [];
+      let added = 0;
+      let skipped = 0;
       update((current) => {
-        const have = new Set(current.words.map((word) => word.en.toLowerCase()));
-        const added: Word[] = [];
+        if (mode === 'replace') {
+          for (const word of current.words) {
+            if (word.recordingUri) removedRecordings.push(word.recordingUri);
+          }
+        }
+        const base = mode === 'replace' ? [] : current.words;
+        const have = new Set(base.map((word) => word.en.toLowerCase()));
+        const incoming: Word[] = [];
+        added = 0;
+        skipped = 0;
         for (const item of parsed) {
-          if (have.has(item.en.toLowerCase())) continue;
+          if (have.has(item.en.toLowerCase())) {
+            skipped += 1;
+            continue;
+          }
           have.add(item.en.toLowerCase());
-          added.push({
+          added += 1;
+          incoming.push({
             id: createId('word'),
             en: item.en,
             zh: item.zh,
@@ -252,9 +267,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             createdAt: new Date().toISOString(),
           });
         }
-        return { ...current, words: [...added, ...current.words] };
+        return { ...current, words: [...incoming, ...base] };
       });
-      return parsed.length;
+      for (const uri of removedRecordings) void deleteRecordingFile(uri);
+      return { added, skipped };
     },
     [update],
   );
