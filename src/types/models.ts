@@ -95,7 +95,7 @@ export type PracticeEvent = {
   id: string;
   date: string;
   kind: 'vocab' | 'dictation';
-  source: 'daily' | 'free';
+  source: 'daily' | 'free' | 'review';
   wordId: string;
   correct?: boolean;
 };
