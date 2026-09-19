@@ -1,22 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SpeakButton } from '@/components/SpeakButton';
-import { Card, KidButton, Screen } from '@/components/ui';
+import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
 import { tokenizeEnglish } from '@/lib/bookWords';
-import { playCue } from '@/lib/playCue';
 import { orderSentenceDeck } from '@/lib/sentences';
-import type { Word } from '@/types/models';
+import type { Sentence, Word } from '@/types/models';
 
 export default function KidSentences() {
-  const { state, markSentenceHeard, markSentenceCanSay } = useDesk();
-  const [deck] = useState(() => orderSentenceDeck(state.sentences, state.sentenceProgress));
+  const { ready, state, markSentenceHeard, markSentenceCanSay } = useDesk();
+  const [deck, setDeck] = useState<Sentence[]>([]);
   const [index, setIndex] = useState(0);
   const [showZh, setShowZh] = useState(true);
+  const sentenceKey = state.sentences.map((item) => item.id).join('|');
+
+  useEffect(() => {
+    if (!ready) return;
+    setDeck(orderSentenceDeck(state.sentences, state.sentenceProgress));
+    setIndex(0);
+    // 只在就绪或短句 id 变化时组牌，点听过/会说不重洗
+  }, [ready, sentenceKey]);
+
   const sentence = deck[index];
   const canSayCount = useMemo(
     () => state.sentences.filter((item) => state.sentenceProgress[item.id]?.canSay).length,
@@ -26,6 +34,8 @@ export default function KidSentences() {
     () => state.sentences.filter((item) => (state.sentenceProgress[item.id]?.heard ?? 0) > 0).length,
     [state.sentences, state.sentenceProgress],
   );
+
+  if (!ready) return <LoadingScreen />;
 
   if (!sentence) {
     return (
@@ -61,17 +71,9 @@ export default function KidSentences() {
           text={sentence.en}
           recordingUri={sentence.recordingUri}
           label={t('listen')}
+          onPlayed={() => markSentenceHeard(sentence.id)}
         />
         <View style={styles.row}>
-          <KidButton
-            label="听一听"
-            variant="secondary"
-            style={styles.flex}
-            onPress={() => {
-              markSentenceHeard(sentence.id);
-              playCue(sentence.en, sentence.recordingUri);
-            }}
-          />
           <KidButton
             label="我会说了"
             variant="success"
@@ -81,8 +83,8 @@ export default function KidSentences() {
               goNext();
             }}
           />
+          <KidButton label="下一句" variant="secondary" style={styles.flex} onPress={goNext} />
         </View>
-        <KidButton label="下一句" variant="ghost" onPress={goNext} />
       </Card>
     </Screen>
   );

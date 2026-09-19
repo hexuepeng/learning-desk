@@ -114,6 +114,17 @@ describe('sentences helpers', () => {
     assert.equal(next[1]?.en, 'We can see the sun.');
   });
 
+  it('keeps the same English sentence for different child profiles', () => {
+    const next = normalizeSentences([
+      { id: 's1', en: 'I like apples.', createdAt: 't', profileId: 'p1' },
+      { id: 's2', en: 'I like apples.', createdAt: 't', profileId: 'p2' },
+    ]);
+    assert.deepEqual(
+      next.map((item) => item.id),
+      ['s1', 's2'],
+    );
+  });
+
   it('tracks heard and can-say without streaks', () => {
     const heard = markSentenceHeard(undefined, 's1', 't1');
     assert.equal(heard.heard, 1);

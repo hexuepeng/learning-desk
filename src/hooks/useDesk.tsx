@@ -121,7 +121,6 @@ type DeskContextValue = {
   saveSentenceDrafts: (drafts: Array<{ en: string; zh?: string }>) => { added: number; skipped: number };
   markSentenceHeard: (id: string) => void;
   markSentenceCanSay: (id: string) => void;
-  setCountSentencesTowardDaily: (on: boolean) => void;
   addBookWordToToday: (en: string, zh: string) => 'added' | 'already';
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
@@ -575,16 +574,6 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           ...current.sentenceProgress,
           [id]: applySentenceCanSay(current.sentenceProgress[id], id),
         },
-      }));
-    },
-    [update],
-  );
-
-  const setCountSentencesTowardDaily = useCallback(
-    (on: boolean) => {
-      update((current) => ({
-        ...current,
-        sentenceSettings: { ...current.sentenceSettings, countTowardDaily: on },
       }));
     },
     [update],
@@ -1120,7 +1109,6 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       saveSentenceDrafts,
       markSentenceHeard,
       markSentenceCanSay,
-      setCountSentencesTowardDaily,
       addBookWordToToday,
       restoreSampleWords,
       setDictationType,
@@ -1170,7 +1158,6 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       saveSentenceDrafts,
       markSentenceHeard,
       markSentenceCanSay,
-      setCountSentencesTowardDaily,
       addBookWordToToday,
       restoreSampleWords,
       setDictationType,

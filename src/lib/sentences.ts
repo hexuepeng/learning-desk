@@ -8,6 +8,7 @@ import type {
 } from '../types/models.ts';
 
 import { normalizeSentenceKey } from './parseSentenceList.ts';
+import { profileIdOf } from './profile.ts';
 import { shuffle } from './util.ts';
 
 /** 模板里当动词用的一小撮功能词，不是商业词库。 */
@@ -68,7 +69,8 @@ export function normalizeSentences(raw: unknown): Sentence[] {
     const data = item as Partial<Sentence>;
     const en = typeof data.en === 'string' ? data.en.trim().replace(/\s+/g, ' ') : '';
     if (!en || !/[A-Za-z]/.test(en)) continue;
-    const key = normalizeSentenceKey(en);
+    const profileId = profileIdOf(data);
+    const key = `${profileId}:${normalizeSentenceKey(en)}`;
     if (seen.has(key)) continue;
     seen.add(key);
     const zh = typeof data.zh === 'string' ? data.zh.trim() : '';

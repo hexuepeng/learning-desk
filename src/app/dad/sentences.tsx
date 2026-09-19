@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Card, KidButton, Screen, SearchField } from '@/components/ui';
 import { VoiceClipBar, voiceClipStatus } from '@/components/VoiceClipBar';
@@ -23,7 +23,6 @@ export default function DadSentences() {
     setSentenceRecording,
     composeSentenceDrafts,
     saveSentenceDrafts,
-    setCountSentencesTowardDaily,
   } = useDesk();
   const [en, setEn] = useState('');
   const [zh, setZh] = useState('');
@@ -70,17 +69,6 @@ export default function DadSentences() {
       back
       scroll={false}
     >
-      <Card style={styles.toggle}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>短句计入今日卡</Text>
-          <Text style={styles.meta}>默认关。本版短句是额外听读，不进背词/默写今日进度。</Text>
-        </View>
-        <Switch
-          value={state.sentenceSettings.countTowardDaily}
-          onValueChange={setCountSentencesTowardDaily}
-          trackColor={{ true: Colors.success }}
-        />
-      </Card>
       <SearchField value={query} onChangeText={setQuery} placeholder="搜英文、中文或标签" />
       <Card>
         <Text style={styles.label}>加一句</Text>
@@ -340,12 +328,6 @@ export default function DadSentences() {
 const styles = StyleSheet.create({
   list: {
     flex: 1,
-  },
-  toggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-    marginBottom: Space.sm,
   },
   label: {
     fontWeight: '800',

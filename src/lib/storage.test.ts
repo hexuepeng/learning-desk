@@ -53,4 +53,19 @@ describe('storage migration', () => {
     assert.equal(next.sentences[0]?.profileId, 'profile_child');
     assert.equal(next.sentenceSettings.countTowardDaily, true);
   });
+
+  it('keeps the same English sentence on two child profiles', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [],
+      sentences: [
+        { id: 's1', en: 'I like apples.', createdAt: 't', profileId: 'p1' },
+        { id: 's2', en: 'I like apples.', createdAt: 't', profileId: 'p2' },
+      ],
+    });
+    assert.deepEqual(
+      next.sentences.map((item) => item.id),
+      ['s1', 's2'],
+    );
+  });
 });
