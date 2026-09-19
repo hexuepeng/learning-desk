@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSampleWords } from '../content/sampleWords.ts';
 import { normalizeAlbumBooks } from './album.ts';
 import { clampEnabledTypes, defaultDictationSettings } from './dictation.ts';
+import { normalizeFeedbackList } from './feedback.ts';
 import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
 import type { PersistedState, PracticeEvent } from '../types/models.ts';
@@ -40,7 +41,7 @@ function migrate(raw: unknown): PersistedState {
       enabledTypes: clampEnabledTypes(data.dictationSettings?.enabledTypes ?? []),
       autoAdjust: data.dictationSettings?.autoAdjust ?? true,
     },
-    feedback: Array.isArray(data.feedback) ? data.feedback : [],
+    feedback: normalizeFeedbackList(data.feedback),
     albumBooks: normalizeAlbumBooks(data.albumBooks),
     streak: data.streak ?? emptyStreak(),
     stars: normalizeStarState(data.stars),

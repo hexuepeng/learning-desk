@@ -32,11 +32,15 @@ export type DictationSettings = {
   autoAdjust: boolean;
 };
 
+export type FeedbackKind = 'too-hard' | 'too-easy' | 'boring' | 'note';
+
 export type FeedbackItem = {
   id: string;
   text: string;
+  kind: FeedbackKind;
   createdAt: string;
   read: boolean;
+  handled: boolean;
 };
 
 export type AlbumPage = {

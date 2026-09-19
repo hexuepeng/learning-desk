@@ -1,7 +1,7 @@
 {
   "name": "learning-desk",
   "main": "expo-router/entry",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "家庭定制学习台：英语先行的多学科学习 App",
   "scripts": {

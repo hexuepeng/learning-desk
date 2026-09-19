@@ -58,10 +58,12 @@ import {
 import { clearState, defaultState, loadState, saveState } from '@/lib/storage';
 import { applyDailyComplete } from '@/lib/streak';
 import { createId, todayKey } from '@/lib/util';
+import { buildFeedbackText } from '@/lib/feedback';
 import type {
   AlbumBook,
   AlbumPage,
   DictationType,
+  FeedbackKind,
   PersistedState,
   PracticeEvent,
   StarRating,
@@ -86,8 +88,9 @@ type DeskContextValue = {
   markVocab: (wordId: string, known: boolean, daily?: boolean) => void;
   markDictation: (wordId: string, correct: boolean, daily?: boolean) => WordProgress;
   awardDictationStars: (correct: number, wrong: number) => { stars: StarRating; celebrate: boolean };
-  addFeedback: (text: string) => void;
+  addFeedback: (kind: FeedbackKind, note?: string) => void;
   markFeedbackRead: (id: string) => void;
+  markFeedbackHandled: (id: string) => void;
   addAlbumBook: (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => Promise<string>;
   updateAlbumBook: (id: string, patch: { title?: string }) => void;
   addAlbumPage: (
@@ -436,17 +439,19 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const addFeedback = useCallback(
-    (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed) return;
+    (kind: FeedbackKind, note = '') => {
+      const text = buildFeedbackText(kind, note);
+      if (!text) return;
       update((current) => ({
         ...current,
         feedback: [
           {
             id: createId('fb'),
-            text: trimmed,
+            text,
+            kind,
             createdAt: new Date().toISOString(),
             read: false,
+            handled: false,
           },
           ...current.feedback,
         ],
@@ -461,6 +466,18 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         ...current,
         feedback: current.feedback.map((item) =>
           item.id === id ? { ...item, read: true } : item,
+        ),
+      }));
+    },
+    [update],
+  );
+
+  const markFeedbackHandled = useCallback(
+    (id: string) => {
+      update((current) => ({
+        ...current,
+        feedback: current.feedback.map((item) =>
+          item.id === id ? { ...item, handled: true, read: true } : item,
         ),
       }));
     },
@@ -672,6 +689,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       awardDictationStars,
       addFeedback,
       markFeedbackRead,
+      markFeedbackHandled,
       addAlbumBook,
       updateAlbumBook,
       addAlbumPage,
@@ -702,6 +720,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       awardDictationStars,
       addFeedback,
       markFeedbackRead,
+      markFeedbackHandled,
       addAlbumBook,
       updateAlbumBook,
       addAlbumPage,
