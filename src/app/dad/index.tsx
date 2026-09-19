@@ -10,6 +10,7 @@ import { t } from '@/i18n';
 export default function DadDesk() {
   const { state, lockParent, resetDemo } = useDesk();
   const unread = state.feedback.filter((item) => !item.read).length;
+  const unhandled = state.feedback.filter((item) => !item.handled).length;
   const { done, total } = dailyProgress(state.daily);
 
   return (
@@ -17,7 +18,7 @@ export default function DadDesk() {
       <Card style={styles.summary}>
         <Text style={styles.line}>连胜 {state.streak.current} 天 · 今日卡 {done}/{total}</Text>
         <Text style={styles.line}>
-          词表 {state.words.length} · 我家的书 {state.albumBooks.length} · 未读留言 {unread}
+          词表 {state.words.length} · 我家的书 {state.albumBooks.length} · 未处理留言 {unhandled}
         </Text>
       </Card>
       <View style={styles.col}>
@@ -26,7 +27,7 @@ export default function DadDesk() {
         <KidButton label={t('familyBooks')} variant="secondary" onPress={() => router.push('/dad/albums')} />
         <KidButton label={t('dictationSettings')} variant="secondary" onPress={() => router.push('/dad/dictation')} />
         <KidButton
-          label={`${t('feedbackInbox')}${unread ? `（${unread}）` : ''}`}
+          label={`${t('feedbackInbox')}${unhandled ? `（${unhandled}）` : unread ? `（未读 ${unread}）` : ''}`}
           variant="secondary"
           onPress={() => router.push('/dad/feedback')}
         />
