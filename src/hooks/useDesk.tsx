@@ -90,7 +90,12 @@ type DeskContextValue = {
   setAutoAdjust: (on: boolean) => void;
   enableChallengeModes: () => void;
   markVocab: (wordId: string, known: boolean, daily?: boolean) => void;
-  markDictation: (wordId: string, correct: boolean, daily?: boolean) => WordProgress;
+  markDictation: (
+    wordId: string,
+    correct: boolean,
+    daily?: boolean,
+    source?: PracticeEvent['source'],
+  ) => WordProgress;
   awardDictationStars: (correct: number, wrong: number) => { stars: StarRating; celebrate: boolean };
   addFeedback: (kind: FeedbackKind, note?: string) => void;
   markFeedbackRead: (id: string) => void;
@@ -419,7 +424,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const markDictation = useCallback(
-    (wordId: string, correct: boolean, daily = false) => {
+    (wordId: string, correct: boolean, daily = false, source?: PracticeEvent['source']) => {
       let nextProgress = emptyProgress(wordId);
       update((current) => {
         const prev = current.progress[wordId] ?? emptyProgress(wordId);
@@ -436,7 +441,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           id: createId('pr'),
           date: todayKey(),
           kind: 'dictation',
-          source: daily ? 'daily' : 'free',
+          source: source ?? (daily ? 'daily' : 'free'),
           wordId,
           correct,
         };

@@ -83,7 +83,14 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <KidButton label={`💬 ${t('tellDad')}`} variant="secondary" onPress={() => router.push('/tell-dad')} />
+      <View style={styles.extra}>
+        <KidButton
+          label="错词复习（5 分钟）"
+          variant="secondary"
+          onPress={() => router.push('/english/review')}
+        />
+        <KidButton label={`💬 ${t('tellDad')}`} variant="secondary" onPress={() => router.push('/tell-dad')} />
+      </View>
 
       <Pressable onPress={openDad} style={styles.version}>
         <Text style={styles.versionText}>v{APP_VERSION}{hint ? ' · 再点几次打开爸爸书桌' : ''}</Text>
@@ -194,6 +201,9 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     marginTop: 6,
     fontSize: 15,
+  },
+  extra: {
+    gap: 12,
   },
   version: {
     minHeight: 48,
