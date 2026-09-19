@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import {
   applyDictationResult,
+  challengeModesEnabled,
   clampEnabledTypes,
   currentDictationType,
   DEFAULT_ENABLED_TYPES,
@@ -13,6 +14,8 @@ import {
   makeArrangeTiles,
   makeFillPuzzle,
   pickWordOptions,
+  withChallengeModes,
+  writingHint,
 } from './dictation.ts';
 import { mulberry32 } from './util.ts';
 
@@ -60,6 +63,15 @@ describe('dictation ladder', () => {
       progress = applyDictationResult(progress, true, settings, `t${i}`);
     }
     assert.equal(currentDictationType(progress, settings), 'arrange-letters');
+  });
+
+  it('turns on both challenge modes in one tap', () => {
+    const next = withChallengeModes(DEFAULT_ENABLED_TYPES);
+    assert.equal(challengeModesEnabled(next), true);
+    assert.ok(next.includes('write-from-chinese'));
+    assert.ok(next.includes('listen-write'));
+    assert.equal(writingHint('ice cream'), '2 个词，一共 8 个字母');
+    assert.equal(writingHint('cat'), '3 个字母');
   });
 });
 

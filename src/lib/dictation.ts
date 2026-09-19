@@ -16,6 +16,22 @@ export const DEFAULT_ENABLED_TYPES: DictationType[] = [
   'arrange-letters',
 ];
 
+export const CHALLENGE_TYPES: DictationType[] = ['write-from-chinese', 'listen-write'];
+
+export function withChallengeModes(enabled: DictationType[]): DictationType[] {
+  return clampEnabledTypes([...enabled, ...CHALLENGE_TYPES]);
+}
+
+export function challengeModesEnabled(enabled: DictationType[]): boolean {
+  return CHALLENGE_TYPES.every((type) => enabled.includes(type));
+}
+
+export function writingHint(word: string): string {
+  const letters = [...word].filter((ch) => /[a-zA-Z]/.test(ch)).length;
+  const parts = word.trim().split(/\s+/).filter(Boolean).length;
+  return parts > 1 ? `${parts} 个词，一共 ${letters} 个字母` : `${letters} 个字母`;
+}
+
 export const AUTO_ADJUST_THRESHOLD = 2;
 
 export const DICTATION_TYPE_LABELS: Record<DictationType, { zh: string; hint: string }> = {
