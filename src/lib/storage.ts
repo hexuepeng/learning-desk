@@ -4,6 +4,13 @@ import { createSampleWords } from '../content/sampleWords.ts';
 import { normalizeAlbumBooks } from './album.ts';
 import { clampEnabledTypes, defaultDictationSettings } from './dictation.ts';
 import { normalizeFeedbackList } from './feedback.ts';
+import {
+  DEFAULT_PROFILE_ID,
+  normalizeProfiles,
+  resolveActiveProfileId,
+  stampBooks,
+  stampWords,
+} from './profile.ts';
 import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
 import type { PersistedState, PracticeEvent } from '../types/models.ts';
@@ -14,7 +21,7 @@ export const DEFAULT_PARENT_PIN = '1234';
 export function defaultState(): PersistedState {
   return {
     version: 1,
-    words: createSampleWords(),
+    words: stampWords(createSampleWords(), DEFAULT_PROFILE_ID),
     progress: {},
     dictationSettings: defaultDictationSettings(),
     feedback: [],
@@ -24,6 +31,8 @@ export function defaultState(): PersistedState {
     practiceLog: [],
     daily: null,
     parentPin: DEFAULT_PARENT_PIN,
+    profiles: normalizeProfiles(null),
+    activeProfileId: DEFAULT_PROFILE_ID,
   };
 }
 
@@ -31,25 +40,30 @@ function migrate(raw: unknown): PersistedState {
   const base = defaultState();
   if (!raw || typeof raw !== 'object') return base;
   const data = raw as Partial<PersistedState>;
+  const profiles = normalizeProfiles(data.profiles);
+  const activeProfileId = resolveActiveProfileId(
+    profiles,
+    data.activeProfileId ?? DEFAULT_PROFILE_ID,
+  );
   return {
     ...base,
     ...data,
     version: 1,
-    words: Array.isArray(data.words) ? data.words : base.words,
+    words: stampWords(Array.isArray(data.words) ? data.words : base.words, DEFAULT_PROFILE_ID),
     progress: data.progress && typeof data.progress === 'object' ? data.progress : {},
     dictationSettings: {
       enabledTypes: clampEnabledTypes(data.dictationSettings?.enabledTypes ?? []),
       autoAdjust: data.dictationSettings?.autoAdjust ?? true,
     },
     feedback: normalizeFeedbackList(data.feedback),
-    albumBooks: normalizeAlbumBooks(data.albumBooks),
+    albumBooks: stampBooks(normalizeAlbumBooks(data.albumBooks), DEFAULT_PROFILE_ID),
     streak: data.streak ?? emptyStreak(),
     stars: normalizeStarState(data.stars),
-    practiceLog: Array.isArray(data.practiceLog)
-      ? (data.practiceLog as PracticeEvent[])
-      : [],
+    practiceLog: Array.isArray(data.practiceLog) ? (data.practiceLog as PracticeEvent[]) : [],
     daily: data.daily ?? null,
     parentPin: data.parentPin?.match(/^\d{4}$/) ? data.parentPin : DEFAULT_PARENT_PIN,
+    profiles,
+    activeProfileId,
   };
 }
 
