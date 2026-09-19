@@ -21,7 +21,7 @@ import {
   type LetterTile,
 } from '@/lib/dictation';
 import { hapticError, hapticLight, hapticSuccess } from '@/lib/haptics';
-import { arrangeTileSize, nextEmptySlot } from '@/lib/layout';
+import { arrangeTileSize, nextEmptySlot, pickWordColumns } from '@/lib/layout';
 import { answersMatch } from '@/lib/parseWordList';
 import { playCue } from '@/lib/playCue';
 import type { DictationType, Word } from '@/types/models';
@@ -54,30 +54,32 @@ export function DictationPlay({
     setResult(correct);
   };
 
+  const answered = result != null;
+
   return (
     <Card>
       <Text style={[styles.kicker, { fontSize: isTablet ? 18 : 16 }]}>{meta.zh}</Text>
-      <Text style={[styles.hint, { fontSize: bodySize }]}>{meta.hint}</Text>
-      {type === 'pick-word' && (
-        <PickWord word={word} pool={pool} disabled={result != null} onAnswer={finish} />
+      {!answered && <Text style={[styles.hint, { fontSize: bodySize }]}>{meta.hint}</Text>}
+      {!answered && type === 'pick-word' && (
+        <PickWord word={word} pool={pool} disabled={false} onAnswer={finish} />
       )}
-      {type === 'fill-letters' && (
-        <FillLetters word={word} disabled={result != null} onAnswer={finish} />
+      {!answered && type === 'fill-letters' && (
+        <FillLetters word={word} disabled={false} onAnswer={finish} />
       )}
-      {type === 'arrange-letters' && (
+      {!answered && type === 'arrange-letters' && (
         <ArrangeLetters
           word={word}
-          disabled={result != null}
+          disabled={false}
           onAnswer={finish}
           landscapeSplit={isLandscape && isTablet}
         />
       )}
-      {(type === 'write-from-chinese' || type === 'listen-write') && (
+      {!answered && (type === 'write-from-chinese' || type === 'listen-write') && (
         <WriteWord
           word={word}
           listen={type === 'listen-write'}
           showZh={type === 'write-from-chinese'}
-          disabled={result != null}
+          disabled={false}
           onAnswer={finish}
         />
       )}
@@ -109,13 +111,14 @@ function PickWord({
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
 }) {
-  const { titleSize } = useLayout();
+  const { titleSize, isTablet } = useLayout();
   const options = useMemo(() => pickWordOptions(word, pool), [word, pool]);
+  const columns = pickWordColumns(isTablet);
   return (
     <View style={styles.block}>
       <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
       <SpeakButton text={word.en} label="提示发音" recordingUri={word.recordingUri} />
-      <View style={styles.options}>
+      <View style={[styles.options, columns > 1 && styles.optionsMulti]}>
         {options.map((item, index) => (
           <KidButton
             key={`${item.id}-${index}`}
@@ -123,6 +126,7 @@ function PickWord({
             variant="secondary"
             disabled={disabled}
             onPress={() => onAnswer(item.id === word.id)}
+            style={columns > 1 ? styles.optionHalf : undefined}
           />
         ))}
       </View>
@@ -426,6 +430,15 @@ const styles = StyleSheet.create({
   options: {
     gap: 10,
   },
+  optionsMulti: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  optionHalf: {
+    width: '48%',
+    flexGrow: 0,
+  },
   rowWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -498,7 +511,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   result: {
-    marginTop: Space.lg,
+    marginTop: Space.sm,
     gap: Space.sm,
   },
   resultTitle: {

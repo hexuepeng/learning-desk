@@ -68,3 +68,8 @@ export function nextEmptySlot(slots: Array<unknown | null>, preferred = 0): numb
   if (preferred >= 0 && preferred < slots.length && slots[preferred] == null) return preferred;
   return slots.findIndex((slot) => slot == null);
 }
+
+/** 选单词选项列数：平板两列，手机单列。 */
+export function pickWordColumns(isTablet: boolean): 1 | 2 {
+  return isTablet ? 2 : 1;
+}

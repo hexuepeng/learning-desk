@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { arrangeTileSize, computeLayout, nextEmptySlot } from './layout.ts';
+import { arrangeTileSize, computeLayout, nextEmptySlot, pickWordColumns } from './layout.ts';
 
 describe('computeLayout', () => {
   it('gives phone portrait modest taps and width', () => {
@@ -65,5 +65,18 @@ describe('nextEmptySlot', () => {
     assert.equal(nextEmptySlot([1, null, 3], 1), 1);
     assert.equal(nextEmptySlot([1, 2, null], 0), 2);
     assert.equal(nextEmptySlot([1, 2, 3], 0), -1);
+  });
+});
+
+describe('pickWordColumns', () => {
+  it('keeps a single column on phones', () => {
+    assert.equal(pickWordColumns(false), 1);
+    assert.equal(pickWordColumns(computeLayout(390, 844).isTablet), 1);
+  });
+
+  it('uses two columns on tablets in both orientations', () => {
+    assert.equal(pickWordColumns(true), 2);
+    assert.equal(pickWordColumns(computeLayout(820, 1180).isTablet), 2);
+    assert.equal(pickWordColumns(computeLayout(1180, 820).isTablet), 2);
   });
 });
