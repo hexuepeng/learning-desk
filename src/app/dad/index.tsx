@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Card, KidButton, Screen, SectionLabel } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
@@ -8,7 +8,7 @@ import { dailyProgress } from '@/lib/daily';
 import { t } from '@/i18n';
 
 export default function DadDesk() {
-  const { state, lockParent, resetDemo } = useDesk();
+  const { state, lockParent, resetDemo, setShowIpa } = useDesk();
   const unread = state.feedback.filter((item) => !item.read).length;
   const unhandled = state.feedback.filter((item) => !item.handled).length;
   const { done, total } = dailyProgress(state.daily);
@@ -29,6 +29,17 @@ export default function DadDesk() {
         <SectionLabel>内容</SectionLabel>
         <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
+        <Card style={styles.toggle}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleTitle}>显示音标</Text>
+            <Text style={styles.toggleMeta}>孩子背词和揭晓答案时显示英式 IPA。默认开。</Text>
+          </View>
+          <Switch
+            value={state.showIpa}
+            onValueChange={setShowIpa}
+            trackColor={{ true: Colors.success }}
+          />
+        </Card>
         <KidButton label={t('familyBooks')} variant="secondary" onPress={() => router.push('/dad/albums')} />
         <KidButton
           label={`${t('feedbackInbox')}${unhandled ? `（${unhandled}）` : unread ? `（未读 ${unread}）` : ''}`}
@@ -65,5 +76,20 @@ const styles = StyleSheet.create({
   },
   col: {
     gap: 12,
+  },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+  },
+  toggleTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.ink,
+  },
+  toggleMeta: {
+    color: Colors.muted,
+    marginTop: 4,
+    fontSize: 15,
   },
 });

@@ -1,14 +1,16 @@
 import type { Word } from '../types/models.ts';
 
+import { normalizeIpa } from '../lib/ipa.ts';
 import { createId } from '../lib/util.ts';
 
-const PAIRS: Array<[string, string]> = [
-  ['apple', '苹果'],
-  ['book', '书'],
-  ['cat', '猫'],
+/** 仅给少量常见词附上核对过的英式 IPA，不批量编造。 */
+const PAIRS: Array<[string, string, string?]> = [
+  ['apple', '苹果', '/ˈæpl/'],
+  ['book', '书', '/bʊk/'],
+  ['cat', '猫', '/kæt/'],
   ['dog', '狗'],
-  ['water', '水'],
-  ['school', '学校'],
+  ['water', '水', '/ˈwɔːtə/'],
+  ['school', '学校', '/skuːl/'],
   ['friend', '朋友'],
   ['happy', '开心'],
   ['morning', '早上'],
@@ -27,11 +29,16 @@ const PAIRS: Array<[string, string]> = [
 
 /** 家庭自建示例词包，非正式教材/商业词库。 */
 export function createSampleWords(now = new Date().toISOString()): Word[] {
-  return PAIRS.map(([en, zh]) => ({
-    id: createId('word'),
-    en,
-    zh,
-    source: 'sample',
-    createdAt: now,
-  }));
+  return PAIRS.map(([en, zh, ipa]) => {
+    const word: Word = {
+      id: createId('word'),
+      en,
+      zh,
+      source: 'sample',
+      createdAt: now,
+    };
+    const normalized = normalizeIpa(ipa);
+    if (normalized) word.ipa = normalized;
+    return word;
+  });
 }

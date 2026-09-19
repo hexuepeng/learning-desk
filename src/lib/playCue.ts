@@ -1,9 +1,9 @@
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import type { AudioPlayer } from 'expo-audio';
-import * as Speech from 'expo-speech';
 
 import { displayRecordingUri } from './recordingFiles.ts';
 import { resolveSpeakSource } from './speakSource.ts';
+import { speakEnglish, stopSpeaking } from './tts.ts';
 
 let player: AudioPlayer | null = null;
 
@@ -23,18 +23,8 @@ function pauseRecordingPlayer(): void {
 }
 
 export function stopCue(): void {
-  Speech.stop();
+  stopSpeaking();
   pauseRecordingPlayer();
-}
-
-function speakTts(text: string): void {
-  const trimmed = text.trim();
-  if (!trimmed) return;
-  Speech.speak(trimmed, {
-    language: 'en-US',
-    rate: 0.85,
-    pitch: 1.05,
-  });
 }
 
 async function playRecording(stored: string, fallbackText: string): Promise<void> {
@@ -51,11 +41,11 @@ async function playRecording(stored: string, fallbackText: string): Promise<void
     await audio.seekTo(0);
     audio.play();
   } catch {
-    speakTts(fallbackText);
+    speakEnglish(fallbackText);
   }
 }
 
-/** 孩子点「听一听」：有家长录音就播录音，否则设备英语 TTS。 */
+/** 孩子点「听一听」：有家长录音就播录音，否则设备英语 TTS（优先 en-GB）。 */
 export function playCue(text: string, recordingUri?: string | null): void {
   const source = resolveSpeakSource(text, recordingUri);
   stopCue();
@@ -63,5 +53,5 @@ export function playCue(text: string, recordingUri?: string | null): void {
     void playRecording(source.uri, source.text);
     return;
   }
-  speakTts(source.text);
+  speakEnglish(source.text);
 }

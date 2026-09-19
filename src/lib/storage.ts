@@ -11,9 +11,10 @@ import {
   stampBooks,
   stampWords,
 } from './profile.ts';
+import { normalizeStoredWords } from './ipa.ts';
 import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
-import type { PersistedState, PracticeEvent } from '../types/models.ts';
+import type { PersistedState, PracticeEvent, Word } from '../types/models.ts';
 
 export const STORAGE_KEY = 'learning-desk/v1';
 export const DEFAULT_PARENT_PIN = '1234';
@@ -24,6 +25,7 @@ export function defaultState(): PersistedState {
     words: stampWords(createSampleWords(), DEFAULT_PROFILE_ID),
     progress: {},
     dictationSettings: defaultDictationSettings(),
+    showIpa: true,
     feedback: [],
     albumBooks: [],
     streak: emptyStreak(),
@@ -53,8 +55,12 @@ function migrate(raw: unknown): PersistedState {
     ...base,
     ...data,
     version: 1,
-    words: stampWords(Array.isArray(data.words) ? data.words : base.words, DEFAULT_PROFILE_ID),
+    words: stampWords(
+      normalizeStoredWords(Array.isArray(data.words) ? (data.words as Word[]) : base.words),
+      DEFAULT_PROFILE_ID,
+    ),
     progress: data.progress && typeof data.progress === 'object' ? data.progress : {},
+    showIpa: data.showIpa !== false,
     dictationSettings: {
       enabledTypes: clampEnabledTypes(data.dictationSettings?.enabledTypes ?? []),
       autoAdjust: data.dictationSettings?.autoAdjust ?? true,

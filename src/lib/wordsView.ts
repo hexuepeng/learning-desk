@@ -6,7 +6,10 @@ export function filterWords(words: Word[], query: string): Word[] {
   const q = query.trim().toLowerCase();
   if (!q) return words;
   return words.filter(
-    (word) => word.en.toLowerCase().includes(q) || word.zh.toLowerCase().includes(q),
+    (word) =>
+      word.en.toLowerCase().includes(q) ||
+      word.zh.toLowerCase().includes(q) ||
+      (word.ipa ?? '').toLowerCase().includes(q),
   );
 }
 

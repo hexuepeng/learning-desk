@@ -12,6 +12,7 @@ const words: Word[] = ['apple', 'book', 'cat', 'dog'].map((en, index) => ({
   zh: `${en}义`,
   source: 'parent',
   createdAt: 't',
+  ipa: en === 'apple' ? '/ˈæpl/' : '',
 }));
 
 describe('wordsView', () => {
@@ -25,6 +26,10 @@ describe('wordsView', () => {
       ['w0', 'w1', 'w2', 'w3'],
     );
     assert.deepEqual(filterWords(words, '   ').map((word) => word.id), ['w0', 'w1', 'w2', 'w3']);
+    assert.deepEqual(
+      filterWords(words, 'æpl').map((word) => word.id),
+      ['w0'],
+    );
   });
 
   it('puts unfamiliar words first and shuffles within groups', () => {
