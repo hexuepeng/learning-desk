@@ -17,7 +17,7 @@ export function SpeakButton({
   recordingUri?: string | null;
   onPlayed?: () => void;
 }) {
-  const { tap, buttonLabelSize } = useLayout();
+  const { isTablet } = useLayout();
   const dadVoice = hasRecordingOverride(recordingUri);
   const caption = label ?? (dadVoice ? t('listenDad') : t('listen'));
   return (
@@ -28,13 +28,10 @@ export function SpeakButton({
         playCue(text, recordingUri);
         onPlayed?.();
       }}
-      style={({ pressed }) => [
-        styles.btn,
-        { minHeight: tap, minWidth: tap, opacity: pressed ? 0.85 : 1 },
-      ]}
+      style={({ pressed }) => [styles.btn, { opacity: pressed ? 0.85 : 1 }]}
     >
-      <Text style={styles.icon}>🔊</Text>
-      <Text style={[styles.label, { fontSize: buttonLabelSize }]}>{caption}</Text>
+      <Text style={[styles.icon, { fontSize: isTablet ? 16 : 15 }]}>🔊</Text>
+      <Text style={[styles.label, { fontSize: isTablet ? 15 : 14 }]}>{caption}</Text>
     </Pressable>
   );
 }
@@ -44,17 +41,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    alignSelf: 'center',
+    gap: 6,
     backgroundColor: Colors.paperSoft,
-    borderRadius: Radius.md,
-    paddingHorizontal: 16,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 12,
+    minHeight: 40,
   },
   icon: {
-    fontSize: 22,
+    fontSize: 15,
   },
   label: {
     color: Colors.ink,
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '700',
   },
 });
