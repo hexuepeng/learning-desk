@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { createSampleWords } from '@/content/sampleWords';
+import type { WordPackId } from '@/content/familyWordPacks';
 import {
   addPageToBook,
   buildAlbumBook,
@@ -65,6 +66,7 @@ import {
   starsForSession,
 } from '@/lib/stars';
 import { clearState, defaultState, loadState, saveState } from '@/lib/storage';
+import { applyWordPack } from '@/lib/wordPacks';
 import { applyDailyComplete } from '@/lib/streak';
 import { createId, todayKey } from '@/lib/util';
 import { buildFeedbackText } from '@/lib/feedback';
@@ -98,6 +100,7 @@ type DeskContextValue = {
   removeWord: (id: string) => void;
   setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
   importWordText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
+  importWordPack: (packId: WordPackId) => { added: number; skipped: number };
   addBookWordToToday: (en: string, zh: string) => 'added' | 'already';
   restoreSampleWords: () => void;
   setDictationType: (type: DictationType, on: boolean) => void;
@@ -311,6 +314,21 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const importWordPack = useCallback(
+    (packId: WordPackId) => {
+      let added = 0;
+      let skipped = 0;
+      update((current) => {
+        const result = applyWordPack(current, packId, 'fill');
+        added = result.added;
+        skipped = result.skipped;
+        return result.state;
+      });
+      return { added, skipped };
+    },
+    [update],
+  );
+
   const addBookWordToToday = useCallback(
     (en: string, zh: string): 'added' | 'already' => {
       const cleanEn = en.trim().replace(/\s+/g, ' ');
@@ -348,12 +366,12 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       .map((word) => word.recordingUri as string);
     update((current) => {
       const samples = createSampleWords();
-      const parentWords = current.words.filter((word) => word.source === 'parent');
-      const have = new Set(parentWords.map((word) => word.en.toLowerCase()));
+      const kept = current.words.filter((word) => word.source !== 'sample');
+      const have = new Set(kept.map((word) => word.en.toLowerCase()));
       return {
         ...current,
         words: [
-          ...parentWords,
+          ...kept,
           ...samples
             .filter((word) => !have.has(word.en.toLowerCase()))
             .map((word) => ({ ...word, profileId: current.activeProfileId })),
@@ -832,6 +850,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeWord,
       setWordRecording,
       importWordText,
+      importWordPack,
       addBookWordToToday,
       restoreSampleWords,
       setDictationType,
@@ -872,6 +891,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       removeWord,
       setWordRecording,
       importWordText,
+      importWordPack,
       addBookWordToToday,
       restoreSampleWords,
       setDictationType,

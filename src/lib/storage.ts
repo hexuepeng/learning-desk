@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { createSampleWords } from '../content/sampleWords.ts';
+import { createPackWords, DEFAULT_WORD_PACK_ID } from '../content/familyWordPacks.ts';
 import { normalizeAlbumBooks } from './album.ts';
 import { clampEnabledTypes, defaultDictationSettings } from './dictation.ts';
 import { normalizeFeedbackList } from './feedback.ts';
@@ -14,6 +14,7 @@ import {
 import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
 import type { PersistedState, PracticeEvent } from '../types/models.ts';
+import { ensureDefaultWordPack } from './wordPacks.ts';
 
 export const STORAGE_KEY = 'learning-desk/v1';
 export const DEFAULT_PARENT_PIN = '1234';
@@ -21,7 +22,7 @@ export const DEFAULT_PARENT_PIN = '1234';
 export function defaultState(): PersistedState {
   return {
     version: 1,
-    words: stampWords(createSampleWords(), DEFAULT_PROFILE_ID),
+    words: stampWords(createPackWords(DEFAULT_WORD_PACK_ID), DEFAULT_PROFILE_ID),
     progress: {},
     dictationSettings: defaultDictationSettings(),
     feedback: [],
@@ -33,6 +34,7 @@ export function defaultState(): PersistedState {
     parentPin: DEFAULT_PARENT_PIN,
     profiles: normalizeProfiles(null),
     activeProfileId: DEFAULT_PROFILE_ID,
+    appliedWordPacks: [DEFAULT_WORD_PACK_ID],
   };
 }
 
@@ -49,7 +51,7 @@ function migrate(raw: unknown): PersistedState {
     profiles,
     data.activeProfileId ?? DEFAULT_PROFILE_ID,
   );
-  return {
+  const next: PersistedState = {
     ...base,
     ...data,
     version: 1,
@@ -68,7 +70,9 @@ function migrate(raw: unknown): PersistedState {
     parentPin: data.parentPin?.match(/^\d{4}$/) ? data.parentPin : DEFAULT_PARENT_PIN,
     profiles,
     activeProfileId,
+    appliedWordPacks: Array.isArray(data.appliedWordPacks) ? data.appliedWordPacks : [],
   };
+  return ensureDefaultWordPack(next);
 }
 
 export async function loadState(): Promise<PersistedState> {

@@ -11,12 +11,20 @@ import {
   useParentClipRecorder,
 } from '@/hooks/useParentClipRecorder';
 import { playCue } from '@/lib/playCue';
+import { WORD_PACKS } from '@/content/familyWordPacks';
 import { parseWordList } from '@/lib/parseWordList';
 import { filterWords } from '@/lib/wordsView';
 
 export default function DadWords() {
-  const { state, upsertWord, removeWord, importWordText, restoreSampleWords, setWordRecording } =
-    useDesk();
+  const {
+    state,
+    upsertWord,
+    removeWord,
+    importWordText,
+    importWordPack,
+    restoreSampleWords,
+    setWordRecording,
+  } = useDesk();
   const [en, setEn] = useState('');
   const [zh, setZh] = useState('');
   const [bulk, setBulk] = useState('');
@@ -80,7 +88,7 @@ export default function DadWords() {
         <Card style={styles.block}>
           <Text style={styles.label}>粘贴词表</Text>
           <Text style={styles.meta}>
-            每行 english,chinese，也认空格/分号/CSV。可追加，或清空后整表替换。不要把整本剑桥词表打进应用包，由你粘贴导入。
+            每行 english,chinese，也认空格/分号/CSV。可追加，或清空后整表替换。家庭词包已随仓库走；公开上架时不要打进安装包。
           </Text>
           <TextInput
             multiline
@@ -125,6 +133,30 @@ export default function DadWords() {
         </Card>
       ) : null}
       <KidButton
+        label="导入 KET A2 全表"
+        variant="secondary"
+        style={{ marginTop: Space.md }}
+        onPress={() => {
+          const result = importWordPack('ket-a2');
+          Alert.alert(
+            WORD_PACKS['ket-a2'].title,
+            `新增 ${result.added} 个，跳过重复 ${result.skipped} 个。`,
+          );
+        }}
+      />
+      <KidButton
+        label="导入精简 120 词"
+        variant="ghost"
+        style={{ marginTop: Space.sm }}
+        onPress={() => {
+          const result = importWordPack('ket-a2-starter');
+          Alert.alert(
+            WORD_PACKS['ket-a2-starter'].title,
+            `新增 ${result.added} 个，跳过重复 ${result.skipped} 个。`,
+          );
+        }}
+      />
+      <KidButton
         label="补回示例词包"
         variant="ghost"
         style={{ marginTop: Space.sm }}
@@ -148,7 +180,7 @@ export default function DadWords() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.en}>{word.en}</Text>
                   <Text style={styles.meta}>
-                    {word.zh} · {word.source === 'sample' ? '示例' : '家长'}
+                    {word.zh} · {word.source === 'sample' ? '示例' : word.source === 'pack' ? '词包' : '家长'}
                   </Text>
                 </View>
                 <KidButton

@@ -1,0 +1,1553 @@
+a/an,第一个字母 A
+all the time,始终
+a few,几个
+almost,几乎
+able,能干的
+already,已经
+about,在...周围
+also,也
+always,总是
+a.m.,上午
+amazed,吃惊的
+above,在上方
+ambulance,救护车
+accident,意外事件
+among,在...之中
+accommodation,膳宿
+an,一
+across,越过
+and,和
+act,行动
+another,另外的
+action,行动
+answer,答案
+activity,活动
+any,任何的
+actor,男演员
+anybody,任何人
+actually,事实上
+anymore,再也不
+ad,广告
+anyone,任何人
+add,增加
+anyway,无论如何
+address,住址
+anywhere,无论何处
+adult,成人
+apartment,房间
+advanced,在前的
+apartment building,<美>公寓大楼
+adventure,冒险
+app,[计] 应用
+advert,提出看法
+apple,苹果
+advertisement,广告
+appointment,约会
+advice,忠告
+aeroplane,飞机
+april,四月
+afraid,害怕的
+area,区域
+after,在...之后
+arm,手臂
+afternoon,午后
+armchair,扶手椅
+afterwards,然后
+around,包围
+again,再一次
+against,反对
+france. art,（待补）
+age,年龄
+article,文章
+aged,老的
+artist,艺术家
+ago,以前
+agree,同意
+air,空气
+airport,飞机场
+assistant,助手
+alarm clock,闹钟
+as well,也
+album,粘贴簿
+all,所有的
+at,在
+all kinds of,各种各样的
+begin,开始
+at all,根本
+beginning,开始
+attractive,吸引人的
+behind,在后地
+august,八月
+belong,属于
+aunt,阿姨
+autumn,秋天
+below,在下面
+available,可利用的
+belt,带子
+away,离去
+beside,在旁边
+awesome,引起敬畏的
+between,在...之间
+awful,可怕的
+bicycle,自行车
+big,大的
+bike,自行车
+b bill,[计] 基地址
+baby,婴孩
+bin,(贮存谷物等的)容器
+back,后面的
+backpack,远足用的背包
+biology,生物学
+bad,坏的
+bird,鸟
+badly,严重地
+birthday,生日
+badminton,羽毛球运动
+biscuit,饼干
+bag,袋子
+bit,少量
+bake,烘焙
+ball,球
+balloon,气球
+black,黑色
+banana,香蕉
+blackboard,黑板
+band,带子
+blanket,毛毯
+bank,银行
+barbecue/barbeque,（待补）
+baseball,棒球
+blood,血
+basketball,篮球
+blouse,宽松的上衣
+bat,蝙蝠
+blue,蓝色
+bath,沐浴
+bathing suit,游泳衣
+board. bathroom,（待补）
+board game,用棋盘玩的游戏
+bathtub,浴缸
+boat,船
+battery,电池
+body,身体
+boil,煮沸
+beach,海滩
+boiled,煮沸的
+bean,豆子
+book,书
+bear,熊
+beard,胡须
+beautiful,美丽的
+bookcase,书架
+because,因为
+bookshelf,书架
+because of,因为
+bookshop,书店
+become,变成
+bookstore,书店
+bed,床
+boot,长靴
+bedroom,卧室
+bee,蜜蜂
+bored,无聊的
+beetle,甲虫
+boring,烦人的
+before,在...之前
+born,天生的
+schools borrow,学校（school的复数形式）
+c boss,[计] 调用
+cabinet,橱柜
+both,两者的
+bother,烦扰
+cafeteria,自助餐厅
+bottle,瓶子
+calendar,日历
+bottom,底部
+call,呼叫
+bowl,碗
+box,盒子
+boy,男孩
+camel,骆驼
+boyfriend,男朋友
+camera,照相机
+bracelet,手镯
+camp,露营
+brain,脑
+camping,野营
+brave,勇敢的
+campsite,营地
+bread,面包
+cap,盖子
+break,休息
+capital,首都
+break down,毁掉
+breakfast,早餐
+bridge,桥
+bright,明亮的
+candy,糖果
+brilliant,光辉的
+car,汽车
+bring,带来
+bring back,拿回来
+broken,坏掉的
+brother,兄弟
+brown,褐色
+career,事业
+brush,刷子
+careful,小心的
+build,建立
+building,建筑物
+carefully,小心地
+burger,汉堡包（等于hamburger）
+car park,停车场
+bus,公共汽车
+carpet,地毯
+business,生意
+carrot,胡萝卜
+businessman,商人
+carry,进位
+businesswoman,商人
+cartoon,卡通画
+business person,商人
+case,情形
+bus station,公交车站
+cash,现金
+bus stop,公共汽车站
+castle,城堡
+busy,忙碌的
+cat,猫
+but,除了
+catch,捕捉
+butter,奶油
+cd,镭射碟
+butterfly,蝴蝶
+cd player,激光唱机
+buy,买
+ceiling,天花板
+by,被
+cell phone,手机
+by accident,偶然
+celebrate,庆祝
+by the way,在途中
+by post,经邮局
+celebrity,名声
+bye,再会
+cent,分
+centre/center,（待补）
+century,世纪
+schools cereal,学校（school的复数形式）
+cloud,云
+certainly,确定地
+cloudy,多云的
+chain,链
+clown,小丑
+chair,椅子
+coach,四轮大马车
+change,变化
+course. coat,外套
+channel,海峡
+coast,海岸
+character,个性
+coat,外套
+film. cola,（待补）
+chat,闲谈
+cold,感冒
+chatroom,（电脑网络上的）聊天室
+colleague,同事
+cheap,便宜的
+collect,收集
+check,检查
+college,学院
+cheese,乳酪
+colour,颜色
+chef,厨师
+comb,头梳
+chemist,化学家
+come,过来
+chemistry,化学
+come back,回来
+cheque,支票
+chess,国际象棋
+yesterday. chicken,（待补）
+comedy,喜剧
+child,孩子
+comfortable,舒服的
+chilli,红辣椒
+comic,连环漫画
+chips,炸土豆条
+company,公司
+chocolate,巧克力
+competition,竞争
+choose,选择
+complete,完全的
+cinema,电影院
+computer,电脑
+circle,圆周
+concert,音乐会
+circus,马戏团
+city,城市
+contact,联系
+city centre,市中心
+continue,继续
+class,班级
+conversation,会话
+classical,古典的
+cookie,饼干
+classmate,同班同学
+cooking,烹饪
+classroom,教室
+cool,凉爽
+clean,干净的
+cleaner,清洁工人
+copy,副本
+clear,清楚的
+corner,角落
+clearly,清楚地
+correct,正确的
+clever,聪明的
+cost,代价
+click,咔哒声
+costume,装束
+climb,攀登
+climbing,攀缘而登的
+could,可以
+clock,时钟
+close,结束
+close to,接近于
+country,国家
+closed,关闭的
+countryside,乡下地方
+closet,壁橱
+course,课程
+clothes,衣服
+schools court,学校（school的复数形式）
+delicious,美味的
+cousin,堂兄弟姊妹
+dentist,牙科医生
+cover,盖子
+department,部门
+cow,母牛
+desert,沙漠
+cream,乳酪
+design,设计
+creature,人
+desk,书桌
+credit card,[计] 信用卡
+dessert,餐后甜点
+cricket,蟋蟀
+details,详细资料
+crocodile,鳄鱼
+diary,日记
+cross,十字架
+dictionary,字典
+crossing,横越
+difference,不同
+crowd,群众
+difficult,困难的
+crowded,拥挤的
+digital,数字显示的
+cry,叫声
+digital camera,数码相机
+cup,杯子
+dinner,晚餐
+cupboard,食橱
+dinosaur,恐龙
+curry,咖哩粉
+diploma,文凭
+curtain,帐
+directions,指示
+customer,消费者
+dirty,肮脏的
+cut,切口
+disco,夜总会
+cycle,周期
+discount,折扣
+cycling,骑脚踏车兜风
+discover,发现
+discuss,讨论
+d dish,[计] 数据
+dad,爸爸
+washing up. daily,洗涤
+dive,潜水
+dance,跳舞
+dancer,舞蹈演员
+diving,潜水
+dancing,舞蹈
+danger,危险
+dangerous,危险的
+doctor,医生
+dark,黑暗
+document,文件
+date,日期
+dog,狗
+daughter,女儿
+dollar,美元
+day,天
+dolphin,海豚
+dead,死的
+donkey,驴子
+dear,亲爱的人
+door,门
+december,十二月
+decide,决定
+double,两倍
+deep,深的
+degree,程度
+down,向下的
+delay,耽搁
+schools internet. environment,学校（school的复数形式）
+downstairs,楼下
+equipment,装备
+dr,博士
+draw,拉
+eraser,擦子
+drawer,抽屉
+especially,尤其
+drawing,图画
+euro,欧元（欧盟的统一货币单位）
+dream,梦
+even,平坦的
+dress,服装
+evening,傍晚
+dressed,穿好衣服的
+event,事件
+drink,饮料
+ever,曾经
+drive,驾车
+every,每一
+driver,驾驶员
+everybody,每个人
+s licence,[计] 标量
+everyone,每个人
+everything,每件事物
+drop,滴
+everywhere,各处
+drugstore,药房
+exactly,确切地
+drum,鼓
+examination/exam,（待补）
+dry,干的
+example,例子
+duck,鸭子
+during,在...的时候
+dvd,数字化视频光盘（Digital Video Di
+excellent,优良的
+dvd player,数字化视频光盘（Digital Video Di
+except,除
+excited,兴奋的
+e exciting,[计] 元件
+excuse,原谅
+each,每个
+exercise,行使
+each other,彼此
+eagle,鹰
+ear,耳朵
+exhibition,表现
+early,早的
+earn,赚得
+exit,出口
+earring,耳环
+expensive,贵的
+easily,容易地
+experience,经历
+east,东方
+experiment,实验
+easy,容易的
+eat,吃
+explain,解释
+egg,蛋
+explore,探险
+electric,电的
+explorer,探险家
+electricity,电
+elephant,象
+elevator,电梯
+extinct,熄灭的
+else,别的
+extra,额外的事物
+email,电子信函
+empty,空的
+f end,[计] 故障
+engine,引擎
+engineer,工程师
+enjoy,享受
+face,脸
+enough,充足
+fact,事实
+enter,进入
+factory,工厂
+fail,失败
+fair,展览会
+fall,落下
+entrance,入口
+envelope,信封
+schools fall over,学校（school的复数形式）
+floor,地板
+family,家庭
+famous,出名的
+fan,风扇
+flower,花
+fantastic,奇妙的
+fog,雾
+far,远的
+foggy,雾深的
+farm,农场
+follow,跟随
+farmer,农夫
+fashion,流行
+fast,快速的
+food,食物
+fast food,速食
+foot,脚
+fat,脂肪
+father,父亲
+football,足球
+favourite,喜欢的事物
+football player,[体]足球运动员
+february,二月
+footballer,足球员
+feel,感觉
+for,为
+feelings,感情
+foreign,外国的
+festival,节日的
+forest,森林
+few,很少的
+forget,忘记
+field,领域
+fork,叉子
+file,档案
+fill,装满
+form,形状
+fill in,填充
+film,软片
+final,期末考试
+finally,最后
+french fries,炸薯条
+find,发现
+fresh,新鲜的
+find out,找出
+fridge,电冰箱
+fine,罚款
+friday,星期五
+finger,手指
+friendly,友好的
+finish,完成
+frightened,受惊吓的
+fire,火
+frog,青蛙
+from,从
+front,前面
+first,首先
+first name,名
+funny,好笑的
+first of all,首先
+fur,毛皮
+fish,鱼
+further,更远的
+fishing,钓鱼
+future,未来
+fit,适宜
+fix,使固定
+flat,平坦的
+gallery,走廊
+schools game,学校（school的复数形式）
+grandparent,祖父母
+garage,车库
+grandson,孙子
+garden,花园
+granny,奶奶
+garlic,大蒜
+grape,葡萄
+gas,气体
+grass,草
+gas station,加油站
+great,大的
+gate,门
+green,绿色
+geography,地理学
+grey,灰色
+get,得到
+grilled,烤的
+get back,回来
+grocery store,[经] 杂货店
+get dressed,穿衣服
+group,团体
+get fit,得到
+grow,种植
+get married,结婚
+grow up,成熟
+get off,下来
+guess,猜测
+get on,生活
+guest,客人
+get up,(使)起床
+guide,引导者
+gift,礼物
+guitar,吉他
+giraffe,长颈鹿
+guy,家伙
+girl,女孩
+girlfriend,女朋友
+gym,+体育馆
+give,弹性
+give back,归还
+give somebody a call/ring,弹性
+glad,高兴的
+glass,玻璃
+hair,头发
+glasses,眼镜
+half,一半
+glove,手套
+half-price,半价
+go,去
+hall,门厅
+goal,目标
+hand,手
+goat,山羊
+handbag,手提包
+gold,黄金
+happen,发生
+golden,金的
+happy,快乐的
+golf,高尔夫球
+harbour,港
+good,善行
+good afternoon,下午好
+hard,坚硬的
+goodbye,再见
+good evening,晚上好
+good-looking,相貌好看的
+good morning,早上好
+hat,帽子
+good night,晚安
+hate,憎恨
+go out,出去
+go shopping have to,去
+grade,等级
+he,他
+head,头
+grandchild,孙
+headache,头痛
+granddaughter,孙女
+headphones,听筒
+grandfather,祖父
+headteacher,中小学的校长
+grandma,奶奶
+health,健康
+grandmother,祖母
+healthy,健康的
+grandpa,爷爷
+hear,听到
+schools heart,学校（school的复数形式）
+ice cream,冰淇淋
+heating,加热
+ice skating,滑冰
+heavy,重的
+id card,身份证
+helicopter,直升机
+identification,识别
+hello,喂
+if,如果
+help,帮忙
+ill,疾病
+helpful,有帮助的
+important,重要的
+her,她的
+impossible,不可能的
+here,在这里
+improve,改良
+hers,她的
+in,在...期间
+herself,她自己
+include,包括
+hey,嗨
+indoor,户内的
+hi,喂
+indoors,在户内
+high,高度
+information,消息
+hill,小山
+in front of,在...前面
+him,他
+ingredient,成分
+himself,他自己
+insect,昆虫
+inside,内部
+instead,作为替代
+hip hop,希普霍普
+instead of,代替
+hippo,河马
+instructions,指令
+his,他的
+instrument,工具
+history,历史
+interested,感兴趣的
+hit,打击
+interesting,有趣的
+hobby,嗜好
+international,国际的
+hockey,冰球
+internet,[计] 因特网
+hold,把握
+into,进入...之内
+holiday,假日
+invent,发明
+home,家
+invention,发明
+homework,家庭作业
+invitation,邀请
+honey,蜂蜜
+invite,邀请
+hoodie,有冠乌鸦
+island,岛
+hope,希望
+it,它
+horrible,可怕的
+horror,惊骇
+its,它的
+horse,马
+itself,它本身
+hospital,医院
+hot,热的
+hotel,旅馆
+j hour,字母j
+house,房子
+housewife,主妇
+jacket,夹克
+how,如何
+jam,果酱
+however,然而
+huge,极大的
+january,一月
+hungry,饥饿的
+jazz,爵士乐
+hurry,匆忙
+jeans,工装裤
+hurt,伤害
+jellyfish,水母
+husband,丈夫
+jewellery,宝石
+job,工作
+join,参加
+i journalist,我
+journey,旅程
+juice,汁
+july,七月
+ice,冰
+jump,跳跃
+schools jumper,学校（school的复数形式）
+leave,许可
+june,六月
+just,正直的
+k left-hand,[计] 键
+kangaroo,袋鼠
+leg,腿
+keep,生计
+lemon,柠檬
+key,钥匙
+length,长度
+book. keyboard,（待补）
+kick,踢
+let,让
+letter,信
+kind,种类
+king,国王
+kiss,吻
+library,图书馆
+kit,装备
+licence,执照
+kitchen,厨房
+kite,风筝
+lie down,躺下
+kitten,小猫
+life,生活
+knife,小刀
+lift,举起
+know,知道
+l light,见习驾驶员
+like,相似的
+lake,湖
+lamp,灯
+language,语言
+line,列
+large,大的
+last,最后的
+late,迟的
+later,以后
+list,目录
+latest,最近的
+litre,升
+laugh,笑
+little,一点点
+lazy,懒惰的
+live,活的
+learn,学习
+living room,客厅
+least,最少
+lizard,蜥蜴
+leather,皮革
+long,长的
+schools look,学校（school的复数形式）
+mean,低劣的
+look after,目送
+medicine,药
+look at,看
+meet,会
+look for,寻找
+meeting,会议
+look out,面朝
+melon,瓜
+lorry,卡车
+lose,遗失
+memory,记忆
+lost,失去的
+message,消息
+a lot,大量
+metal,金属
+loud,大声的
+microphone,扩音器
+love,爱
+midday,正午
+lovely,可爱的
+middle,中央
+low,低点
+luck,运气
+midnight,午夜
+luckily,幸运地
+might,力量
+lucky,幸运的
+mile,英里
+luggage,行李
+milk,奶
+lunch,午餐
+million,百万
+lunchtime,午餐时间
+mind,思想
+m machine,[计] 尾数
+mine,矿
+mad,疯狂的
+mineral water,矿泉水
+magazine,杂志
+minus,负号
+mail,邮件
+minute,分
+main course,主帆
+mirror,镜子
+make,制造
+miss,失误
+make-up,捏造
+missing,不见的
+man,男人
+mistake,错误
+manager,经理
+mix,混合物
+mango,芒果
+many,多数
+model,模型
+map,地图
+modern,现代人
+march,三月
+mom,妈妈
+mark,标志
+moment,片刻
+market,市场
+married,已婚的
+monday,星期一
+match,比赛
+money,金钱
+maths/mathematics,（待补）
+month,月
+monthly,月刊
+matter,事件
+moon,月亮
+may,五月
+most,最多
+mother,母亲
+maybe,也许
+motorbike,机动脚踏两用车
+me,我
+motorway,高速公路
+meal,一餐
+mountain,山
+schools mouse,学校（school的复数形式）
+not,不
+mouth,嘴
+move,移动
+notebook,笔记本
+movie,电影
+nothing,无
+movie star,电影明星
+notice,注意
+movie theater,电影院
+november,十一月
+mr,先生
+now,现在
+mrs,太太
+number,数
+ms,美国微软公司
+nurse,护士
+much,大量
+mug,有柄大杯
+mum,菊花
+o museum,啊
+mushroom,蘑菇形物
+ocean,海洋
+music,音乐
+occupation,职业
+musical,音乐片
+october,十月
+musician,音乐家
+must,必须
+o'clock,...点钟
+my,我的
+of,的
+myself,我自己
+offer,给予(物)
+n office,[计] 负的
+often,时常
+oh,(表示惊讶
+name,名字
+national,国家的
+nationality,国籍
+oil,油
+nature,自然
+near,近的
+ok/okay,（待补）
+nearly,几乎
+old,以前
+neck,脖子
+olympic,奥林匹亚的
+necklace,项链
+omelette,煎蛋卷
+need,需要
+on,在...之上
+neighbour,邻居
+once,一次
+nervous,神经紧张的
+nest,巢
+one,一(个)
+net,网
+onion,洋葱
+never,从不
+only,唯一的
+new,新的
+news,新闻
+newspaper,报纸
+open,公开
+next,下一个
+opera,歌剧
+next to,几乎
+opinion,意见
+nice,美好的
+opposite,相对的
+night,夜
+or,或
+no,不
+orange,柑橘
+nobody,小人物
+order,次序
+noise,噪音
+noisy,嘈杂的
+noon,正午
+other,其他的
+no one,没有人
+our,我们的
+normal,常态
+ours,我们的
+north,北方
+ourselves,我们自己
+nose,鼻子
+schools out,学校（school的复数形式）
+penny,便士
+outdoor,户外的
+people,人
+outdoors,户外
+pepper,胡椒粉
+out of,在...外
+per,每一
+outside,外面
+perfect,完成时
+oven,烤箱
+over,结束
+own,自己的
+person,人
+petrol,汽油
+petrol station,加油站
+p pharmacy,便士
+phone,电话
+pack,包裹
+photography,摄影
+physics,物理学
+pain,痛苦
+paint,油漆
+piano,钢琴
+pick up,掘地
+painter,画家
+picnic,野餐
+painting,画
+picture,图画
+pale,栅栏
+pair,一双
+piece,块
+pillow,枕头
+panda,大熊猫
+pilot,飞行员
+paper,纸
+paragraph,段落
+pink,粉红色
+pardon,原谅
+pity,遗憾
+pizza,比萨饼
+parent,父母
+park,公园
+place,地方
+parking lot,停车场
+parrot,鹦鹉
+part,部分
+partner,合伙人
+plan,计划
+party,宴会
+plane,平面
+pass,经过
+passenger,乘客
+plate,碟
+passport,护照
+platform,站台
+password,密码
+past,过去
+play,游戏
+pasta,意大利面食
+path,路径
+player,竞赛者
+pay,薪资
+playground,运动场
+pleasant,愉快的
+pear,梨子
+please,请
+pen,钢笔
+pence,(非正式)copper便士
+pencil,铅笔
+pleased,高兴的
+pencil case,铅笔盒
+plus,加上
+penfriend,<英>笔友
+p.m.,下午
+penguin,企鹅
+pocket,口袋
+schools point,学校（school的复数形式）
+puzzle,难题
+polar bear,北极熊
+police,警察
+police car,[法] 警察巡逻车
+q police officer,[计] 质量
+police station,警察分局
+quarter,四分之一
+polite,有礼貌的
+pool,池
+poor,贫穷的
+question,问题
+poor thing/you,贫穷的
+quick,快的
+pop,砰然声
+quickly,很快地
+popular,通俗的
+port,港口
+possible,可能的
+quite,相当
+possibly,可能
+post,柱
+postcard,明信片
+poster,海报
+post office,邮局
+potato,马铃薯
+practice,实践
+r practise,[计] 半径
+well. race,（待补）
+would prefer,将
+prepare,准备
+present,现在
+radio,无线电
+pretty,漂亮的
+rain,雨
+price,价格
+raincoat,雨衣
+print,打印
+rainforest,[生态]雨林
+printer,印刷工
+rap,轻敲
+prize,奖赏
+probably,大概
+read,读
+problem,问题
+reading,阅读
+program,节目
+ready,预备好的状态
+programme,节目
+real,真的
+project,计划
+reason,理由
+pull,拉
+receive,收到
+pupil,学生
+recently,最近
+puppy,小狗
+receptionist,接待员
+purple,紫色
+recipe,食谱
+purse,钱包
+record,记录
+push,推
+put,放
+red,红的
+put on,把...放上去
+refrigerator,电冰箱
+sale,出售
+relaxing,令人轻松的
+remember,记得
+rent,租金
+salt,盐
+repair,修理
+same,相同的
+repeat,重复
+rest,休息
+restaurant,餐馆
+sausage,香肠
+return,回来
+save,救球
+review,检讨
+scared,害怕的
+rice,米
+scarf,围巾
+rich,富裕的
+scary,容易受惊的
+ride,骑马
+school,学校
+riding,骑
+schoolchild,学童
+science,科学
+scientist,科学家
+right,权利
+scissors,剪刀
+right hand,右手
+season,季节
+ring,环
+seat,座
+second,秒
+secretary,秘书
+river,河
+road,路
+roast,烤肉
+selfie,自拍照
+rock,岩石
+sell,卖
+send,发送
+roof,屋顶
+sentence,句子
+room,房间
+september,九月
+round,圆
+roundabout,迂回的
+serve,可作...用
+rubber,橡皮
+set,日落
+several,几个的
+rugby,橄榄球
+shame,羞耻
+ruler,统治者
+run,跑
+shampoo,洗头
+runner,跑步者
+share,部分
+running,赛跑
+sad,忧愁的
+safe,保险箱
+shark,鲨鱼
+sail,帆
+she,她
+sailing,航行
+sheep,羊
+salad,色拉
+sheet,床单
+schools shelf,学校（school的复数形式）
+small,小的
+ship,船
+shirt,衬衫
+shoe,鞋
+smoke,烟
+shop,商店
+smoking,抽烟
+shop assistant,店员
+snack,小吃
+shopper,购物者
+snail,蜗牛
+shopping,买东西
+snake,蛇
+shopping centre,商业区
+snowboard,滑雪板
+short,短的
+snowboarding,测雪板(snowboard的现在分词 )
+shorts,短裤
+should,应该
+shout,呼喊
+soap,肥皂
+show,显示
+soccer,英式足球
+shower,阵雨
+soft,软的
+shut,关闭
+software,软件
+shy,惊跳
+some,一些
+sick,病人
+somebody,了不起的人
+side,旁边
+someone,有人
+something,某事
+sometimes,有时
+sightseeing,观光
+somewhere,到某处
+sign,符号
+son,儿子
+silver,银
+song,歌
+similar,相似的
+soon,不久
+simple,简单的
+sorry,难过的
+since,自...以后
+sing,唱
+singer,歌手
+singing,歌唱
+single,单身的
+sort,种类
+sink,藏垢的场所
+sound,声音
+sister,姐妹
+sit,坐
+sit down,坐下
+soup,汤
+site,位置
+south,南方
+sitting room,起居室
+spare,剩余
+size,大小
+skate,溜冰
+speak,说
+skateboard,溜冰板
+speaker,说话人
+skateboarding,滑板运动
+special,专辑
+skating,溜冰
+spell,符咒
+ski,滑雪橇
+spelling,拼
+skiing,滑雪运动
+spend,花费
+skirt,裙子
+sky,天空
+sleep,睡眠
+spider,蜘蛛
+slice,薄的切片
+spoon,匙
+slim,瘦的
+sport,运动
+schools sports centre,学校（school的复数形式）
+spring,春天
+suitcase,手提箱
+square,正方形
+sun,太阳
+stadium,露天大型运动场
+sunday,星期日
+staff,全体人员
+sunglasses,太阳镜
+stage,阶段
+sunny,阳光充足的
+stairs,楼梯
+supermarket,超级市场
+stamp,印
+supper,晚餐
+stand,站立
+star,星
+sure,确信
+start,惊起
+station,车站
+surf,海浪
+stay,停留
+surfboard,冲浪板
+steak,牛排
+surprise,惊奇
+steal,剽窃
+surprised,感到惊讶的
+still,蒸馏室
+swan,天鹅
+stomach,胃
+sweater,毛衣
+stomach ache,胃痛
+sweet,甜蜜
+stop,停止
+swim,游泳
+store,商店
+storm,暴风雨
+story,故事
+swimming,游泳
+straight,直线
+swimming costume,游泳衣
+strange,奇怪的
+swimsuit,游泳衣
+strawberry,草莓
+t street,[计] 表
+striped,有斑纹的
+stripes,条子布
+table,桌子
+strong,强壮的
+table tennis,乒乓球
+student,学生
+tablet,平板
+studies,研究
+study,学习
+tail,尾部
+stuff,原料
+take,拿
+subject,科目
+success,成功
+take part,[体]参加比赛
+successful,成功的
+talk,谈话
+such,如此的
+tall,高的
+suddenly,突然
+tasty,好吃的
+sugar,糖
+taxi,出租车
+suggest,提议
+ing tea,惯性导航与制导（Inertial Navigat
+office. teacher,（待补）
+suit,套装
+team,队
+schools technology,学校（school的复数形式）
+tomorrow,明天
+teenager,十三岁到十九岁的少年
+tonight,今晚
+telephone,电话
+tortoise,龟
+too,也
+tell,告诉
+tooth,牙齿
+temperature,温度
+toothache,牙痛
+tennis,网球
+top,顶部
+tennis player,网球选手
+tent,帐篷
+topic,主题
+term,术语
+total,全体的
+terrible,可怕的
+test,测试
+tour,旅游
+text,文本
+textbook,教科书
+tour guide,旅游向导
+text message,正文消息
+tourist,观光客
+than,比
+tourist information centre,观光客
+thank,谢意
+towel,手巾
+thanks,感谢
+town,城镇
+thank you,谢谢你
+toy,玩具
+that,那
+traffic,交通
+the,那
+traffic light,红绿灯
+theatre,戏院
+train,火车
+their,他们的
+theirs,他们的
+them,他们
+themselves,他们自己
+then,然后
+trainer,训练员
+there,在那里
+these,这些
+tram,电车轨道
+they,他们
+transport,运输
+thin,薄的
+travel,旅行
+thing,事物
+tree,树
+think,想
+trip,旅行
+thirsty,口渴的
+trouble,烦恼
+this,这
+trousers,裤子
+those,那些
+true,真实的
+through,穿越
+try,尝试
+throw,投
+try on,试穿
+thunderstorm,雷暴雨
+t-shirt,圆领汗衫
+thursday,星期四
+tuesday,星期二
+ticket,票
+tidy,椅子的背罩
+turn,转弯
+tidy up,整理
+turn off,关掉
+tie,带子
+tiger,老虎
+turn on,开
+tights,紧身衣裤
+till,直到
+twice,两次
+time,时间
+type,类型
+timetable,时间表
+tyre,轮胎
+tired,疲累的
+title,头衔
+to,到
+u toast,适于各种年龄观众的
+today,今天
+toe,足趾
+umbrella,伞
+together,一起
+uncle,叔父
+toilet,厕所
+under,在...之下
+tomato,番茄
+underground,地下
+schools understand,学校（school的复数形式）
+way,路
+unfortunately,恐怕
+unhappy,不快乐的
+uniform,制服
+university,大学
+until,直到
+we,我们
+unusual,不寻常的
+wear,穿着
+up,向上的
+weather,天气
+upload,[计] 上装
+web,网
+upset,弄翻的
+web page,WEB页
+upstairs,楼上的
+website,网站（全球资讯网的主机站）
+us,我们
+wednesday,星期三
+use,使用
+week,星期
+useful,有用的
+weekday,周日
+usual,平常的
+weekend,周末
+usually,通常
+weekly,周刊
+welcome,欢迎
+v well,[计] 溢出
+v/versus,[计] 溢出
+well known,众所周知的
+variety,多样
+wet,湿气
+various,不同的
+whale,鲸
+vegetable,蔬菜
+what,什么
+very,真正的
+wheel,轮子
+video,影像
+when,当...的时候
+video game,[计] 电视游戏
+where,在哪里
+view,视野
+which,哪一个
+village,村庄
+while,一会儿
+violin,小提琴
+white,白色
+visit,拜访
+who,谁
+whole,全部
+visitor,参观者
+vocabulary,词汇(量)
+volleyball,排球
+whose,谁的
+why,为什么
+w wide,[计] 等待
+wife,妻子
+wifi,基于IEEE 802.11b标准的无线局域网（W
+wait,等待
+wild,荒野
+waiter,侍者
+waitress,女侍者
+wake,叫醒
+wildlife,野生动植物
+wake up,醒来
+win,赢得
+walk,走
+wind,风
+window,窗户
+walking,步行
+windsurfing,[体]帆板运动
+wall,墙
+windy,多风的
+wallet,皮夹
+wing,翅膀
+want,需要的东西
+winner,胜利者
+wardrobe,衣橱
+winter,冬季
+warm,暖和的
+wish,希望
+wash,洗
+washing machine,洗衣机
+washing-up,洗餐具
+with,和...在一起
+without,没有
+wash up,洗手洗脸
+woman,女人
+watch,观察
+wonderful,令人惊奇的
+water,水
+schools wood,学校（school的复数形式）
+wooden,木制的
+wool,羊毛
+word,话
+work,工作
+work out,设计出
+worker,工人
+working hours,[计] 工作时间
+world,世界
+worried,担心的
+worry,担心
+worse,更坏的事
+worst,最坏
+would,将
+wow,(非正式)哇
+write,书写
+write down,写下
+writer,作家
+writing,书写
+wrong,错误的
+year,年
+yellow,黄色
+yes,是
+yesterday,昨天
+yet,还
+you,你
+young,年轻的
+your,你的
+yours,你的(东西)
+yourself,你自己
+zebra,斑马
+zero,零
+zoo,动物园

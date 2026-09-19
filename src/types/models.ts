@@ -5,7 +5,7 @@ export type DictationType =
   | 'write-from-chinese'
   | 'listen-write';
 
-export type WordSource = 'sample' | 'parent';
+export type WordSource = 'sample' | 'parent' | 'pack';
 
 export type Word = {
   id: string;
@@ -129,4 +129,6 @@ export type PersistedState = {
   parentPin: string;
   profiles: Profile[];
   activeProfileId: string;
+  /** 已经自动灌过的家庭词包，避免旧设备重复追加 */
+  appliedWordPacks?: string[];
 };
