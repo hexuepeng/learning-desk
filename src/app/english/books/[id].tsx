@@ -8,12 +8,16 @@ import { Card, KidButton, Screen } from '@/components/ui';
 import { MINI_BOOKS } from '@/content/miniBooks';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import { useLayout } from '@/hooks/useLayout';
 import { FAMILY_ALBUM_LABEL } from '@/lib/album';
 import { displayAlbumPhotoUri } from '@/lib/albumFiles';
 
 export default function BookReader() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { state } = useDesk();
+  const { isTablet, isLandscape, compact, titleSize, bodySize } = useLayout();
+  const photoHeight = isLandscape ? (isTablet ? 220 : 160) : isTablet ? 360 : 280;
+  const pageText = { en: isTablet ? Math.min(titleSize, 32) : 28, zh: bodySize };
   const bundled = MINI_BOOKS.find((book) => book.id === id);
   const album = state.albumBooks.find((book) => book.id === id);
   const [page, setPage] = useState(0);
@@ -24,9 +28,13 @@ export default function BookReader() {
       <Screen title={bundled.titleZh} subtitle={bundled.titleEn} back>
         <Card>
           <SwipePage page={page} total={bundled.pages.length} onChange={setPage}>
-            <Text style={styles.art}>{current.art}</Text>
-            <Text style={styles.en}>{current.en}</Text>
-            <Text style={styles.zh}>{current.zh}</Text>
+            <View style={isLandscape && isTablet ? styles.landPage : undefined}>
+              <Text style={[styles.art, compact && styles.artCompact]}>{current.art}</Text>
+              <View style={styles.pageCopy}>
+                <Text style={[styles.en, { fontSize: pageText.en }]}>{current.en}</Text>
+                <Text style={[styles.zh, { fontSize: pageText.zh }]}>{current.zh}</Text>
+              </View>
+            </View>
           </SwipePage>
           <SpeakButton text={current.en} />
           <Pager page={page} total={bundled.pages.length} onChange={setPage} />
@@ -50,13 +58,21 @@ export default function BookReader() {
         <Card>
           <FamilyBookBadge />
           <SwipePage page={page} total={album.pages.length} onChange={setPage}>
-            <Image
-              source={{ uri: displayAlbumPhotoUri(current.photoUri) }}
-              style={styles.photo}
-              accessibilityLabel={`${album.title} 第 ${page + 1} 页`}
-            />
-            <Text style={styles.en}>{current.caption || '（还没有说明）'}</Text>
-            {current.captionZh ? <Text style={styles.zh}>{current.captionZh}</Text> : null}
+            <View style={isLandscape && isTablet ? styles.landPage : undefined}>
+              <Image
+                source={{ uri: displayAlbumPhotoUri(current.photoUri) }}
+                style={[styles.photo, { height: photoHeight }, isLandscape && isTablet && styles.photoLand]}
+                accessibilityLabel={`${album.title} 第 ${page + 1} 页`}
+              />
+              <View style={styles.pageCopy}>
+                <Text style={[styles.en, { fontSize: pageText.en }]}>
+                  {current.caption || '（还没有说明）'}
+                </Text>
+                {current.captionZh ? (
+                  <Text style={[styles.zh, { fontSize: pageText.zh }]}>{current.captionZh}</Text>
+                ) : null}
+              </View>
+            </View>
           </SwipePage>
           {current.caption || current.recordingUri ? (
             <SpeakButton text={current.caption} recordingUri={current.recordingUri} />
@@ -152,6 +168,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: Space.md,
   },
+  landPage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.lg,
+  },
+  pageCopy: {
+    flex: 1,
+  },
+  artCompact: {
+    fontSize: 48,
+    marginBottom: 0,
+  },
   photo: {
     width: '100%',
     height: 280,
@@ -159,6 +187,11 @@ const styles = StyleSheet.create({
     marginTop: Space.md,
     marginBottom: Space.md,
     backgroundColor: Colors.paperSoft,
+  },
+  photoLand: {
+    width: '48%',
+    marginTop: Space.sm,
+    marginBottom: Space.sm,
   },
   pager: {
     flexDirection: 'row',

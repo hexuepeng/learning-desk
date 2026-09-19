@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Card, Screen } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
+import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
 
 export default function EnglishHall() {
@@ -20,10 +21,11 @@ export default function EnglishHall() {
 }
 
 function Tool({ title, hint, onPress }: { title: string; hint: string; onPress: () => void }) {
+  const { isTablet, tap, bodySize } = useLayout();
   return (
-    <Card onPress={onPress}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.hint}>{hint}</Text>
+    <Card onPress={onPress} style={{ minHeight: tap + 36 }}>
+      <Text style={[styles.title, { fontSize: isTablet ? 30 : 26 }]}>{title}</Text>
+      <Text style={[styles.hint, { fontSize: bodySize }]}>{hint}</Text>
     </Card>
   );
 }
