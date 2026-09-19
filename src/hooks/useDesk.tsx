@@ -50,6 +50,7 @@ import {
   markDictationDone,
   markVocabDone,
 } from '@/lib/daily';
+import { normalizeIpa } from '@/lib/ipa';
 import { parseWordList } from '@/lib/parseWordList';
 import {
   profileIdOf,
@@ -94,7 +95,8 @@ type DeskContextValue = {
   unlockParent: (pin: string) => boolean;
   lockParent: () => void;
   changePin: (pin: string) => boolean;
-  upsertWord: (input: { id?: string; en: string; zh: string }) => void;
+  upsertWord: (input: { id?: string; en: string; zh: string; ipa?: string }) => void;
+  setShowIpa: (on: boolean) => void;
   removeWord: (id: string) => void;
   setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
   importWordText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
@@ -185,16 +187,19 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   }, [update]);
 
   const upsertWord = useCallback(
-    (input: { id?: string; en: string; zh: string }) => {
+    (input: { id?: string; en: string; zh: string; ipa?: string }) => {
       const en = input.en.trim().replace(/\s+/g, ' ');
       const zh = input.zh.trim();
       if (!en || !zh) return;
+      const ipa = input.ipa !== undefined ? normalizeIpa(input.ipa) : undefined;
       update((current) => {
         if (input.id) {
           return {
             ...current,
             words: current.words.map((word) =>
-              word.id === input.id ? { ...word, en, zh } : word,
+              word.id === input.id
+                ? { ...word, en, zh, ipa: ipa !== undefined ? ipa : word.ipa }
+                : word,
             ),
           };
         }
@@ -206,8 +211,16 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           createdAt: new Date().toISOString(),
           profileId: current.activeProfileId,
         };
+        if (ipa) word.ipa = ipa;
         return { ...current, words: [word, ...current.words] };
       });
+    },
+    [update],
+  );
+
+  const setShowIpa = useCallback(
+    (on: boolean) => {
+      update((current) => ({ ...current, showIpa: on }));
     },
     [update],
   );
@@ -298,6 +311,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             id: createId('word'),
             en: item.en,
             zh: item.zh,
+            ipa: item.ipa,
             source: 'parent',
             createdAt: new Date().toISOString(),
             profileId: activeId,
@@ -829,6 +843,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       lockParent,
       changePin,
       upsertWord,
+      setShowIpa,
       removeWord,
       setWordRecording,
       importWordText,
@@ -869,6 +884,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       lockParent,
       changePin,
       upsertWord,
+      setShowIpa,
       removeWord,
       setWordRecording,
       importWordText,

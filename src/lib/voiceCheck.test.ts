@@ -13,6 +13,15 @@ describe('voiceCheck', () => {
     assert.equal(result.voiceName, 'Samantha');
   });
 
+  it('prefers a British voice when both exist', () => {
+    const result = evaluateEnglishVoices([
+      { language: 'en-US', name: 'Samantha' },
+      { language: 'en-GB', name: 'Daniel' },
+    ]);
+    assert.equal(result.ok, true);
+    assert.equal(result.voiceName, 'Daniel');
+  });
+
   it('fails when only other languages exist', () => {
     const result = evaluateEnglishVoices([{ language: 'zh-CN', name: 'Tingting' }]);
     assert.equal(result.ok, false);

@@ -43,7 +43,7 @@ export default function DadProgress() {
             .join(' · ') || '还没有'}
         </Text>
       </Card>
-      <SearchField value={query} onChangeText={setQuery} placeholder="搜英文或中文" />
+      <SearchField value={query} onChangeText={setQuery} placeholder="搜英文、中文或音标" />
       <FlatList
         style={styles.list}
         data={rows}
@@ -56,7 +56,8 @@ export default function DadProgress() {
           return (
             <View style={styles.row}>
               <Text style={styles.en}>
-                {word.en} · {word.zh}
+                {word.en}
+                {word.ipa ? `  ${word.ipa}` : ''} · {word.zh}
               </Text>
               <Text style={styles.meta}>
                 背词 {progress.vocabSeen} 次 · {progress.vocabKnown ? '认识' : '还不熟'} ·{' '}

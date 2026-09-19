@@ -12,6 +12,7 @@ import { useDesk } from '@/hooks/useDesk';
 import { useLayout } from '@/hooks/useLayout';
 import { FAMILY_ALBUM_LABEL } from '@/lib/album';
 import { displayAlbumPhotoUri } from '@/lib/albumFiles';
+import { displayIpa } from '@/lib/ipa';
 
 export default function BookReader() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,8 +30,15 @@ export default function BookReader() {
   };
 
   const pickWord = (en: string, zh: string) => {
+    const existing = state.words.find((item) => item.en.toLowerCase() === en.trim().toLowerCase());
+    const ipa = displayIpa(existing?.ipa, state.showIpa);
+    const ipaBit = ipa ? ` ${ipa}` : '';
     const result = addBookWordToToday(en, zh);
-    setToast(result === 'already' ? `「${en}」已经在今日词表里` : `已把「${en}」加进今日词表`);
+    setToast(
+      result === 'already'
+        ? `「${en}」已经在今日词表里${ipaBit}`
+        : `已把「${en}」加进今日词表${ipaBit}`,
+    );
   };
 
   if (bundled) {

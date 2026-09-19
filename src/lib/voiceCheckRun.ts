@@ -14,7 +14,7 @@ export async function runEnglishVoiceCheck(): Promise<{
     if (!result.ok) {
       return {
         ok: false,
-        message: '这台设备没有英语语音包。请到系统设置下载 English (US)，否则听写可能没声音。',
+        message: '这台设备没有英语语音包。请到系统设置下载 English (UK)，没有再试 English，否则听写可能没声音。',
       };
     }
     playCue('apple');

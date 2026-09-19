@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { IpaText } from '@/components/IpaText';
 import { SpeakButton } from '@/components/SpeakButton';
 import { Card, KidButton } from '@/components/ui';
 import { Colors, Radius, Space } from '@/constants/theme';
+import { useDesk } from '@/hooks/useDesk';
 import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
 import {
@@ -36,6 +38,7 @@ export function DictationPlay({
   onResolved: (correct: boolean) => void;
 }) {
   const { titleSize, bodySize, isLandscape, isTablet } = useLayout();
+  const { state } = useDesk();
   const meta = DICTATION_TYPE_LABELS[type];
   const [result, setResult] = useState<null | boolean>(null);
 
@@ -86,6 +89,7 @@ export function DictationPlay({
           <Text style={[styles.answer, { fontSize: bodySize }]}>
             {word.en} · {word.zh}
           </Text>
+          <IpaText ipa={word.ipa} show={state.showIpa} style={[styles.ipa, { fontSize: bodySize }]} />
           <SpeakButton text={word.en} recordingUri={word.recordingUri} />
           <KidButton label={t('next')} onPress={() => onResolved(result)} />
         </View>
@@ -505,5 +509,8 @@ const styles = StyleSheet.create({
   answer: {
     fontSize: 20,
     color: Colors.muted,
+  },
+  ipa: {
+    textAlign: 'left',
   },
 });

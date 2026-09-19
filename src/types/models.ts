@@ -13,6 +13,12 @@ export type Word = {
   zh: string;
   source: WordSource;
   createdAt: string;
+  /**
+   * 可选英式 IPA。约定写成带斜杠：`/ˈæpl/`。
+   * 导入或输入时可省略斜杠，存盘时归一成带斜杠；缺省或空字符串表示没有音标。
+   * 只收英式，不混美式。
+   */
+  ipa?: string;
   /** 本机家长录音相对路径；有则播放优先于 TTS */
   recordingUri?: string | null;
   profileId?: string;
@@ -120,6 +126,8 @@ export type PersistedState = {
   words: Word[];
   progress: Record<string, WordProgress>;
   dictationSettings: DictationSettings;
+  /** 孩子端是否显示音标。缺省为开。 */
+  showIpa: boolean;
   feedback: FeedbackItem[];
   albumBooks: AlbumBook[];
   streak: StreakState;

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+import { IpaText } from '@/components/IpaText';
 import { Card, KidButton, Screen, SearchField } from '@/components/ui';
 import { VoiceClipBar, voiceClipStatus } from '@/components/VoiceClipBar';
 import { Colors, Radius, Space } from '@/constants/theme';
@@ -15,10 +16,11 @@ import { parseWordList } from '@/lib/parseWordList';
 import { filterWords } from '@/lib/wordsView';
 
 export default function DadWords() {
-  const { state, upsertWord, removeWord, importWordText, restoreSampleWords, setWordRecording } =
+  const { state, upsertWord, removeWord, importWordText, restoreSampleWords, setWordRecording, setShowIpa } =
     useDesk();
   const [en, setEn] = useState('');
   const [zh, setZh] = useState('');
+  const [ipa, setIpa] = useState('');
   const [bulk, setBulk] = useState('');
   const [query, setQuery] = useState('');
   const [showImport, setShowImport] = useState(false);
@@ -45,8 +47,19 @@ export default function DadWords() {
   };
 
   return (
-    <Screen title="词表" subtitle="英文 + 中文释义。每个词可录爸爸的发音，只留本机。" back scroll={false}>
-      <SearchField value={query} onChangeText={setQuery} placeholder="搜英文或中文" />
+    <Screen title="词表" subtitle="英文 + 中文释义 + 可选英式音标。每个词可录爸爸的发音，只留本机。" back scroll={false}>
+      <Card style={styles.toggle}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>显示音标</Text>
+          <Text style={styles.meta}>开着时，孩子背词和揭晓答案会看到英式 IPA。默认开。</Text>
+        </View>
+        <Switch
+          value={state.showIpa}
+          onValueChange={setShowIpa}
+          trackColor={{ true: Colors.success }}
+        />
+      </Card>
+      <SearchField value={query} onChangeText={setQuery} placeholder="搜英文、中文或音标" />
       <Card>
         <Text style={styles.label}>加一个词</Text>
         <TextInput
@@ -57,17 +70,25 @@ export default function DadWords() {
           autoCapitalize="none"
         />
         <TextInput placeholder="苹果" value={zh} onChangeText={setZh} style={styles.input} />
+        <TextInput
+          placeholder="英式音标，如 /ˈæpl/（可空）"
+          value={ipa}
+          onChangeText={setIpa}
+          style={styles.input}
+          autoCapitalize="none"
+        />
         <KidButton
           label="加到词表"
           onPress={() => {
-            upsertWord({ en, zh });
+            upsertWord({ en, zh, ipa });
             setEn('');
             setZh('');
+            setIpa('');
           }}
         />
         <Text style={[styles.label, { marginTop: Space.md }]}>发音</Text>
         <Text style={styles.meta}>
-          默认用设备英语朗读。录一段后，孩子点「听一听」会先听你的声音。删掉录音就回到设备朗读。录音不会上传。
+          默认优先英式英语朗读。录一段后，孩子点「听一听」会先听你的声音。删掉录音就回到设备朗读。录音不会上传。
         </Text>
       </Card>
       <KidButton
@@ -80,13 +101,13 @@ export default function DadWords() {
         <Card style={styles.block}>
           <Text style={styles.label}>粘贴词表</Text>
           <Text style={styles.meta}>
-            每行 english,chinese，也认空格/分号/CSV。可追加，或清空后整表替换。不要把整本剑桥词表打进应用包，由你粘贴导入。
+            每行 english,chinese，也可第三列英式 IPA：apple,苹果,/ˈæpl/。也认空格/分号/CSV。可追加，或清空后整表替换。不要把整本剑桥词表打进应用包，由你粘贴导入。
           </Text>
           <TextInput
             multiline
             value={bulk}
             onChangeText={setBulk}
-            placeholder={'apple,苹果\nice cream,冰淇淋'}
+            placeholder={'apple,苹果,/ˈæpl/\nice cream,冰淇淋'}
             placeholderTextColor={Colors.muted}
             style={[styles.input, styles.bulk]}
           />
@@ -147,6 +168,7 @@ export default function DadWords() {
               <View style={styles.head}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.en}>{word.en}</Text>
+                  <IpaText ipa={word.ipa} show style={styles.ipaLine} />
                   <Text style={styles.meta}>
                     {word.zh} · {word.source === 'sample' ? '示例' : '家长'}
                   </Text>
@@ -163,6 +185,17 @@ export default function DadWords() {
                   }
                 />
               </View>
+              <TextInput
+                key={`${word.id}-${word.ipa ?? ''}`}
+                defaultValue={word.ipa ?? ''}
+                placeholder="英式音标，如 /ˈæpl/"
+                placeholderTextColor={Colors.muted}
+                autoCapitalize="none"
+                style={styles.input}
+                onEndEditing={(event) =>
+                  upsertWord({ id: word.id, en: word.en, zh: word.zh, ipa: event.nativeEvent.text })
+                }
+              />
               <VoiceClipBar
                 status={voiceClipStatus(word.recordingUri, recording, clip.isRecording)}
                 disabled={Boolean(clip.target) && !recording}
@@ -192,6 +225,16 @@ export default function DadWords() {
 const styles = StyleSheet.create({
   list: {
     flex: 1,
+  },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    marginBottom: Space.sm,
+  },
+  ipaLine: {
+    fontSize: 16,
+    marginBottom: 2,
   },
   label: {
     fontWeight: '800',
