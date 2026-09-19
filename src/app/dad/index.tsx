@@ -24,6 +24,7 @@ export default function DadDesk() {
       <View style={styles.col}>
         <KidButton label={t('progress')} variant="secondary" onPress={() => router.push('/dad/progress')} />
         <KidButton label="本周小结" variant="secondary" onPress={() => router.push('/dad/report')} />
+        <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
         <KidButton label={t('familyBooks')} variant="secondary" onPress={() => router.push('/dad/albums')} />
         <KidButton label={t('dictationSettings')} variant="secondary" onPress={() => router.push('/dad/dictation')} />

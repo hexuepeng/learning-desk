@@ -52,6 +52,13 @@ import {
 } from '@/lib/daily';
 import { parseWordList } from '@/lib/parseWordList';
 import {
+  profileIdOf,
+  projectProfile,
+  renameProfile,
+  resolveActiveProfileId,
+  setProfileArchived,
+} from '@/lib/profile';
+import {
   applySessionStars,
   capPracticeLog,
   countSession,
@@ -68,6 +75,7 @@ import type {
   FeedbackKind,
   PersistedState,
   PracticeEvent,
+  Profile,
   StarRating,
   Word,
   WordProgress,
@@ -76,6 +84,12 @@ import type {
 type DeskContextValue = {
   ready: boolean;
   state: PersistedState;
+  profiles: Profile[];
+  activeProfileId: string;
+  renameActiveProfile: (name: string) => void;
+  addProfile: (name: string) => string | null;
+  switchProfile: (id: string) => void;
+  archiveProfile: (id: string) => void;
   parentUnlocked: boolean;
   unlockParent: (pin: string) => boolean;
   lockParent: () => void;
@@ -188,6 +202,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           zh,
           source: 'parent',
           createdAt: new Date().toISOString(),
+          profileId: current.activeProfileId,
         };
         return { ...current, words: [word, ...current.words] };
       });
@@ -254,12 +269,18 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       let added = 0;
       let skipped = 0;
       update((current) => {
+        const activeId = current.activeProfileId;
         if (mode === 'replace') {
           for (const word of current.words) {
-            if (word.recordingUri) removedRecordings.push(word.recordingUri);
+            if (profileIdOf(word) === activeId && word.recordingUri) {
+              removedRecordings.push(word.recordingUri);
+            }
           }
         }
-        const base = mode === 'replace' ? [] : current.words;
+        const base =
+          mode === 'replace'
+            ? current.words.filter((word) => profileIdOf(word) !== activeId)
+            : current.words;
         const have = new Set(base.map((word) => word.en.toLowerCase()));
         const incoming: Word[] = [];
         added = 0;
@@ -277,6 +298,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             zh: item.zh,
             source: 'parent',
             createdAt: new Date().toISOString(),
+            profileId: activeId,
           });
         }
         return { ...current, words: [...incoming, ...base] };
@@ -303,6 +325,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             zh: cleanZh,
             source: 'parent',
             createdAt: new Date().toISOString(),
+            profileId: current.activeProfileId,
           };
           words = [word, ...words];
         }
@@ -327,7 +350,12 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       const have = new Set(parentWords.map((word) => word.en.toLowerCase()));
       return {
         ...current,
-        words: [...parentWords, ...samples.filter((word) => !have.has(word.en.toLowerCase()))],
+        words: [
+          ...parentWords,
+          ...samples
+            .filter((word) => !have.has(word.en.toLowerCase()))
+            .map((word) => ({ ...word, profileId: current.activeProfileId })),
+        ],
       };
     });
     for (const uri of removed) void deleteRecordingFile(uri);
@@ -557,18 +585,21 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           ),
         );
       }
-      const next = buildAlbumBook(
-        { id, title: book.title, pages, createdAt: new Date().toISOString() },
-        () => id,
-        () => new Date().toISOString(),
-      );
+      const next = {
+        ...buildAlbumBook(
+          { id, title: book.title, pages, createdAt: new Date().toISOString() },
+          () => id,
+          () => new Date().toISOString(),
+        ),
+        profileId: state.activeProfileId,
+      };
       update((current) => ({
         ...current,
         albumBooks: upsertAlbumBook(current.albumBooks, next),
       }));
       return id;
     },
-    [update],
+    [state.activeProfileId, update],
   );
 
   const updateAlbumBook = useCallback(
@@ -706,6 +737,58 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
+  const renameActiveProfile = useCallback(
+    (name: string) => {
+      update((current) => ({
+        ...current,
+        profiles: renameProfile(current.profiles, current.activeProfileId, name),
+      }));
+    },
+    [update],
+  );
+
+  const addProfile = useCallback(
+    (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return null;
+      const id = createId('profile');
+      update((current) => ({
+        ...current,
+        profiles: [
+          ...current.profiles,
+          { id, name: trimmed, createdAt: new Date().toISOString(), archived: false },
+        ],
+        activeProfileId: id,
+      }));
+      return id;
+    },
+    [update],
+  );
+
+  const switchProfile = useCallback(
+    (id: string) => {
+      update((current) => ({
+        ...current,
+        activeProfileId: resolveActiveProfileId(current.profiles, id),
+      }));
+    },
+    [update],
+  );
+
+  const archiveProfile = useCallback(
+    (id: string) => {
+      update((current) => {
+        const profiles = setProfileArchived(current.profiles, id, true);
+        return {
+          ...current,
+          profiles,
+          activeProfileId: resolveActiveProfileId(profiles, current.activeProfileId),
+        };
+      });
+    },
+    [update],
+  );
+
   const resetDemo = useCallback(async () => {
     await clearAllAlbumFiles();
     await clearAllRecordingFiles();
@@ -718,10 +801,18 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     setParentUnlocked(false);
   }, []);
 
+  const visibleState = useMemo(() => projectProfile(state), [state]);
+
   const value = useMemo<DeskContextValue>(
     () => ({
       ready,
-      state,
+      state: visibleState,
+      profiles: state.profiles,
+      activeProfileId: visibleState.activeProfileId,
+      renameActiveProfile,
+      addProfile,
+      switchProfile,
+      archiveProfile,
       parentUnlocked,
       unlockParent,
       lockParent,
@@ -755,6 +846,11 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     [
       ready,
       state,
+      visibleState,
+      renameActiveProfile,
+      addProfile,
+      switchProfile,
+      archiveProfile,
       parentUnlocked,
       unlockParent,
       lockParent,

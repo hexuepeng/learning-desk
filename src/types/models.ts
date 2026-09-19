@@ -15,6 +15,7 @@ export type Word = {
   createdAt: string;
   /** 本机家长录音相对路径；有则播放优先于 TTS */
   recordingUri?: string | null;
+  profileId?: string;
 };
 
 export type WordProgress = {
@@ -59,6 +60,14 @@ export type AlbumBook = {
   title: string;
   pages: AlbumPage[];
   createdAt: string;
+  profileId?: string;
+};
+
+export type Profile = {
+  id: string;
+  name: string;
+  createdAt: string;
+  archived: boolean;
 };
 
 export type MiniBookPage = {
@@ -118,4 +127,6 @@ export type PersistedState = {
   practiceLog: PracticeEvent[];
   daily: DailyLesson | null;
   parentPin: string;
+  profiles: Profile[];
+  activeProfileId: string;
 };
