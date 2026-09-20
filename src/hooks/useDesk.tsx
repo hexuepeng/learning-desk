@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { FAMILY_KET_PACK_TEXT } from '@/content/familyKetPack';
 import { createSampleWords } from '@/content/sampleWords';
 import {
   addPageToBook,
@@ -67,6 +68,7 @@ import {
   clampQuestNewCount,
   ensureQuestDay,
   isSampleKetEn,
+  ketPackIdsInFileOrder,
   mergeKetPackIds,
   patchQuest,
   planWordImportForQuest,
@@ -132,8 +134,9 @@ type DeskContextValue = {
   importWordText: (
     text: string,
     mode?: 'append' | 'replace',
-    options?: { ketPack?: boolean },
+    options?: { ketPack?: boolean; rebuildPack?: boolean },
   ) => { added: number; skipped: number; packAdded: number };
+  importFamilyKetPack: () => { added: number; skipped: number; packAdded: number };
   setQuestDailyNewCount: (count: QuestNewCount) => void;
   seedSampleKetPack: () => void;
   touchQuestDay: () => void;
@@ -375,10 +378,15 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const importWordText = useCallback(
-    (text: string, mode: 'append' | 'replace' = 'append', options?: { ketPack?: boolean }) => {
+    (
+      text: string,
+      mode: 'append' | 'replace' = 'append',
+      options?: { ketPack?: boolean; rebuildPack?: boolean },
+    ) => {
       const parsed = parseWordList(text);
       if (parsed.length === 0) return { added: 0, skipped: 0, packAdded: 0 };
       const ketPack = Boolean(options?.ketPack);
+      const rebuildPack = Boolean(options?.rebuildPack);
       const removedRecordings: string[] = [];
       let added = 0;
       let skipped = 0;
@@ -424,7 +432,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             ketPack: ketPack || undefined,
           });
         }
-        const packIds = ketPack ? [...plan.existingIds, ...incoming.map((word) => word.id)] : [];
+        const incomingByEn = new Map(incoming.map((word) => [word.en.toLowerCase(), word.id]));
+        const packIds = ketPack
+          ? ketPackIdsInFileOrder(parsed, profileWords, incomingByEn)
+          : [];
         packAdded = packIds.length;
         const marked = ketPack
           ? [...incoming, ...base].map((word) =>
@@ -441,7 +452,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           next = withActiveQuest(next, (quest) => ({
             ...quest,
             packWordIds:
-              mode === 'replace' ? incoming.map((word) => word.id) : mergeKetPackIds(quest.packWordIds, packIds),
+              mode === 'replace' || rebuildPack
+                ? packIds
+                : mergeKetPackIds(quest.packWordIds, packIds),
           }));
         }
         return next;
@@ -450,6 +463,11 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       return { added, skipped, packAdded };
     },
     [update],
+  );
+
+  const importFamilyKetPack = useCallback(
+    () => importWordText(FAMILY_KET_PACK_TEXT, 'append', { ketPack: true, rebuildPack: true }),
+    [importWordText],
   );
 
   const setQuestDailyNewCount = useCallback(
@@ -1278,6 +1296,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setWordKetPack,
       setWordRecording,
       importWordText,
+      importFamilyKetPack,
       setQuestDailyNewCount,
       seedSampleKetPack,
       touchQuestDay,
@@ -1333,6 +1352,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setWordKetPack,
       setWordRecording,
       importWordText,
+      importFamilyKetPack,
       setQuestDailyNewCount,
       seedSampleKetPack,
       touchQuestDay,

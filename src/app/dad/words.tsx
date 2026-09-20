@@ -23,6 +23,7 @@ export default function DadWords() {
     upsertWord,
     removeWord,
     importWordText,
+    importFamilyKetPack,
     restoreSampleWords,
     setWordRecording,
     setShowIpa,
@@ -144,6 +145,34 @@ export default function DadWords() {
         <Text style={styles.meta}>
           默认优先英式英语朗读。录一段后，孩子点「听一听」会先听你的声音。删掉录音就回到设备朗读。录音不会上传。
         </Text>
+      </Card>
+      <Card style={styles.block}>
+        <Text style={styles.label}>导入 KET 包</Text>
+        <Text style={styles.meta}>
+          一键装入家里自用的 699 个词（521 条带英式 IPA）。按文件顺序重排闯关词库，已有相同英文会跳过。只留本机，不是上架商品，不主张剑桥授权。
+        </Text>
+        <KidButton
+          label="导入 KET 包"
+          onPress={() =>
+            Alert.alert(
+              '导入家里的 KET 包？',
+              '会追加约 699 个词，并按文件顺序重排闯关词库。已有的相同英文会跳过。今日英语卡不受影响。',
+              [
+                { text: '取消', style: 'cancel' },
+                {
+                  text: '导入',
+                  onPress: () => {
+                    const result = importFamilyKetPack();
+                    Alert.alert(
+                      '已导入 KET 包',
+                      `新增 ${result.added} 个，跳过重复 ${result.skipped} 个，闯关词库现有 ${result.packAdded} 个。`,
+                    );
+                  },
+                },
+              ],
+            )
+          }
+        />
       </Card>
       <KidButton
         label={showImport ? '收起粘贴导入' : '粘贴词表导入'}

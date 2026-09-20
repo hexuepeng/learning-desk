@@ -181,6 +181,25 @@ export function planWordImportForQuest(parsed: ParsedWord[], profileWords: Word[
   return { newItems, skipped, existingIds };
 }
 
+/** 按粘贴/文件行序排闯关词库：已有词用旧 id，新词用这次生成的 id。 */
+export function ketPackIdsInFileOrder(
+  parsed: ParsedWord[],
+  profileWords: Word[],
+  incomingIdsByEn: Map<string, string>,
+): string[] {
+  const existingByEn = new Map(profileWords.map((word) => [word.en.toLowerCase(), word.id]));
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of parsed) {
+    const key = item.en.toLowerCase();
+    const id = existingByEn.get(key) ?? incomingIdsByEn.get(key);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
 export function isSampleKetEn(en: string): boolean {
   return SAMPLE_KET_ENS.includes(en.toLowerCase() as (typeof SAMPLE_KET_ENS)[number]);
 }

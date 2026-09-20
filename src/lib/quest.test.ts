@@ -11,6 +11,7 @@ import {
   ensureQuestDay,
   emptyQuestState,
   hydrateQuestPacks,
+  ketPackIdsInFileOrder,
   mergeKetPackIds,
   nextDueAfterStep,
   packWordsOf,
@@ -201,6 +202,17 @@ describe('quest import pack', () => {
     const words = [word('a', 'apple', true), word('b', 'desk', false)];
     const next = hydrateQuestPacks({}, words, () => 'profile_child');
     assert.deepEqual(next.profile_child.packWordIds, ['a']);
+  });
+
+  it('keeps KET pack ids in file order when mixing existing and new words', () => {
+    const parsed = parseWordList(['barbecue,烤肉', 'apple,苹果', 'chips,薯条'].join('\n'));
+    const existing = [word('old-apple', 'apple')];
+    const incoming = new Map([['barbecue', 'new-bbq'], ['chips', 'new-chips']]);
+    assert.deepEqual(ketPackIdsInFileOrder(parsed, existing, incoming), [
+      'new-bbq',
+      'old-apple',
+      'new-chips',
+    ]);
   });
 
   it('keeps the sample demo list small and family-only', () => {
