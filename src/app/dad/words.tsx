@@ -66,6 +66,14 @@ export default function DadWords() {
       back
       scroll={false}
     >
+      <FlatList
+        style={styles.list}
+        data={rows}
+        keyExtractor={(word) => word.id}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View>
       <Card style={styles.toggle}>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>每天新词</Text>
@@ -215,12 +223,8 @@ export default function DadWords() {
       <Text style={styles.count}>
         {query.trim() ? `找到 ${rows.length} / ${state.words.length}` : `${state.words.length} 个词`}
       </Text>
-      <FlatList
-        style={styles.list}
-        data={rows}
-        keyExtractor={(word) => word.id}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+          </View>
+        }
         renderItem={({ item: word }) => {
           const recording =
             clip.target != null && clipKey(clip.target) === clipKey({ kind: 'word', id: word.id });
