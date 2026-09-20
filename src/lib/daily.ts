@@ -2,7 +2,7 @@ import type { DailyLesson, Word, WordProgress } from '../types/models.ts';
 
 import { shuffle, todayKey } from './util.ts';
 
-export const DAILY_SIZE = 6;
+export const DAILY_SIZE = 10;
 
 export function isDailyComplete(daily: DailyLesson | null): boolean {
   if (!daily) return false;
@@ -150,6 +150,10 @@ export function assignDailyHalves(
   return { vocab, dictation };
 }
 
+function dailyPoolSize(daily: DailyLesson): number {
+  return new Set([...daily.vocabWordIds, ...daily.dictationWordIds]).size;
+}
+
 export function ensureTodayLesson(
   current: DailyLesson | null,
   words: Word[],
@@ -157,9 +161,13 @@ export function ensureTodayLesson(
   date = todayKey(),
   random: () => number = Math.random,
 ): DailyLesson {
-  if (current?.date === date && (current.vocabWordIds.length > 0 || words.length === 0)) {
-    return current;
-  }
+  const target = Math.min(DAILY_SIZE, words.length);
+  const keepSameDay =
+    current?.date === date &&
+    (words.length === 0 ||
+      (current.vocabWordIds.length + current.dictationWordIds.length > 0 &&
+        dailyPoolSize(current) >= target));
+  if (keepSameDay && current) return current;
   return buildDailyLesson(words, progress, date, DAILY_SIZE, random);
 }
 

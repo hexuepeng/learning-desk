@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  DAILY_SIZE,
   assignDailyHalves,
   buildDailyLesson,
   dailyProgress,
   dictationPriority,
+  ensureTodayLesson,
   formatDailyProgress,
   isDailyComplete,
   markDictationDone,
@@ -15,13 +17,21 @@ import {
 } from './daily.ts';
 import { applyDailyComplete, emptyStreak } from './streak.ts';
 
-const words = ['a', 'b', 'c', 'd', 'e', 'f'].map((en, index) => ({
-  id: `w${index}`,
-  en,
-  zh: en,
-  source: 'parent' as const,
-  createdAt: 't',
-}));
+function makeWords(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `w${index}`,
+    en: `w${index}`,
+    zh: `w${index}`,
+    source: 'parent' as const,
+    createdAt: 't',
+  }));
+}
+
+const words = makeWords(6);
+
+function poolSize(daily: { vocabWordIds: string[]; dictationWordIds: string[] }) {
+  return new Set([...daily.vocabWordIds, ...daily.dictationWordIds]).size;
+}
 
 describe('daily lesson', () => {
   it('splits half vocab and half dictation', () => {
@@ -89,6 +99,31 @@ describe('daily lesson', () => {
       ['w1'],
     );
     assert.ok(dictationPriority(progress.w0) > dictationPriority(progress.w1));
+  });
+
+  it('defaults to ten words split five and five', () => {
+    assert.equal(DAILY_SIZE, 10);
+    const daily = buildDailyLesson(makeWords(12), {}, '2026-09-16', undefined, () => 0.1);
+    assert.equal(daily.vocabWordIds.length, 5);
+    assert.equal(daily.dictationWordIds.length, 5);
+    assert.equal(dailyProgress(daily).total, 10);
+  });
+
+  it('rebuilds a same-day card when the pool is smaller than the daily size', () => {
+    const many = makeWords(12);
+    const small = buildDailyLesson(many, {}, '2026-09-16', 6, () => 0.1);
+    assert.equal(poolSize(small), 6);
+    const next = ensureTodayLesson(small, many, {}, '2026-09-16', () => 0.1);
+    assert.equal(poolSize(next), 10);
+    assert.equal(next.vocabWordIds.length, 5);
+    assert.equal(next.dictationWordIds.length, 5);
+  });
+
+  it('keeps a same-day card that already meets the daily size', () => {
+    const many = makeWords(12);
+    const full = buildDailyLesson(many, {}, '2026-09-16', 10, () => 0.1);
+    const next = ensureTodayLesson(full, many, {}, '2026-09-16', () => 0.9);
+    assert.deepEqual(next, full);
   });
 
   it('prefers missed words when picking the daily pool', () => {
