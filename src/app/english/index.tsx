@@ -13,6 +13,7 @@ export default function EnglishHall() {
     <Screen title={t('englishHall')} subtitle={`共享词表 ${state.words.length} 个词`} back>
       <View style={styles.col}>
         <Tool title={t('vocab')} hint="看词、听发音、点认识或不熟" onPress={() => router.push('/english/vocab')} />
+        <Tool title={t('ketQuest')} hint="听音选词 / 听中文选词 / 跟读，间隔复习；不计入今日卡" onPress={() => router.push('/english/quest')} />
         <Tool title={t('dictation')} hint="选词 → 填字母 → 排字母（爸爸可再打开看中文写 / 听写）" onPress={() => router.push('/english/dictation')} />
         <Tool title={t('todaySentences')} hint="听一句、跟一句，不计入今日卡" onPress={() => router.push('/english/sentences')} />
         <Tool title="错词复习" hint="今日卡以外的 5 分钟，专练错过的词" onPress={() => router.push('/english/review')} />

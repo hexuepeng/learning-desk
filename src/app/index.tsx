@@ -97,6 +97,11 @@ export default function HomeScreen() {
 
       <View style={styles.extra}>
         <KidButton
+          label={t('ketQuest')}
+          variant="secondary"
+          onPress={() => router.push('/english/quest')}
+        />
+        <KidButton
           label={t('todaySentences')}
           variant="secondary"
           onPress={() => router.push('/english/sentences')}

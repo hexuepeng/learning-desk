@@ -63,6 +63,19 @@ import {
   wordsForProfile,
 } from '@/lib/profile';
 import {
+  applyQuestRound as applyQuestRoundToState,
+  clampQuestNewCount,
+  ensureQuestDay,
+  isSampleKetEn,
+  mergeKetPackIds,
+  patchQuest,
+  planWordImportForQuest,
+  pruneQuestWord,
+  questOf,
+  setWordInKetPack,
+  type QuestRoundResult,
+} from '@/lib/quest';
+import {
   composeSentenceDrafts as buildSentenceDrafts,
   linkSentenceWordIds,
   markSentenceCanSay as applySentenceCanSay,
@@ -89,6 +102,9 @@ import type {
   PersistedState,
   PracticeEvent,
   Profile,
+  QuestModeIndex,
+  QuestNewCount,
+  QuestState,
   Sentence,
   StarRating,
   Word,
@@ -108,11 +124,21 @@ type DeskContextValue = {
   unlockParent: (pin: string) => boolean;
   lockParent: () => void;
   changePin: (pin: string) => boolean;
-  upsertWord: (input: { id?: string; en: string; zh: string; ipa?: string }) => void;
+  upsertWord: (input: { id?: string; en: string; zh: string; ipa?: string; ketPack?: boolean }) => void;
   setShowIpa: (on: boolean) => void;
   removeWord: (id: string) => void;
+  setWordKetPack: (id: string, on: boolean) => void;
   setWordRecording: (wordId: string, sourceUri: string | null) => Promise<void>;
-  importWordText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
+  importWordText: (
+    text: string,
+    mode?: 'append' | 'replace',
+    options?: { ketPack?: boolean },
+  ) => { added: number; skipped: number; packAdded: number };
+  setQuestDailyNewCount: (count: QuestNewCount) => void;
+  seedSampleKetPack: () => void;
+  touchQuestDay: () => void;
+  applyQuestRound: (mode: QuestModeIndex, allCorrect: boolean) => QuestRoundResult;
+  quest: QuestState;
   upsertSentence: (input: { id?: string; en: string; zh?: string; tags?: string | string[] }) => void;
   removeSentence: (id: string) => void;
   importSentenceText: (text: string, mode?: 'append' | 'replace') => { added: number; skipped: number };
@@ -164,6 +190,29 @@ type DeskContextValue = {
 
 const DeskContext = createContext<DeskContextValue | null>(null);
 
+function withEnsuredQuest(current: PersistedState): PersistedState {
+  const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+  const existing = new Set(wordsForProfile(current.words, profileId).map((word) => word.id));
+  const quest = ensureQuestDay(questOf(current.questByProfile, profileId), existing);
+  return {
+    ...current,
+    questByProfile: patchQuest(current.questByProfile ?? {}, profileId, quest),
+  };
+}
+
+function withActiveQuest(
+  current: PersistedState,
+  recipe: (quest: QuestState) => QuestState,
+): PersistedState {
+  const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+  const existing = new Set(wordsForProfile(current.words, profileId).map((word) => word.id));
+  const quest = ensureQuestDay(recipe(questOf(current.questByProfile, profileId)), existing);
+  return {
+    ...current,
+    questByProfile: patchQuest(current.questByProfile ?? {}, profileId, quest),
+  };
+}
+
 export function DeskProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<PersistedState>(defaultState);
@@ -172,10 +221,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void (async () => {
       const loaded = await loadState();
-      const dated = {
+      const dated = withEnsuredQuest({
         ...loaded,
         daily: ensureTodayLesson(loaded.daily, loaded.words, loaded.progress),
-      };
+      });
       setState(dated);
       setReady(true);
     })();
@@ -208,21 +257,28 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   }, [update]);
 
   const upsertWord = useCallback(
-    (input: { id?: string; en: string; zh: string; ipa?: string }) => {
+    (input: { id?: string; en: string; zh: string; ipa?: string; ketPack?: boolean }) => {
       const en = input.en.trim().replace(/\s+/g, ' ');
       const zh = input.zh.trim();
       if (!en || !zh) return;
       const ipa = input.ipa !== undefined ? normalizeIpa(input.ipa) : undefined;
       update((current) => {
         if (input.id) {
-          return {
-            ...current,
-            words: current.words.map((word) =>
-              word.id === input.id
-                ? { ...word, en, zh, ipa: ipa !== undefined ? ipa : word.ipa }
-                : word,
-            ),
-          };
+          const words = current.words.map((word) =>
+            word.id === input.id
+              ? {
+                  ...word,
+                  en,
+                  zh,
+                  ipa: ipa !== undefined ? ipa : word.ipa,
+                  ketPack: input.ketPack !== undefined ? input.ketPack : word.ketPack,
+                }
+              : word,
+          );
+          if (input.ketPack === undefined) return { ...current, words };
+          return withActiveQuest({ ...current, words }, (quest) =>
+            setWordInKetPack(quest, input.id as string, input.ketPack === true),
+          );
         }
         const word: Word = {
           id: createId('word'),
@@ -233,7 +289,11 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           profileId: current.activeProfileId,
         };
         if (ipa) word.ipa = ipa;
-        return { ...current, words: [word, ...current.words] };
+        if (input.ketPack) word.ketPack = true;
+        const next = { ...current, words: [word, ...current.words] };
+        return input.ketPack
+          ? withActiveQuest(next, (quest) => setWordInKetPack(quest, word.id, true))
+          : next;
       });
     },
     [update],
@@ -251,12 +311,29 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       let recordingUri: string | null | undefined;
       update((current) => {
         recordingUri = current.words.find((word) => word.id === id)?.recordingUri;
-        return {
-          ...current,
-          words: current.words.filter((word) => word.id !== id),
-        };
+        return withActiveQuest(
+          { ...current, words: current.words.filter((word) => word.id !== id) },
+          (quest) => pruneQuestWord(quest, id),
+        );
       });
       if (recordingUri) void deleteRecordingFile(recordingUri);
+    },
+    [update],
+  );
+
+  const setWordKetPack = useCallback(
+    (id: string, on: boolean) => {
+      update((current) =>
+        withActiveQuest(
+          {
+            ...current,
+            words: current.words.map((word) =>
+              word.id === id ? { ...word, ketPack: on || undefined } : word,
+            ),
+          },
+          (quest) => setWordInKetPack(quest, id, on),
+        ),
+      );
     },
     [update],
   );
@@ -298,12 +375,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const importWordText = useCallback(
-    (text: string, mode: 'append' | 'replace' = 'append') => {
+    (text: string, mode: 'append' | 'replace' = 'append', options?: { ketPack?: boolean }) => {
       const parsed = parseWordList(text);
-      if (parsed.length === 0) return { added: 0, skipped: 0 };
+      if (parsed.length === 0) return { added: 0, skipped: 0, packAdded: 0 };
+      const ketPack = Boolean(options?.ketPack);
       const removedRecordings: string[] = [];
       let added = 0;
       let skipped = 0;
+      let packAdded = 0;
       update((current) => {
         const activeId = current.activeProfileId;
         if (mode === 'replace') {
@@ -313,15 +392,21 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             }
           }
         }
+        const removedIds =
+          mode === 'replace'
+            ? current.words.filter((word) => profileIdOf(word) === activeId).map((word) => word.id)
+            : [];
         const base =
           mode === 'replace'
             ? current.words.filter((word) => profileIdOf(word) !== activeId)
             : current.words;
+        const profileWords = wordsForProfile(base, activeId);
+        const plan = planWordImportForQuest(parsed, profileWords);
         const have = new Set(base.map((word) => word.en.toLowerCase()));
         const incoming: Word[] = [];
         added = 0;
-        skipped = 0;
-        for (const item of parsed) {
+        skipped = plan.skipped;
+        for (const item of plan.newItems) {
           if (have.has(item.en.toLowerCase())) {
             skipped += 1;
             continue;
@@ -336,14 +421,93 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             source: 'parent',
             createdAt: new Date().toISOString(),
             profileId: activeId,
+            ketPack: ketPack || undefined,
           });
         }
-        return { ...current, words: [...incoming, ...base] };
+        const packIds = ketPack ? [...plan.existingIds, ...incoming.map((word) => word.id)] : [];
+        packAdded = packIds.length;
+        const marked = ketPack
+          ? [...incoming, ...base].map((word) =>
+              packIds.includes(word.id) ? { ...word, ketPack: true } : word,
+            )
+          : [...incoming, ...base];
+        let next: PersistedState = { ...current, words: marked };
+        if (mode === 'replace') {
+          next = withActiveQuest(next, (quest) =>
+            removedIds.reduce((acc, id) => pruneQuestWord(acc, id), quest),
+          );
+        }
+        if (ketPack) {
+          next = withActiveQuest(next, (quest) => ({
+            ...quest,
+            packWordIds:
+              mode === 'replace' ? incoming.map((word) => word.id) : mergeKetPackIds(quest.packWordIds, packIds),
+          }));
+        }
+        return next;
       });
       for (const uri of removedRecordings) void deleteRecordingFile(uri);
-      return { added, skipped };
+      return { added, skipped, packAdded };
     },
     [update],
+  );
+
+  const setQuestDailyNewCount = useCallback(
+    (count: QuestNewCount) => {
+      update((current) =>
+        withActiveQuest(current, (quest) => ({
+          ...quest,
+          dailyNewCount: clampQuestNewCount(count),
+        })),
+      );
+    },
+    [update],
+  );
+
+  const seedSampleKetPack = useCallback(() => {
+    update((current) => {
+      const activeId = current.activeProfileId;
+      const samples = createSampleWords().filter((word) => word.ketPack);
+      const have = new Map(
+        wordsForProfile(current.words, activeId).map((word) => [word.en.toLowerCase(), word]),
+      );
+      const packIds: string[] = [];
+      const words = current.words.map((word) => {
+        if (profileIdOf(word) !== activeId || !isSampleKetEn(word.en)) return word;
+        packIds.push(word.id);
+        return { ...word, ketPack: true };
+      });
+      const incoming: Word[] = [];
+      for (const sample of samples) {
+        if (have.has(sample.en.toLowerCase())) continue;
+        const next = { ...sample, profileId: activeId, ketPack: true };
+        incoming.push(next);
+        packIds.push(next.id);
+      }
+      return withActiveQuest({ ...current, words: [...incoming, ...words] }, (quest) => ({
+        ...quest,
+        packWordIds: mergeKetPackIds(quest.packWordIds, packIds),
+      }));
+    });
+  }, [update]);
+
+  const touchQuestDay = useCallback(() => {
+    update((current) => withEnsuredQuest(current));
+  }, [update]);
+
+  const applyQuestRound = useCallback(
+    (mode: QuestModeIndex, allCorrect: boolean) => {
+      const profileId = resolveActiveProfileId(state.profiles, state.activeProfileId);
+      const existing = new Set(wordsForProfile(state.words, profileId).map((word) => word.id));
+      const quest = ensureQuestDay(questOf(state.questByProfile, profileId), existing);
+      const result = applyQuestRoundToState(quest, mode, allCorrect);
+      update((current) => ({
+        ...current,
+        questByProfile: patchQuest(current.questByProfile ?? {}, profileId, result.quest),
+      }));
+      return result;
+    },
+    [state.activeProfileId, state.profiles, state.questByProfile, state.words, update],
   );
 
   const upsertSentence = useCallback(
@@ -618,15 +782,17 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       const samples = createSampleWords();
       const parentWords = current.words.filter((word) => word.source === 'parent');
       const have = new Set(parentWords.map((word) => word.en.toLowerCase()));
-      return {
-        ...current,
-        words: [
-          ...parentWords,
-          ...samples
-            .filter((word) => !have.has(word.en.toLowerCase()))
-            .map((word) => ({ ...word, profileId: current.activeProfileId })),
-        ],
-      };
+      const restored = samples
+        .filter((word) => !have.has(word.en.toLowerCase()))
+        .map((word) => ({ ...word, profileId: current.activeProfileId }));
+      const words = [...parentWords, ...restored];
+      const packIds = words
+        .filter((word) => profileIdOf(word) === current.activeProfileId && word.ketPack)
+        .map((word) => word.id);
+      return withActiveQuest({ ...current, words }, (quest) => ({
+        ...quest,
+        packWordIds: mergeKetPackIds(quest.packWordIds, packIds),
+      }));
     });
     for (const uri of removed) void deleteRecordingFile(uri);
   }, [state.words, update]);
@@ -1037,10 +1203,12 @@ export function DeskProvider({ children }: { children: ReactNode }) {
 
   const switchProfile = useCallback(
     (id: string) => {
-      update((current) => ({
-        ...current,
-        activeProfileId: resolveActiveProfileId(current.profiles, id),
-      }));
+      update((current) =>
+        withEnsuredQuest({
+          ...current,
+          activeProfileId: resolveActiveProfileId(current.profiles, id),
+        }),
+      );
     },
     [update],
   );
@@ -1064,23 +1232,31 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     await clearAllRecordingFiles();
     await clearState();
     const fresh = defaultState();
-    setState({
-      ...fresh,
-      daily: ensureTodayLesson(null, fresh.words, fresh.progress),
-    });
+    setState(
+      withEnsuredQuest({
+        ...fresh,
+        daily: ensureTodayLesson(null, fresh.words, fresh.progress),
+      }),
+    );
     setParentUnlocked(false);
   }, []);
 
   const exportSnapshot = useCallback(() => state, [state]);
 
   const replaceState = useCallback((next: PersistedState) => {
-    setState({
-      ...next,
-      daily: ensureTodayLesson(next.daily, next.words, next.progress),
-    });
+    setState(
+      withEnsuredQuest({
+        ...next,
+        daily: ensureTodayLesson(next.daily, next.words, next.progress),
+      }),
+    );
   }, []);
 
   const visibleState = useMemo(() => projectProfile(state), [state]);
+  const quest = useMemo(() => {
+    const existing = new Set(visibleState.words.map((word) => word.id));
+    return ensureQuestDay(questOf(state.questByProfile, visibleState.activeProfileId), existing);
+  }, [state.questByProfile, visibleState.activeProfileId, visibleState.words]);
 
   const value = useMemo<DeskContextValue>(
     () => ({
@@ -1099,8 +1275,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       upsertWord,
       setShowIpa,
       removeWord,
+      setWordKetPack,
       setWordRecording,
       importWordText,
+      setQuestDailyNewCount,
+      seedSampleKetPack,
+      touchQuestDay,
+      applyQuestRound,
+      quest,
       upsertSentence,
       removeSentence,
       importSentenceText,
@@ -1148,8 +1330,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       upsertWord,
       setShowIpa,
       removeWord,
+      setWordKetPack,
       setWordRecording,
       importWordText,
+      setQuestDailyNewCount,
+      seedSampleKetPack,
+      touchQuestDay,
+      applyQuestRound,
+      quest,
       upsertSentence,
       removeSentence,
       importSentenceText,

@@ -3,7 +3,7 @@ import type { AudioPlayer } from 'expo-audio';
 
 import { displayRecordingUri } from './recordingFiles.ts';
 import { resolveSpeakSource } from './speakSource.ts';
-import { speakEnglish, stopSpeaking } from './tts.ts';
+import { speakChinese, speakEnglish, stopSpeaking } from './tts.ts';
 
 let player: AudioPlayer | null = null;
 
@@ -54,4 +54,10 @@ export function playCue(text: string, recordingUri?: string | null): void {
     return;
   }
   speakEnglish(source.text);
+}
+
+/** 中文释义提示音，不走家长英语录音。 */
+export function playChineseCue(text: string): void {
+  stopCue();
+  speakChinese(text);
 }

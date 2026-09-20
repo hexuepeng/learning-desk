@@ -7,12 +7,18 @@ import { normalizeFeedbackList } from './feedback.ts';
 import {
   DEFAULT_PROFILE_ID,
   normalizeProfiles,
+  profileIdOf,
   resolveActiveProfileId,
   stampBooks,
   stampSentences,
   stampWords,
 } from './profile.ts';
 import { normalizeStoredWords } from './ipa.ts';
+import {
+  emptyQuestState,
+  hydrateQuestPacks,
+  normalizeQuestByProfile,
+} from './quest.ts';
 import {
   defaultSentenceSettings,
   normalizeSentenceProgress,
@@ -27,9 +33,10 @@ export const STORAGE_KEY = 'learning-desk/v1';
 export const DEFAULT_PARENT_PIN = '1234';
 
 export function defaultState(): PersistedState {
+  const words = stampWords(createSampleWords(), DEFAULT_PROFILE_ID);
   return {
     version: 1,
-    words: stampWords(createSampleWords(), DEFAULT_PROFILE_ID),
+    words,
     progress: {},
     dictationSettings: defaultDictationSettings(),
     showIpa: true,
@@ -45,6 +52,12 @@ export function defaultState(): PersistedState {
     parentPin: DEFAULT_PARENT_PIN,
     profiles: normalizeProfiles(null),
     activeProfileId: DEFAULT_PROFILE_ID,
+    questByProfile: {
+      [DEFAULT_PROFILE_ID]: {
+        ...emptyQuestState(),
+        packWordIds: words.filter((word) => word.ketPack).map((word) => word.id),
+      },
+    },
   };
 }
 
@@ -61,14 +74,17 @@ function migrate(raw: unknown): PersistedState {
     profiles,
     data.activeProfileId ?? DEFAULT_PROFILE_ID,
   );
+  const words = stampWords(
+    normalizeStoredWords(Array.isArray(data.words) ? (data.words as Word[]) : base.words).map(
+      (word) => (word.ketPack ? { ...word, ketPack: true } : word),
+    ),
+    DEFAULT_PROFILE_ID,
+  );
   return {
     ...base,
     ...data,
     version: 1,
-    words: stampWords(
-      normalizeStoredWords(Array.isArray(data.words) ? (data.words as Word[]) : base.words),
-      DEFAULT_PROFILE_ID,
-    ),
+    words,
     progress: data.progress && typeof data.progress === 'object' ? data.progress : {},
     showIpa: data.showIpa !== false,
     dictationSettings: {
@@ -87,6 +103,11 @@ function migrate(raw: unknown): PersistedState {
     parentPin: data.parentPin?.match(/^\d{4}$/) ? data.parentPin : DEFAULT_PARENT_PIN,
     profiles,
     activeProfileId,
+    questByProfile: hydrateQuestPacks(
+      normalizeQuestByProfile(data.questByProfile),
+      words,
+      profileIdOf,
+    ),
   };
 }
 

@@ -11,7 +11,7 @@ import { todayKey } from '@/lib/util';
 import { filterWords } from '@/lib/wordsView';
 
 export default function DadProgress() {
-  const { state } = useDesk();
+  const { state, quest } = useDesk();
   const [query, setQuery] = useState('');
   const summary = useMemo(
     () => summarizeProgress(state.words, state.progress, state.dictationSettings),
@@ -34,6 +34,9 @@ export default function DadProgress() {
         </Text>
         <Text style={styles.line}>
           词表 {summary.total} · 认识 {summary.known} · 还不熟 {summary.unfamiliar}
+        </Text>
+        <Text style={styles.line}>
+          闯关词库 {quest.packWordIds.length} · 每天新词 {quest.dailyNewCount} · 已安排 {quest.cursor}
         </Text>
         <Text style={styles.meta}>
           台阶分布{' '}

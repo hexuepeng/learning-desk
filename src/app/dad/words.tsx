@@ -12,15 +12,28 @@ import {
   useParentClipRecorder,
 } from '@/hooks/useParentClipRecorder';
 import { playCue } from '@/lib/playCue';
+import { QUEST_NEW_COUNTS } from '@/lib/quest';
 import { parseWordList } from '@/lib/parseWordList';
 import { filterWords } from '@/lib/wordsView';
 
 export default function DadWords() {
-  const { state, upsertWord, removeWord, importWordText, restoreSampleWords, setWordRecording, setShowIpa } =
-    useDesk();
+  const {
+    state,
+    quest,
+    upsertWord,
+    removeWord,
+    importWordText,
+    restoreSampleWords,
+    setWordRecording,
+    setShowIpa,
+    setWordKetPack,
+    setQuestDailyNewCount,
+  } = useDesk();
   const [en, setEn] = useState('');
   const [zh, setZh] = useState('');
   const [ipa, setIpa] = useState('');
+  const [ketPack, setKetPack] = useState(false);
+  const [importKet, setImportKet] = useState(true);
   const [bulk, setBulk] = useState('');
   const [query, setQuery] = useState('');
   const [showImport, setShowImport] = useState(false);
@@ -47,7 +60,33 @@ export default function DadWords() {
   };
 
   return (
-    <Screen title="词表" subtitle="英文 + 中文释义 + 可选英式音标。每个词可录爸爸的发音，只留本机。" back scroll={false}>
+    <Screen
+      title="词表"
+      subtitle="英文 + 中文释义 + 可选英式音标。勾选「用于闯关词库」后，KET 闯关按导入顺序学。只留本机。"
+      back
+      scroll={false}
+    >
+      <Card style={styles.toggle}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>每天新词</Text>
+          <Text style={styles.meta}>
+            KET 闯关每天新学 10 / 20 / 30 个（默认 20）。今日已抽好的卡从明天起按新数量。词库 {quest.packWordIds.length}{' '}
+            · 已安排 {quest.cursor}
+          </Text>
+          <View style={styles.countRow}>
+            {QUEST_NEW_COUNTS.map((count) => (
+              <KidButton
+                key={count}
+                label={`${count}`}
+                compact
+                variant={quest.dailyNewCount === count ? 'primary' : 'secondary'}
+                onPress={() => setQuestDailyNewCount(count)}
+                style={styles.countBtn}
+              />
+            ))}
+          </View>
+        </View>
+      </Card>
       <Card style={styles.toggle}>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>显示音标</Text>
@@ -77,10 +116,17 @@ export default function DadWords() {
           style={styles.input}
           autoCapitalize="none"
         />
+        <View style={styles.toggle}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>用于闯关词库</Text>
+            <Text style={styles.meta}>加到 KET 闯关顺序里，不替代今日卡。</Text>
+          </View>
+          <Switch value={ketPack} onValueChange={setKetPack} trackColor={{ true: Colors.success }} />
+        </View>
         <KidButton
           label="加到词表"
           onPress={() => {
-            upsertWord({ en, zh, ipa });
+            upsertWord({ en, zh, ipa, ketPack });
             setEn('');
             setZh('');
             setIpa('');
@@ -101,8 +147,17 @@ export default function DadWords() {
         <Card style={styles.block}>
           <Text style={styles.label}>粘贴词表</Text>
           <Text style={styles.meta}>
-            每行 english,chinese，也可第三列英式 IPA：apple,苹果,/ˈæpl/。也认空格/分号/CSV。可追加，或清空后整表替换。不要把整本剑桥词表打进应用包，由你粘贴导入。
+            每行 english,chinese，也可第三列英式 IPA：apple,苹果,/ˈæpl/。也认空格/分号/CSV。可把导出的词表文件内容整段粘进来。默认追加，重复英文跳过。这是家里自己用的本机词包，不要写成上架的商业词库。
           </Text>
+          <View style={styles.toggle}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>用于闯关词库</Text>
+              <Text style={styles.meta}>
+                勾选后按粘贴顺序加入 KET 闯关。已在词表里的词会跳过新增，但仍标进闯关顺序。
+              </Text>
+            </View>
+            <Switch value={importKet} onValueChange={setImportKet} trackColor={{ true: Colors.success }} />
+          </View>
           <TextInput
             multiline
             value={bulk}
@@ -118,8 +173,11 @@ export default function DadWords() {
             label={preview.length ? `追加 ${preview.length} 个词` : '追加到词表'}
             disabled={preview.length === 0}
             onPress={() => {
-              const result = importWordText(bulk, 'append');
-              Alert.alert('已追加', `新增 ${result.added} 个，跳过重复 ${result.skipped} 个。`);
+              const result = importWordText(bulk, 'append', { ketPack: importKet });
+              Alert.alert(
+                '已追加',
+                `新增 ${result.added} 个，跳过重复 ${result.skipped} 个${importKet ? `，闯关词库 +${result.packAdded}` : ''}。`,
+              );
               setBulk('');
             }}
           />
@@ -135,8 +193,11 @@ export default function DadWords() {
                   text: '替换',
                   style: 'destructive',
                   onPress: () => {
-                    const result = importWordText(bulk, 'replace');
-                    Alert.alert('已替换', `现在有 ${result.added} 个词。`);
+                    const result = importWordText(bulk, 'replace', { ketPack: importKet });
+                    Alert.alert(
+                      '已替换',
+                      `现在有 ${result.added} 个词${importKet ? `，并重排了闯关词库` : ''}。`,
+                    );
                     setBulk('');
                   },
                 },
@@ -171,6 +232,7 @@ export default function DadWords() {
                   <IpaText ipa={word.ipa} show style={styles.ipaLine} />
                   <Text style={styles.meta}>
                     {word.zh} · {word.source === 'sample' ? '示例' : '家长'}
+                    {word.ketPack ? ' · 闯关' : ''}
                   </Text>
                 </View>
                 <KidButton
@@ -196,6 +258,16 @@ export default function DadWords() {
                   upsertWord({ id: word.id, en: word.en, zh: word.zh, ipa: event.nativeEvent.text })
                 }
               />
+              <View style={styles.toggle}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>用于闯关词库</Text>
+                </View>
+                <Switch
+                  value={Boolean(word.ketPack)}
+                  onValueChange={(on) => setWordKetPack(word.id, on)}
+                  trackColor={{ true: Colors.success }}
+                />
+              </View>
               <VoiceClipBar
                 status={voiceClipStatus(word.recordingUri, recording, clip.isRecording)}
                 disabled={Boolean(clip.target) && !recording}
@@ -267,6 +339,14 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     fontWeight: '700',
     marginVertical: Space.sm,
+  },
+  countRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: Space.sm,
+  },
+  countBtn: {
+    flex: 1,
   },
   row: {
     gap: 4,
