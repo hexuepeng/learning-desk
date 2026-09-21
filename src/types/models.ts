@@ -22,6 +22,8 @@ export type Word = {
   /** 本机家长录音相对路径；有则播放优先于 TTS */
   recordingUri?: string | null;
   profileId?: string;
+  /** 家长导入的闯关词库标记。KET 闯关按词库顺序学，与今日卡分开。 */
+  ketPack?: boolean;
 };
 
 export type WordProgress = {
@@ -149,6 +151,37 @@ export type SentenceSettings = {
   countTowardDaily: boolean;
 };
 
+export type QuestNewCount = 10 | 20 | 30;
+
+export type QuestModeIndex = 0 | 1 | 2;
+
+export type QuestStars = [number, number, number];
+
+/** 每个闯关词的间隔复习进度。nextDue 按首次学会日 + 1/2/4/7 天。 */
+export type QuestWordItem = {
+  learnedOn: string;
+  step: number;
+  nextDue: string | null;
+};
+
+export type QuestDay = {
+  date: string;
+  ids: string[];
+  newIds: string[];
+  stars: QuestStars;
+  complete: boolean;
+};
+
+/** 按孩子档案保存的闯关状态。默认不计入今日卡。 */
+export type QuestState = {
+  cursor: number;
+  dailyNewCount: QuestNewCount;
+  items: Record<string, QuestWordItem>;
+  day: QuestDay | null;
+  /** 闯关词库顺序（家长导入追加）。游标按这个顺序取新词。 */
+  packWordIds: string[];
+};
+
 export type PersistedState = {
   version: 1;
   words: Word[];
@@ -168,4 +201,6 @@ export type PersistedState = {
   parentPin: string;
   profiles: Profile[];
   activeProfileId: string;
+  /** 每个孩子档案一份闯关 / SRS 进度 */
+  questByProfile: Record<string, QuestState>;
 };

@@ -1,6 +1,7 @@
 import type { Word } from '../types/models.ts';
 
 import { normalizeIpa } from '../lib/ipa.ts';
+import { isSampleKetEn } from '../lib/quest.ts';
 import { createId } from '../lib/util.ts';
 
 /** 仅给少量常见词附上核对过的英式 IPA，不批量编造。 */
@@ -39,6 +40,7 @@ export function createSampleWords(now = new Date().toISOString()): Word[] {
     };
     const normalized = normalizeIpa(ipa);
     if (normalized) word.ipa = normalized;
+    if (isSampleKetEn(en)) word.ketPack = true;
     return word;
   });
 }

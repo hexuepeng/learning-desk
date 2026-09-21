@@ -46,6 +46,24 @@ export function speakEnglish(text: string): void {
   })();
 }
 
+export const TTS_CHINESE_LANGUAGE = 'zh-CN';
+
+/** 中文提示音（闯关「听中文选词」）。英语仍走 en-GB。 */
+export function speakChinese(text: string): void {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+  try {
+    Speech.stop();
+  } catch {
+    // 停不掉也不要影响这次朗读
+  }
+  try {
+    speakWithOptions(trimmed, { language: TTS_CHINESE_LANGUAGE, rate: 0.9, pitch: 1 });
+  } catch {
+    // 没有中文语音也不要崩
+  }
+}
+
 export function stopSpeaking(): void {
   try {
     Speech.stop();

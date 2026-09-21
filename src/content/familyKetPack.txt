@@ -1,0 +1,699 @@
+barbecue,烤肉/烤,/bɑ:bikju:/
+chips,炸土豆条（片）,/tʃips/
+biscuit,饼干,/'biskit/
+bottle,瓶子,/'bɒtl/
+chocolate,巧克力,/'tʃɒklət/
+coffee,咖啡,/'kɒfi/
+cook,厨师；做饭,/kʊk/
+cooker,炊具,/'kukə(r)/
+cream,奶油,/kri:m/
+dinner,晚餐,/'dinə(r)/
+ice cream,冰淇淋,/ˌaɪs ˈkriːm/
+jam,果酱,/dʒæm/
+juice,果汁,/dʒu:s/
+kitchen,厨房,/'kitʃən/
+knife,刀,/naif/
+lemon,柠檬,/'lemən/
+pizza,比萨饼,/'pi:tsə/
+plate,"碟,盘",/pleit/
+potato,土豆,/pə'teitəu/
+salad,"沙拉,凉菜",/'sæləd/
+salt,盐,/sɔ:lt/
+bowl,碗,/bəul/
+breakfast,早餐,/'brekfəst/
+burger,汉堡包,/bɜ:gə(r)/
+butter,黄油,/'bʌtə(r)/
+carrot,胡萝卜,/'kærət/
+cheese,"乳酪,奶酪",/tʃi:z/
+chicken,"小鸡,鸡肉；鸡肉；小鸡",/'tʃikin/
+dish,"盘子,一盘菜",/diʃ/
+drink,饮料,/driŋk/
+fork,叉,/fɔ:k/
+fridge,电冰箱,/fridʒ/
+fruit,水果,/fruːt/
+grape,葡萄,/greip/
+steak,牛排,/steik/
+sugar,糖,/'ʃugə(r)/
+tomato,西红柿,/tə'mɑ:təu/
+vegetable,蔬菜,/'vedʒitəbl/
+waiter,服务员；男服务员；服务员（男）,/'weitə(r)/
+waitress,女服务员,/'weitris/
+onion,洋葱,/'ʌnjən/
+meat,肉,/miːt/
+pepper,胡椒,/'pepə(r)/
+lemonade,柠檬水
+main course,主菜,/mein-kɔ:s/
+menu,菜单,/ˈmenjuː/
+mineral water,矿泉水,/'minərəl-'wɔ:tə(r)/
+pasta,意大利面；意面,/'pæstə/
+picnic,野餐,/'piknik/
+sandwich,三明治,/'sænwidʒ/
+slice,薄的切片,/slais/
+snack,"小吃,零食",/snæk/
+soup,汤,/su:p/
+cake,蛋糕,/keɪk/
+omelette,煎蛋,/'ɒmlit/
+meal,"一餐,一顿饭",/mi:l/
+grill,烧烤架,/gril/
+boil,煮沸,/bɔil/
+roast,"烤,烘焙",/rəust/
+burn,"燃烧；,烧着 燃烧",/bɜ:n/
+hungry,饥饿的,/'hʌŋgri/
+fried,油炸的,/fraid/
+sweet,甜的；糖果；甜的,/swiːt/
+thirsty,口渴的,/'θɜ:sti/
+grilled,烤的,/grild/
+cleaner,清洁工
+customer,顾客,/ˈkʌstəmə/
+engineer,工程师,/ˌendʒɪˈnɪə/
+painter,画家
+driver,司机,/ˈdraɪvə/
+photographer,摄影师
+actor,男演员；演员（男）,/ˈæktə/
+doctor,医生,/ˈdɒktə/
+artist,艺术家,/' ɑ:tist/
+chemist,",药剂师 化学家",/'kemist/
+dentist,牙科；牙科医生；牙医,/ˈdentɪst/
+journalist,记者
+receptionist,接待员
+colleagur,同事
+guest,客人,/gest/
+guide,",指南 引导者",/gaid/
+mechanic,机械工；机械师
+nurse,护士,/nɜːs/
+pilot,飞行员,/ˈpaɪlət/
+secretary,秘书
+shop assistan/t??p,店员
+staff,",同事 全体人员",/st ɑ:f/
+tour gride,导游
+businessman,商人,/ˈbɪznəsmən/
+company,公司,/ˈkʌmpəni/
+computer,电脑,/kəmˈpjuːtə/
+diploma,文凭
+earn,",获得 赚得"
+instruction,说明书
+occupation,职业
+pharmacy,药房
+uniform,制服；校服,/ˈjuːnɪfɔːm/
+appointment,"约会；,预约 约会"
+assistant,助手；店员,/əˈsɪstənt/
+exhitition,展览
+morning,早晨,/ˈmɔːnɪŋ/
+afternoon,下午,/ˌɑːftəˈnuːn/
+evening,",晚上 傍晚",/ˈiːvnɪŋ/
+January,一月,/ˈdʒænjuəri/
+February,二月,/ˈfebruəri/
+March,三月,/mɑːtʃ/
+April,四月,/ˈeɪprəl/
+May,五月,/meɪ/
+June,六月,/dʒuːn/
+July,七月,/dʒuˈlaɪ/
+August,八月,/ˈɔːɡəst/
+September,九月,/sepˈtembə/
+October,十月,/ɒkˈtəʊbə/
+November,十一月,/nəʊˈvembə/
+December,十二月,/dɪˈsembə/
+Spring,春季；春天,/sprɪŋ/
+Summer,夏季；夏天,/ˈsʌmə/
+Autumn,秋季；秋天,/ˈɔːtəm/
+Fall,秋季
+Winter,冬季；冬天,/ˈwɪntə/
+Sunday,星期日,/ˈsʌndeɪ/
+Monday,星期一,/ˈmʌndeɪ/
+Tuesday,星期二,/ˈtjuːzdeɪ/
+Wednesday,星期三,/ˈwenzdeɪ/
+Thursday,星期四,/ˈθɜːzdeɪ/
+Friday,星期五,/ˈfraɪdeɪ/
+Saturday,星期六,/ˈsætədeɪ/
+noon,中午,/nu:n/
+night,晚上；夜晚,/naɪt/
+midnight,半夜
+moment,瞬间；片刻
+weekend,周末,/ˌwiːkˈend/
+eye,眼睛,/aɪ/
+nose,",突出部分 鼻子",/nəʊz/
+tooth,牙齿,/tuːθ/
+hair,头发,/heə/
+mouth,"嘴,开口；嘴巴",/maʊθ/
+neck,",颈 脖子",/nek/
+hand,"手,掌握 ,协助",/hænd/
+arm,",袖子 手臂",/ɑ:m/
+knee,膝盖,/ni:/
+foot,脚(复数 feet),/fʊt/
+shoulder,肩膀
+finger,手指,/ˈfɪŋɡə/
+leg,腿,/leɡ/
+heart,"心,中心 ,要点",/h ɑ:t/
+stomach,胃
+brain,大脑
+headache,头疼；头痛,/ˈhedeɪk/
+stomachache,胃疼
+toothache,牙疼
+catch a cold,感冒
+earache,耳朵疼
+run a temperatu/rr?en,发烧
+have a cough,咳嗽
+heart attack,心脏病
+cancer,癌症
+accident,",意外的事 事故"
+medicine,"药,医学",/ˈmedsn/
+problem,问题
+pain,",疼痛 ,辛 痛苦 苦",/pein/
+ambulance,救护车
+comb,",鸡冠 头梳"
+hospital,医院,/ˈhɒspɪtl/
+insurance,保险
+soap,肥皂
+toothbrush,牙刷
+hurt,",(使)疼痛 伤害"
+feel,感觉,/fi:l/
+check,检查
+die,死,/dai/
+lie down,躺下,/lai daun/
+break,",打断 ,休 中断 息；休息",/breɪk/
+dead,死的,/ded/
+sick,",生病的 恶心的",/sɪk/
+dangerous,危险的
+grandma,",外婆 奶奶"
+grandpa,",外公 爷爷"
+father,父亲
+mother,母亲
+uncle,"伯,舅,叔,姨父；叔叔，舅舅",/ˈʌŋkl/
+aunt,",姑,婶,姨 伯母；阿姨，姑姑",/ɑ:nt/
+brother,兄弟
+cousin,堂(表)兄弟姐妹；表兄妹,/ˈkʌzn/
+sister,姐妹
+child,小孩
+daughter,女儿,/ˈdɔːtə/
+family,家庭
+grandchild,孙
+granddaughter,",外孙女 孙女"
+grandfather,(外)祖父；祖父，外公
+grandmother,(外)祖母；祖母，外婆,/ˈɡrænmʌðə/
+grandson,",外孙 孙子"
+dad,(口语 )爸爸
+mum,(口语 )妈妈
+love,"爱,恋爱"
+married,已婚的
+Mr.,(=Mister) 先生
+Mrs.,(已婚 ) 女士
+Ms.,(通用 ) 女士,/miz/
+neighbour,邻居
+pen-friend,笔友,/'penfr'end/
+surname,姓
+teenager,青少年,/ˈtiːneɪdʒə/
+friend,朋友,/frend/
+husband,丈夫,/ˈhʌzbənd/
+wife,妻子,/waɪf/
+advertisement,广告
+art,艺术,/ɑ:t/
+band,乐队
+camera,照相机,/ˈkæmərə/
+cassette,盒式录音带,/k ɑ:'set/
+competition,",竞争 比赛"
+concert,音乐会
+conversation,",谈话 会话"
+drum,"鼓,鼓声"
+exhibition,",展览会 展览"
+email,电子邮件,/ˈiːmeɪl/
+guidebook,旅行指南
+guitar,吉他,/gi't ɑ:/
+information,信息
+internet,因特网；互联网,/ˈɪntənet/
+magazine,杂志
+mobile phone,手机,/ˈməʊbaɪl fəʊn/
+mouse,",鼠标 老鼠",/maʊs/
+museum,博物馆,/mjuˈziːəm/
+opera,歌剧
+photography,摄影术,/fəˈtɒɡrəfi/
+practice,",实践 练习"
+prize,"奖,奖品",/praiz/
+programme,",程序 节目"
+project,",项目 工程"
+website,网站,/ˈwebsaɪt/
+present,",现在 礼物",/pri'zent/
+address,地址
+bathroom,浴室,/'b ɑ: θrum/
+bedroom,卧室,/ˈbedruːm/
+blanket,毛毯
+bookshelf,书架
+chair,椅子,/tʃeə/
+cupboard,衣橱
+dining room,饭厅
+downstairs,楼下/ 楼下的
+flat,公寓；公寓/ 平坦的,/flæt/
+floor,",楼层 地板"
+furniture,家具
+garage,"车库；,汽车修理厂 车库"
+garden,花园,/'g ɑ:dn/
+gate,大门,/geit/
+hall,大厅
+living room,客厅,/ˈlɪvɪŋ ruːm/
+pillow,枕头
+roof,屋顶,/ru:f/
+shower,淋浴
+sitting room,客室
+sofa,沙发
+toilet,",盥洗室 厕所"
+towel,毛巾
+light,浅色的,/lait/
+dark,深色的,/d ɑ:k/
+black,黑色的
+blue,蓝色的,/blu:/
+brown,棕色的,/braun/
+green,绿色的,/gri:n/
+grey,灰色的,/grei/
+orange,橙色的；橙子；橙色,/ˈɒrɪndʒ/
+pink,粉红色的
+purple,紫色的
+red,红色的,/red/
+white,白色的,/wait/
+yellow,黄色的
+blonde,金色的
+centimeter,厘米
+degree,度数,/di'gri:/
+gram,克
+kilo,千克
+kilometre,",千米 公里"
+litre,公升
+metre,",公尺 米"
+mile,英里,/mail/
+minute,分钟,/ˈmɪnɪt/
+quarter,四分之一
+second,秒,/ˈsekənd/
+temperature,温度,/ˈtemprətʃə/
+week,",周 星期",/wiːk/
+bill,帐单；账单,/bɪl/
+book,"书,预订",/buk/
+card,卡片；银行卡,/k ɑ:d/
+form,表格
+licence,",许可证 执照"
+message,",信息 消息",/ˈmesɪdʒ/
+newspaper,报纸
+note,"笔记, 备忘录"
+passport,护照,/ˈpɑːspɔːt/
+postcard,明信片
+afterwards,",后来 以后"
+bag,包
+belt,腰带,/belt/
+blouse,女式衬衫,/blauz/
+boot,靴子,/bu:t/
+clothes,衣服,/kləʊðz/
+coat,外套,/kəʊt/
+dress,",连衣裙 女装",/dres/
+glasses,眼镜,/ˈɡlɑːsɪz/
+hat,帽子,/hæt/
+jacket,短上衣；夹克,/ˈdʒækɪt/
+pocket,口袋
+purse,(女士 ) 钱包
+raincoat,雨衣,/ˈreɪnkəʊt/
+shirt,衬衫,/ʃɜːt/
+shoe,鞋
+shorts,短裤,/ʃɔːts/
+skirt,裙子,/skɜːt/
+suit,套装；西装,/suːt/
+sweater,毛衣,/ˈswetə/
+tights,", 紧身衣 连裤袜",/taits/
+trainers,",运动鞋 ,教员 练习器",/ˈtreɪnəz/
+trousers,裤子；长裤,/ˈtraʊzəz/
+try on,试穿,/traɪ ɒn/
+T-shirt,T恤衫,/ˈtiː ʃɜːt/
+umbrella,伞；雨伞,/ʌmˈbrelə/
+wallet,"皮夹, 钱包( 男士)"
+wear,穿著；穿；戴,/weə/
+comfortable,舒适的
+leather,皮质的
+jeans,牛仔裤,/dʒiːnz/
+apartment,公寓,/əˈpɑːtmənt/
+bank,",堤,岸 银行"
+machine,机器
+bookshop,书店,/ˈbʊkʃɒp/
+building,建筑物,/ˈbɪldɪŋ/
+bus station,公共汽车站
+cafe,咖啡馆,/ˈkæfeɪ/
+campsite,营地
+castle,城堡,/'k ɑ:sl/
+cathedral,大教堂
+centre,中心
+church,教堂,/tʃɜːtʃ/
+cinema,电影院,/ˈsɪnəmə/
+club,俱乐部
+city,城市,/'siti/
+college,学院,/ˈkɒlɪdʒ/
+corner,",转角 角落"
+department store,百货公司,/dɪˈpɑːtmənt stɔː/
+disco,迪斯科舞
+entrance,入口
+exit,出口,"/'eksit,-zit/"
+factory,工厂
+farm,",农田 农场",/f ɑ:m/
+guesthouse,旅社，宾馆
+hotel,",宾馆 旅馆；酒店",/həʊˈtel/
+library,图书馆,/ˈlaɪbrəri/
+lift,",电梯 举起",/lift/
+market,",交易 市场",/'m ɑ:kit/
+newsagent,报刊经销商
+post office,邮局
+restaurant,",饭店 餐馆；餐厅",/ˈrestrɒnt/
+ruin,",毁灭 废墟"
+sports centre,体育中心
+square,正方形广场,/skweə/
+stadium,体育场,/ˈsteɪdiəm/
+supermarket,超级市场；超市,/ˈsuːpəmɑːkɪt/
+theatre,",戏院 剧场；剧院",/ˈθɪətə/
+tourist information centre,旅游信息中心
+travel agency,旅行社
+village,村庄
+zoo,动物园,/zu:/
+poster,海报
+aeroplane,飞机
+plane,飞机,/pleɪn/
+helicopter,直升飞机
+police car,警车
+lorry,卡车
+coach,长途汽车
+airport,飞机场,/ˈeəpɔːt/
+flight,"飞行, 航班",/flait/
+journey,",旅行 旅程",/ˈdʒɜːni/
+bridge,桥,/brɪdʒ/
+petrol,汽油
+petrol station,加油站
+platform,站台,/ˈplætfɔːm/
+suitcase,旅行箱；行李箱,/ˈsuːtkeɪs/
+ticket,票,/ˈtɪkɪt/
+tour guide,导游
+tourist,",游客 旅游者"
+driving licence,驾驶执照
+engine,", 发动机"
+luggage,行李,/ˈlʌɡɪdʒ/
+mirror,镜子
+motorway,高速公路
+traffic,交通
+canal,",水道 运河"
+crossroads,十字路口
+passenger,乘客
+railway,铁路,/'reilwei/
+roundabout,环形交叉道路
+traffic lights,",红绿灯 交通灯"
+wheel,车轮,"/wi:l,hw-/"
+visitor,参观者
+left,",左边 左边的",/left/
+tour,",观光 旅游"
+brake,刹车,/breik/
+arrive,到达,/əˈraɪv/
+leave,离开,/li:v/
+carry,",提,抱 携带"
+cross,横过
+pack,把…打包
+delay,延迟,/di'lei/
+park,停车；公园,/p ɑ:k/
+hurry,匆忙
+through,穿过,/θru:/
+tonight,今晚
+underground,",秘密地 地下的；地铁",/ˈʌndəɡraʊnd/
+crowded,拥挤的,/'kraudid/
+terrible,糟糕的
+famous,著名的
+east,东方,/i:st/
+north,北方
+south,南方,/sau θ/
+west,西方,/west/
+country,国家
+countryside,",农村 乡下"
+flower,花,/ˈflaʊə/
+hill,小山,/hil/
+mountain,"山,山脉",/ˈmaʊntən/
+ice,冰,/ais/
+water,水,/ˈwɔːtə/
+river,"江,河",/ˈrɪvə/
+lake,湖,/leɪk/
+sea,"海,海洋",/si:/
+island,岛
+beach,海滩,/biːtʃ/
+space,",空间 ,太空 场地",/speis/
+sky,天空,/skaɪ/
+star,星星,/st ɑ:/
+cloud,云,/klaud/
+sun,太阳,/sʌn/
+moon,月亮,/muːn/
+weather,天气,/ˈweðə/
+air,空气
+fog,雾
+wind,风,/waind/
+storm,暴风雨,/stɔːm/
+thunderstorm,雷雨
+grass,草,/gr ɑ:s/
+tree,树,/triː/
+forest,森林,/ˈfɒrɪst/
+wood,",木头 木材",/wud/
+wool,羊毛,/wul/
+world,世界
+field,",场地 田地",/fi:ld/
+fire,"火,起火"
+plant,植物,/pl ɑ:nt/
+rain,"雨,下雨",/rein/
+snow,"雪,下雪"
+grow,",生长 种植"
+outdoor,户外的
+foggy,有雾的,/ˈfɒɡi/
+sunny,睛朗的；晴朗的,/ˈsʌni/
+warm,温暖的,/wɔːm/
+wet,湿的；潮湿的,/wet/
+cold,冷的；寒冷的；感冒；寒冷,/kəʊld/
+hot,热的；炎热的,/hɒt/
+windy,有风的,/ˈwɪndi/
+grandparent,祖父母,/ˈɡrænpeərənt/
+parent,父母,/ˈpeərənt/
+friendly,友好的,/ˈfrendli/
+shy,害羞的,/ʃaɪ/
+curly,卷曲的,/ˈkɜːli/
+son,儿子
+twin,双胞胎之一,/twɪn/
+only child,独生子女,/ˈəʊnli tʃaɪld/
+adult,成年人,/ˈædʌlt/
+baby,婴儿,/ˈbeɪbi/
+kind,善良的,/kaɪnd/
+funny,有趣的,/ˈfʌni/
+quiet,安静的,/ˈkwaɪət/
+tall,高的,/tɔːl/
+short,矮的；短的,/ʃɔːt/
+beard,胡须,/bɪəd/
+vegetables,蔬菜,/ˈvedʒtəblz/
+delicious,美味的,/dɪˈlɪʃəs/
+order,点餐,/ˈɔːdə/
+apple,苹果,/ˈæpl/
+banana,香蕉,/bəˈnɑːnə/
+milk,牛奶,/mɪlk/
+tea,茶,/tiː/
+bread,面包,/bred/
+rice,米饭,/raɪs/
+fish,鱼；鱼肉,/fɪʃ/
+beef,牛肉,/biːf/
+pork,猪肉,/pɔːk/
+egg,鸡蛋,/eɡ/
+lunch,午餐,/lʌntʃ/
+usually,通常地,/ˈjuːʒuəli/
+hobby,爱好,/ˈhɒbi/
+collect,收集,/kəˈlekt/
+free time,空闲时间,/friː taɪm/
+music,音乐,/ˈmjuːzɪk/
+draw,画画,/drɔː/
+paint,绘画；油漆,/peɪnt/
+sing,唱歌,/sɪŋ/
+dance,跳舞,/dɑːns/
+play,玩耍；演奏,/pleɪ/
+read,阅读,/riːd/
+write,写,/raɪt/
+swim,游泳,/swɪm/
+run,跑,/rʌn/
+ride,骑,/raɪd/
+drive,驾驶,/draɪv/
+travel,旅行,/ˈtrævl/
+gardening,园艺,/ˈɡɑːdnɪŋ/
+by,乘坐,/baɪ/
+station,车站,/ˈsteɪʃn/
+car,汽车,/kɑː/
+bus,公交车,/bʌs/
+train,火车,/treɪn/
+bike,自行车,/baɪk/
+boat,船,/bəʊt/
+ship,大船；轮船,/ʃɪp/
+taxi,出租车,/ˈtæksi/
+map,地图,/mæp/
+holiday,假期,/ˈhɒlədeɪ/
+camping,露营,/ˈkæmpɪŋ/
+subject,科目,/ˈsʌbdʒɪkt/
+classmate,同学,/ˈklɑːsmeɪt/
+homework,作业,/ˈhəʊmwɜːk/
+exam,考试,/ɪɡˈzæm/
+teacher,老师,/ˈtiːtʃə/
+student,学生,/ˈstjuːdnt/
+classroom,教室,/ˈklɑːsruːm/
+desk,书桌,/desk/
+board,黑板,/bɔːd/
+pen,钢笔,/pen/
+pencil,铅笔,/ˈpensl/
+ruler,尺子,/ˈruːlə/
+eraser,橡皮,/ɪˈreɪzə/
+notebook,笔记本,/ˈnəʊtbʊk/
+dictionary,字典,/ˈdɪkʃənri/
+science,科学,/ˈsaɪəns/
+history,历史,/ˈhɪstri/
+geography,地理,/dʒiˈɒɡrəfi/
+maths,数学,/mæθs/
+PE,体育,/ˌpiː ˈiː/
+language,语言,/ˈlæŋɡwɪdʒ/
+university,大学,/ˌjuːnɪˈvɜːsəti/
+shop,商店；购物,/ʃɒp/
+price,价格,/praɪs/
+cheap,便宜的,/tʃiːp/
+expensive,昂贵的,/ɪkˈspensɪv/
+money,钱,/ˈmʌni/
+pay,支付,/peɪ/
+cost,花费,/kɒst/
+buy,买,/baɪ/
+sell,卖,/sel/
+spend,花费（时间/金钱）,/spend/
+shopping centre,购物中心,/ˈʃɒpɪŋ ˈsentə/
+clothes shop,服装店,/kləʊðz ʃɒp/
+sale,促销；销售,/seɪl/
+discount,折扣,/ˈdɪskaʊnt/
+receipt,收据,/rɪˈsiːt/
+cash,现金,/kæʃ/
+online,网上；在线,/ˌɒnˈlaɪn/
+size,尺码,/saɪz/
+colour,颜色,/ˈkʌlə/
+fit,合身；健康的,/fɪt/
+rainy,下雨的,/ˈreɪni/
+cloudy,多云的,/ˈklaʊdi/
+snowy,下雪的,/ˈsnəʊi/
+thunder,雷声,/ˈθʌndə/
+lightning,闪电,/ˈlaɪtnɪŋ/
+cool,凉爽的,/kuːl/
+dry,干燥的,/draɪ/
+season,季节,/ˈsiːzn/
+sunshine,阳光,/ˈsʌnʃaɪn/
+body,身体,/ˈbɒdi/
+head,头,/hed/
+face,脸,/feɪs/
+ear,耳朵,/ɪə/
+health,健康,/helθ/
+healthy,健康的,/ˈhelθi/
+ill,生病的,/ɪl/
+fever,发烧,/ˈfiːvə/
+cough,咳嗽,/kɒf/
+stomach ache,胃痛,/ˈstʌmək eɪk/
+exercise,锻炼,/ˈeksəsaɪz/
+strong,强壮的,/strɒŋ/
+shoes,鞋子,/ʃuːz/
+boots,靴子,/buːts/
+socks,袜子,/sɒks/
+cap,棒球帽,/kæp/
+scarf,围巾,/skɑːf/
+gloves,手套,/ɡlʌvz/
+watch,手表,/wɒtʃ/
+sunglasses,太阳镜,/ˈsʌnɡlɑːsɪz/
+jewellery,首饰,/ˈdʒuːəlri/
+fashion,时尚,/ˈfæʃn/
+put on,穿上,/pʊt ɒn/
+take off,脱下；脱下；起飞,/teɪk ɒf/
+animal,动物,/ˈænɪml/
+pet,宠物,/pet/
+cat,猫,/kæt/
+dog,狗,/dɒɡ/
+bird,鸟,/bɜːd/
+rabbit,兔子,/ˈræbɪt/
+horse,马,/hɔːs/
+cow,奶牛,/kaʊ/
+sheep,绵羊,/ʃiːp/
+duck,鸭子,/dʌk/
+elephant,大象,/ˈelɪfənt/
+giraffe,长颈鹿,/dʒəˈrɑːf/
+lion,狮子,/ˈlaɪən/
+tiger,老虎,/ˈtaɪɡə/
+monkey,猴子,/ˈmʌŋki/
+panda,熊猫,/ˈpændə/
+kangaroo,袋鼠,/ˌkæŋɡəˈruː/
+dolphin,海豚,/ˈdɒlfɪn/
+insect,昆虫,/ˈɪnsekt/
+butterfly,蝴蝶,/ˈbʌtəflaɪ/
+nature,自然,/ˈneɪtʃə/
+time,时间,/taɪm/
+clock,钟表,/klɒk/
+hour,小时,/ˈaʊə/
+today,今天,/təˈdeɪ/
+tomorrow,明天,/təˈmɒrəʊ/
+yesterday,昨天,/ˈjestədeɪ/
+month,月份,/mʌnθ/
+year,年,/jɪə/
+birthday,生日,/ˈbɜːθdeɪ/
+place,地方,/pleɪs/
+house,房子,/haʊs/
+room,房间,/ruːm/
+street,街道,/striːt/
+road,路,/rəʊd/
+school,学校,/skuːl/
+job,工作,/dʒɒb/
+work,工作,/wɜːk/
+vet,兽医,/vet/
+police officer,警察,/pəˈliːs ˈɒfɪsə/
+firefighter,消防员,/ˈfaɪəfaɪtə/
+shop assistant,店员,/ʃɒp əˈsɪstənt/
+chef,厨师,/ʃef/
+scientist,科学家,/ˈsaɪəntɪst/
+musician,音乐家,/mjuˈzɪʃn/
+singer,歌手,/ˈsɪŋə/
+sportsman,男运动员,/ˈspɔːtsmən/
+office,办公室,/ˈɒfɪs/
+salary,薪水,/ˈsæləri/
+phone,电话,/fəʊn/
+smartphone,智能手机,/ˈsmɑːtfəʊn/
+laptop,笔记本电脑,/ˈlæptɒp/
+tablet,平板电脑,/ˈtæblət/
+TV,电视,/ˌtiː ˈviː/
+television,电视节目,/ˈtelɪvɪʒn/
+radio,收音机,/ˈreɪdiəʊ/
+video,视频,/ˈvɪdiəʊ/
+game,游戏,/ɡeɪm/
+computer game,电脑游戏,/kəmˈpjuːtə ɡeɪm/
+text,短信；文本,/tekst/
+social media,社交媒体,/ˈsəʊʃl ˈmiːdiə/
+app,应用程序,/æp/
+download,下载,/ˌdaʊnˈləʊd/
+upload,上传,/ˌʌpˈləʊd/
+screen,屏幕,/skriːn/
+keyboard,键盘,/ˈkiːbɔːd/
+battery,电池,/ˈbætri/
+charge,充电,/tʃɑːdʒ/
+Wi-Fi,无线网络,/ˈwaɪ faɪ/
+password,密码,/ˈpɑːswɜːd/
+get up,起床,/ɡet ʌp/
+wake up,醒来,/weɪk ʌp/
+go to bed,去睡觉,/ɡəʊ tuː bed/
+get dressed,穿好衣服,/ɡet drest/
+have breakfast,吃早餐,/hæv ˈbrekfəst/
+go home,回家,/ɡəʊ həʊm/
+come back,回来,/kʌm bæk/
+go out,外出,/ɡəʊ aʊt/
+look for,寻找,/lʊk fɔː/
+wait for,等待,/weɪt fɔː/
+ask for,请求,/ɑːsk fɔː/
+pay for,支付,/peɪ fɔː/
+turn on,打开,/tɜːn ɒn/
+turn off,关闭,/tɜːn ɒf/
+look after,照顾,/lʊk ˈɑːftə/
+look like,看起来像,/lʊk laɪk/
+be good at,擅长,/biː ɡʊd æt/
+be interested in,对...感兴趣,/biː ˈɪntrəstɪd ɪn/
+be afraid of,害怕,/biː əˈfreɪd ɒv/
+be bored with,对...感到无聊,/biː bɔːd wɪð/
+be excited about,对...兴奋,/biː ɪkˈsaɪtɪd ə ˈbaʊt/
+there is / there are,有,/ðeər ɪz/
+a lot of,许多,/ə lɒt ɒv/
+lots of,许多,/lɒts ɒv/
+a few,几个（可数）,/ə fjuː/
+a little,一点（不可数）,/ə ˈlɪtl/
+some,一些,/sʌm/
+any,一些；任何,/ˈeni/
+much,许多（不可数）,/mʌtʃ/
+many,许多（可数）,/ˈmeni/

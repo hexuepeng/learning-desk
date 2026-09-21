@@ -31,6 +31,20 @@ describe('storage migration', () => {
     assert.ok(defaultState().words.some((word) => word.en === 'desk' && !word.ipa));
   });
 
+  it('fills empty quest state and can rebuild a pack from ketPack tags', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [
+        { id: 'w1', en: 'apple', zh: '苹果', source: 'parent', createdAt: 't', ketPack: true },
+        { id: 'w2', en: 'desk', zh: '书桌', source: 'parent', createdAt: 't' },
+      ],
+    });
+    assert.deepEqual(next.questByProfile.profile_child?.packWordIds, ['w1']);
+    assert.equal(next.questByProfile.profile_child?.dailyNewCount, 20);
+    assert.equal(next.words.find((word) => word.id === 'w1')?.ketPack, true);
+    assert.ok(defaultState().words.filter((word) => word.ketPack).length >= 6);
+  });
+
   it('fills empty sentences and keeps short-sentence daily counting off', () => {
     const next = hydrateState({
       version: 1,

@@ -8,7 +8,7 @@ import { dailyProgress } from '@/lib/daily';
 import { t } from '@/i18n';
 
 export default function DadDesk() {
-  const { state, lockParent, resetDemo, setShowIpa } = useDesk();
+  const { state, quest, lockParent, resetDemo, setShowIpa } = useDesk();
   const unread = state.feedback.filter((item) => !item.read).length;
   const unhandled = state.feedback.filter((item) => !item.handled).length;
   const { done, total } = dailyProgress(state.daily);
@@ -18,8 +18,8 @@ export default function DadDesk() {
       <Card style={styles.summary}>
         <Text style={styles.line}>连胜 {state.streak.current} 天 · 今日卡 {done}/{total}</Text>
         <Text style={styles.line}>
-          词表 {state.words.length} · 短句 {state.sentences.length} · 我家的书 {state.albumBooks.length} · 未处理留言{' '}
-          {unhandled}
+          词表 {state.words.length} · 闯关词 {quest.packWordIds.length} · 短句 {state.sentences.length} · 我家的书{' '}
+          {state.albumBooks.length} · 未处理留言 {unhandled}
         </Text>
       </Card>
       <View style={styles.col}>
@@ -30,6 +30,10 @@ export default function DadDesk() {
         <SectionLabel>内容</SectionLabel>
         <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
+        <Text style={styles.hint}>
+          闯关词库可在词表一键「导入 KET 包」，或粘贴后勾选「用于闯关词库」。每天新词 {quest.dailyNewCount}{' '}
+          个，和今日卡分开。
+        </Text>
         <KidButton label={t('sentenceList')} variant="secondary" onPress={() => router.push('/dad/sentences')} />
         <Card style={styles.toggle}>
           <View style={{ flex: 1 }}>
@@ -93,5 +97,10 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     marginTop: 4,
     fontSize: 15,
+  },
+  hint: {
+    color: Colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
   },
 });

@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { readFileSync } from 'node:fs';
+
+import { FAMILY_KET_PACK_TEXT } from '../content/familyKetPack.ts';
 import { answersMatch, parseWordList } from './parseWordList.ts';
 
 describe('parseWordList', () => {
@@ -63,5 +66,34 @@ describe('parseWordList', () => {
       { en: 'water', zh: '水', ipa: '/ˈwɔːtə/' },
       { en: 'desk', zh: '书桌', ipa: '' },
     ]);
+  });
+
+  it('parses the family KET pack columns including quoted chinese and colon IPA', () => {
+    const parsed = parseWordList(
+      [
+        'barbecue,烤肉/烤,/bɑ:bikju:/',
+        'ice cream,冰淇淋,/ˌaɪs ˈkriːm/',
+        'plate,"碟,盘",/pleit/',
+        "biscuit,饼干,/'biskit/",
+        'many,许多（可数）',
+      ].join('\n'),
+    );
+    assert.deepEqual(parsed, [
+      { en: 'barbecue', zh: '烤肉/烤', ipa: '/bɑ:bikju:/' },
+      { en: 'ice cream', zh: '冰淇淋', ipa: '/ˌaɪs ˈkriːm/' },
+      { en: 'plate', zh: '碟,盘', ipa: '/pleit/' },
+      { en: 'biscuit', zh: '饼干', ipa: "/'biskit/" },
+      { en: 'many', zh: '许多（可数）', ipa: '' },
+    ]);
+  });
+
+  it('loads the shipped family pack as 699 lines with optional IPA', () => {
+    const fromTxt = readFileSync(new URL('../content/familyKetPack.txt', import.meta.url), 'utf8');
+    assert.equal(FAMILY_KET_PACK_TEXT, fromTxt);
+    const parsed = parseWordList(FAMILY_KET_PACK_TEXT);
+    assert.equal(parsed.length, 699);
+    assert.equal(parsed.filter((item) => item.ipa).length, 521);
+    assert.equal(parsed[0]?.en, 'barbecue');
+    assert.equal(parsed.at(-1)?.en, 'many');
   });
 });
