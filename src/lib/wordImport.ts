@@ -21,6 +21,8 @@ export type ApplyWordListImportOptions = {
   mode?: WordImportMode;
   ketPack?: boolean;
   rebuildPack?: boolean;
+  /** 追加进闯关词库时：默认接在后面；prepend 把这次的词排到前面，方便先练新单元。 */
+  packMerge?: 'append' | 'prepend';
   now?: string;
   createId?: (prefix: string) => string;
 };
@@ -107,9 +109,13 @@ export function applyWordListImport(
     nextQuest = removedIds.reduce((acc, id) => pruneQuestWord(acc, id), nextQuest);
   }
   if (ketPack) {
+    const merged =
+      options.packMerge === 'prepend'
+        ? mergeKetPackIds(packIds, nextQuest.packWordIds)
+        : mergeKetPackIds(nextQuest.packWordIds, packIds);
     nextQuest = {
       ...nextQuest,
-      packWordIds: mode === 'replace' || rebuildPack ? packIds : mergeKetPackIds(nextQuest.packWordIds, packIds),
+      packWordIds: mode === 'replace' || rebuildPack ? packIds : merged,
     };
   }
 

@@ -1,0 +1,24 @@
+This is my book.|这是我的书
+I have a pen.|我有一支笔
+The pencil is yellow.|铅笔是黄色的
+Can I use your rubber?|我能用你的橡皮吗？
+The ruler is long.|尺子很长
+Sit at your desk.|坐在你的课桌旁
+The chair is red.|椅子是红色的
+The books are in the bookcase.|书在书架里
+Put it in the cupboard.|把它放进柜子里
+We use the computer.|我们使用电脑
+Look at the board.|看黑板
+This is a map of China.|这是一张中国地图
+The wall is white.|墙是白色的
+Sit on the floor.|坐在地板上
+Open the window.|打开窗户
+Close the door.|关上门
+She is my teacher.|她是我的老师
+I am a student.|我是一名学生
+My pencil is in the pencil case.|我的铅笔在铅笔盒里
+My bag is blue.|我的书包是蓝色的
+The book is in the bag.|书在书包里
+The pen is on the desk.|笔在桌子上
+The cat is under the chair.|猫在椅子下面
+The chair is next to the bookcase.|椅子在书架旁边

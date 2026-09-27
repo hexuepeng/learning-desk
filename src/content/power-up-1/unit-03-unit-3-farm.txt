@@ -1,0 +1,16 @@
+cow,奶牛
+duck,鸭子
+goat,山羊
+horse,马
+sheep,绵羊
+chicken,鸡
+pig,猪
+donkey,驴
+big,大的
+small,小的
+old,旧的/老的
+new,新的
+long,长的
+short,短的/矮的
+clean,干净的
+dirty,脏的

@@ -1,0 +1,16 @@
+baseball,棒球
+basketball,篮球
+football,足球
+hockey,曲棍球
+tennis,网球
+catch,抓/接
+fly,飞/放风筝
+hit,打/击
+jump,跳
+kick,踢
+run,跑
+swim,游泳
+throw,扔/投
+skate,滑冰
+sing,唱歌
+dance,跳舞

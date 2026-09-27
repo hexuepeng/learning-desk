@@ -7,6 +7,7 @@
 - `ket-a2-default-bundle.txt` / `.csv` — 默认词库（约 1792 条不重复）
 - `ket-a2-default-bundle.ts` — 给应用读取的同一份正文
 - `familyKetPack.txt` — 较早的约 699 词家庭包，只作对照，不单独作为应用默认包
+- `power-up-1/` · `powerUp1Packs.ts` — Power Up 1 家庭单元包（11 单元，约 186 词 + 短句）。书桌按单元追加，不覆盖本默认包
 
 ## 格式
 

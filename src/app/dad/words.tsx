@@ -5,6 +5,7 @@ import { IpaText } from '@/components/IpaText';
 import { Card, KidButton, Screen, SearchField } from '@/components/ui';
 import { VoiceClipBar, voiceClipStatus } from '@/components/VoiceClipBar';
 import { Colors, Radius, Space } from '@/constants/theme';
+import { POWER_UP_1_NOTE, POWER_UP_1_UNITS, POWER_UP_1_WORD_COUNT } from '@/content/powerUp1Packs';
 import { useDesk } from '@/hooks/useDesk';
 import {
   MIC_PERMISSION_COPY,
@@ -24,6 +25,7 @@ export default function DadWords() {
     removeWord,
     importWordText,
     importFamilyKetPack,
+    importPowerUp1Unit,
     restoreSampleWords,
     setWordRecording,
     setShowIpa,
@@ -35,6 +37,7 @@ export default function DadWords() {
   const [ipa, setIpa] = useState('');
   const [ketPack, setKetPack] = useState(false);
   const [importKet, setImportKet] = useState(true);
+  const [importUnitSentences, setImportUnitSentences] = useState(true);
   const [bulk, setBulk] = useState('');
   const [query, setQuery] = useState('');
   const [showImport, setShowImport] = useState(false);
@@ -173,6 +176,62 @@ export default function DadWords() {
             )
           }
         />
+      </Card>
+      <Card style={styles.block}>
+        <Text style={styles.label}>Power Up 1 家庭单元包</Text>
+        <Text style={styles.meta}>
+          11 个单元、约 {POWER_UP_1_WORD_COUNT} 个词。点一个单元就追加到现有词表（相同英文跳过），并插到闯关顺序前面，方便先练这个单元。不会清空词表，也不会清掉已有
+          KET 进度。{POWER_UP_1_NOTE}
+        </Text>
+        <View style={styles.toggle}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>同时导入该单元短句</Text>
+            <Text style={styles.meta}>追加到今日短句库，重复英文跳过。默认开。</Text>
+          </View>
+          <Switch
+            value={importUnitSentences}
+            onValueChange={setImportUnitSentences}
+            trackColor={{ true: Colors.success }}
+          />
+        </View>
+        <View style={styles.unitGrid}>
+          {POWER_UP_1_UNITS.map((unit) => (
+            <KidButton
+              key={unit.unitId}
+              label={`${unit.nameZh} · ${unit.wordCount} 词`}
+              compact
+              variant="secondary"
+              style={styles.unitBtn}
+              onPress={() =>
+                Alert.alert(
+                  `导入 ${unit.label}？`,
+                  `会追加约 ${unit.wordCount} 个词到现有词表，相同英文跳过，并插到闯关顺序前面。不会清空词表，也不会清掉已有 KET 进度。${
+                    importUnitSentences ? '同时追加该单元短句。' : '这次不导入短句。'
+                  }`,
+                  [
+                    { text: '取消', style: 'cancel' },
+                    {
+                      text: '导入',
+                      onPress: () => {
+                        const result = importPowerUp1Unit(unit.unitId, {
+                          includeSentences: importUnitSentences,
+                        });
+                        Alert.alert(
+                          `已导入 ${unit.nameZh}`,
+                          `新增 ${result.added} 个词，跳过重复 ${result.skipped} 个${
+                            importUnitSentences
+                              ? `；短句新增 ${result.sentencesAdded} 句，跳过 ${result.sentencesSkipped} 句`
+                              : ''
+                          }。`,
+                        );
+                      },
+                    },
+                  ],
+                )
+              }
+            />
+          ))}
+        </View>
       </Card>
       <KidButton
         label={showImport ? '收起粘贴导入' : '粘贴词表导入'}
@@ -380,6 +439,15 @@ const styles = StyleSheet.create({
   },
   countBtn: {
     flex: 1,
+  },
+  unitGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  unitBtn: {
+    minWidth: '47%',
+    flexGrow: 1,
   },
   row: {
     gap: 4,
