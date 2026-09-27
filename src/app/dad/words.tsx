@@ -149,14 +149,14 @@ export default function DadWords() {
       <Card style={styles.block}>
         <Text style={styles.label}>导入 KET 包</Text>
         <Text style={styles.meta}>
-          一键装入家里自用的 699 个词（521 条带英式 IPA）。按文件顺序重排闯关词库，已有相同英文会跳过。只留本机，不是上架商品，不主张剑桥授权。
+          内置约 1792 个词。新装或闯关词库为空时会自动种入。也可再点这里按文件顺序重排。英文词目对照公开的剑桥 A2 Key 词汇指引整理；中文释义和音标是家里自己准备的，不是剑桥官方文本。只留本机，不主张剑桥授权。
         </Text>
         <KidButton
           label="导入 KET 包"
           onPress={() =>
             Alert.alert(
-              '导入家里的 KET 包？',
-              '会追加约 699 个词，并按文件顺序重排闯关词库。已有的相同英文会跳过。今日英语卡不受影响。',
+              '导入内置 KET 包？',
+              '会追加约 1792 个词，并按文件顺序重排闯关词库。已有的相同英文会跳过。今日英语卡不受影响。',
               [
                 { text: '取消', style: 'cancel' },
                 {

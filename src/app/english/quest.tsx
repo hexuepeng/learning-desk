@@ -40,8 +40,8 @@ export default function QuestHome() {
       {pack.length === 0 ? (
         <Card>
           <Text style={[styles.body, { fontSize: bodySize }]}>
-            还没有闯关词库。请爸爸在书桌词表点「导入 KET 包」，或粘贴 `english,chinese`（可加英式 IPA）并勾选「用于闯关词库」。也可以先用
-            6 个家庭示例词试试。
+            还没有闯关词库。一般新装会自动种入内置默认包。也可请爸爸在书桌词表点「导入 KET 包」，或粘贴
+            `english,chinese`（可加英式 IPA）并勾选「用于闯关词库」。也可以先用 6 个家庭示例词试试。
           </Text>
           <KidButton
             label="先用示例词试试"

@@ -45,6 +45,29 @@ describe('storage migration', () => {
     assert.ok(defaultState().words.filter((word) => word.ketPack).length >= 6);
   });
 
+  it('seeds the built-in default KET pack on a fresh install', () => {
+    const next = defaultState();
+    assert.equal(next.questByProfile.profile_child?.packWordIds.length, 1792);
+    assert.equal(next.words.length, 1792);
+    assert.equal(next.words[0]?.en, 'barbecue');
+    const barbecue = next.words.find((word) => word.en === 'barbecue');
+    assert.equal(barbecue?.source, 'parent');
+    assert.equal(barbecue?.ketPack, true);
+    const apple = next.words.find((word) => word.en === 'apple');
+    assert.equal(apple?.source, 'sample');
+    assert.equal(apple?.ketPack, true);
+  });
+
+  it('does not inject the default pack into an existing saved word list', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [{ id: 'w1', en: 'desk', zh: '书桌', source: 'parent', createdAt: 't' }],
+    });
+    assert.equal(next.words.length, 1);
+    assert.equal(next.words[0]?.en, 'desk');
+    assert.equal(next.questByProfile.profile_child?.packWordIds?.length ?? 0, 0);
+  });
+
   it('fills empty sentences and keeps short-sentence daily counting off', () => {
     const next = hydrateState({
       version: 1,

@@ -10,6 +10,7 @@ import {
 
 import { FAMILY_KET_PACK_TEXT } from '@/content/familyKetPack';
 import { createSampleWords } from '@/content/sampleWords';
+import { applyWordListImport, seedDefaultKetPackIfEmpty } from '@/lib/wordImport';
 import {
   addPageToBook,
   buildAlbumBook,
@@ -53,7 +54,6 @@ import {
   markVocabDone,
 } from '@/lib/daily';
 import { normalizeIpa } from '@/lib/ipa';
-import { parseWordList } from '@/lib/parseWordList';
 import { normalizeSentenceKey, parseSentenceList } from '@/lib/parseSentenceList';
 import {
   profileIdOf,
@@ -68,10 +68,8 @@ import {
   clampQuestNewCount,
   ensureQuestDay,
   isSampleKetEn,
-  ketPackIdsInFileOrder,
   mergeKetPackIds,
   patchQuest,
-  planWordImportForQuest,
   pruneQuestWord,
   questOf,
   setWordInKetPack,
@@ -223,7 +221,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void (async () => {
-      const loaded = await loadState();
+      const loaded = seedDefaultKetPackIfEmpty(await loadState());
       const dated = withEnsuredQuest({
         ...loaded,
         daily: ensureTodayLesson(loaded.daily, loaded.words, loaded.progress),
@@ -383,81 +381,31 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       mode: 'append' | 'replace' = 'append',
       options?: { ketPack?: boolean; rebuildPack?: boolean },
     ) => {
-      const parsed = parseWordList(text);
-      if (parsed.length === 0) return { added: 0, skipped: 0, packAdded: 0 };
-      const ketPack = Boolean(options?.ketPack);
-      const rebuildPack = Boolean(options?.rebuildPack);
       const removedRecordings: string[] = [];
       let added = 0;
       let skipped = 0;
       let packAdded = 0;
       update((current) => {
         const activeId = current.activeProfileId;
-        if (mode === 'replace') {
-          for (const word of current.words) {
-            if (profileIdOf(word) === activeId && word.recordingUri) {
-              removedRecordings.push(word.recordingUri);
-            }
-          }
+        const result = applyWordListImport(
+          current.words,
+          questOf(current.questByProfile, activeId),
+          activeId,
+          text,
+          {
+            mode,
+            ketPack: Boolean(options?.ketPack),
+            rebuildPack: Boolean(options?.rebuildPack),
+          },
+        );
+        added = result.added;
+        skipped = result.skipped;
+        packAdded = result.packAdded;
+        removedRecordings.push(...result.removedRecordings);
+        if (result.added === 0 && result.skipped === 0 && result.packAdded === 0) {
+          return current;
         }
-        const removedIds =
-          mode === 'replace'
-            ? current.words.filter((word) => profileIdOf(word) === activeId).map((word) => word.id)
-            : [];
-        const base =
-          mode === 'replace'
-            ? current.words.filter((word) => profileIdOf(word) !== activeId)
-            : current.words;
-        const profileWords = wordsForProfile(base, activeId);
-        const plan = planWordImportForQuest(parsed, profileWords);
-        const have = new Set(base.map((word) => word.en.toLowerCase()));
-        const incoming: Word[] = [];
-        added = 0;
-        skipped = plan.skipped;
-        for (const item of plan.newItems) {
-          if (have.has(item.en.toLowerCase())) {
-            skipped += 1;
-            continue;
-          }
-          have.add(item.en.toLowerCase());
-          added += 1;
-          incoming.push({
-            id: createId('word'),
-            en: item.en,
-            zh: item.zh,
-            ipa: item.ipa,
-            source: 'parent',
-            createdAt: new Date().toISOString(),
-            profileId: activeId,
-            ketPack: ketPack || undefined,
-          });
-        }
-        const incomingByEn = new Map(incoming.map((word) => [word.en.toLowerCase(), word.id]));
-        const packIds = ketPack
-          ? ketPackIdsInFileOrder(parsed, profileWords, incomingByEn)
-          : [];
-        packAdded = packIds.length;
-        const marked = ketPack
-          ? [...incoming, ...base].map((word) =>
-              packIds.includes(word.id) ? { ...word, ketPack: true } : word,
-            )
-          : [...incoming, ...base];
-        let next: PersistedState = { ...current, words: marked };
-        if (mode === 'replace') {
-          next = withActiveQuest(next, (quest) =>
-            removedIds.reduce((acc, id) => pruneQuestWord(acc, id), quest),
-          );
-        }
-        if (ketPack) {
-          next = withActiveQuest(next, (quest) => ({
-            ...quest,
-            packWordIds:
-              mode === 'replace' || rebuildPack
-                ? packIds
-                : mergeKetPackIds(quest.packWordIds, packIds),
-          }));
-        }
-        return next;
+        return withActiveQuest({ ...current, words: result.words }, () => result.quest);
       });
       for (const uri of removedRecordings) void deleteRecordingFile(uri);
       return { added, skipped, packAdded };
@@ -1206,14 +1154,16 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       const trimmed = name.trim();
       if (!trimmed) return null;
       const id = createId('profile');
-      update((current) => ({
-        ...current,
-        profiles: [
-          ...current.profiles,
-          { id, name: trimmed, createdAt: new Date().toISOString(), archived: false },
-        ],
-        activeProfileId: id,
-      }));
+      update((current) =>
+        seedDefaultKetPackIfEmpty({
+          ...current,
+          profiles: [
+            ...current.profiles,
+            { id, name: trimmed, createdAt: new Date().toISOString(), archived: false },
+          ],
+          activeProfileId: id,
+        }),
+      );
       return id;
     },
     [update],
@@ -1222,10 +1172,12 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   const switchProfile = useCallback(
     (id: string) => {
       update((current) =>
-        withEnsuredQuest({
-          ...current,
-          activeProfileId: resolveActiveProfileId(current.profiles, id),
-        }),
+        withEnsuredQuest(
+          seedDefaultKetPackIfEmpty({
+            ...current,
+            activeProfileId: resolveActiveProfileId(current.profiles, id),
+          }),
+        ),
       );
     },
     [update],

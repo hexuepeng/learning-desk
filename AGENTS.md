@@ -2,7 +2,7 @@
 
 家庭定制学习台。Expo SDK 57 + Expo Router。页面在 `src/app`。
 
-当前版本：**0.1.20**
+当前版本：**0.1.21**
 
 ## 版本号
 
@@ -18,7 +18,7 @@
 
 - `src/app` 路由页面
 - `src/lib` 默写台阶、今日卡、词表解析（含可选英式 IPA）、短句导入与本地模板、KET 闯关 SRS、家长录音覆盖 TTS（纯逻辑，带测试）
-- `src/content` 示例词包、家庭 KET 包与原创短绘本
+- `src/content` 示例词包、内置默认 KET / A2 Key 词包（空库自动种入）与原创短绘本
 - 数据存在 AsyncStorage；相册书照片与家长录音拷进应用文档目录，无账号、无云同步
 
 文档入口：https://docs.expo.dev/llms.txt
