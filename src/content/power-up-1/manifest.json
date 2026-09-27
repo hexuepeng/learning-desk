@@ -1,0 +1,86 @@
+{
+  "title": "Power Up 1 (family EnglishStudy seed)",
+  "source": "hexuepeng/EnglishStudy backend/seed.js",
+  "level": "Cambridge Power Up 1 aligned (family curriculum, not a commercial Cambridge product claim)",
+  "unitCount": 11,
+  "wordCount": 186,
+  "units": [
+    {
+      "unitId": 0,
+      "name": "Hello!",
+      "wordCount": 18,
+      "wordsFile": "unit-00-hello.txt",
+      "sentencesFile": "unit-00-hello-sentences.txt"
+    },
+    {
+      "unitId": 1,
+      "name": "Unit 1: School",
+      "wordCount": 24,
+      "wordsFile": "unit-01-unit-1-school.txt",
+      "sentencesFile": "unit-01-unit-1-school-sentences.txt"
+    },
+    {
+      "unitId": 2,
+      "name": "Unit 2: About Us",
+      "wordCount": 23,
+      "wordsFile": "unit-02-unit-2-about-us.txt",
+      "sentencesFile": "unit-02-unit-2-about-us-sentences.txt"
+    },
+    {
+      "unitId": 3,
+      "name": "Unit 3: Farm",
+      "wordCount": 16,
+      "wordsFile": "unit-03-unit-3-farm.txt",
+      "sentencesFile": "unit-03-unit-3-farm-sentences.txt"
+    },
+    {
+      "unitId": 4,
+      "name": "Unit 4: Food",
+      "wordCount": 18,
+      "wordsFile": "unit-04-unit-4-food.txt",
+      "sentencesFile": "unit-04-unit-4-food-sentences.txt"
+    },
+    {
+      "unitId": 5,
+      "name": "Unit 5: Toys",
+      "wordCount": 14,
+      "wordsFile": "unit-05-unit-5-toys.txt",
+      "sentencesFile": "unit-05-unit-5-toys-sentences.txt"
+    },
+    {
+      "unitId": 6,
+      "name": "Unit 6: Day Out",
+      "wordCount": 16,
+      "wordsFile": "unit-06-unit-6-day-out.txt",
+      "sentencesFile": "unit-06-unit-6-day-out-sentences.txt"
+    },
+    {
+      "unitId": 7,
+      "name": "Unit 7: Sports",
+      "wordCount": 16,
+      "wordsFile": "unit-07-unit-7-sports.txt",
+      "sentencesFile": "unit-07-unit-7-sports-sentences.txt"
+    },
+    {
+      "unitId": 8,
+      "name": "Unit 8: Home",
+      "wordCount": 14,
+      "wordsFile": "unit-08-unit-8-home.txt",
+      "sentencesFile": "unit-08-unit-8-home-sentences.txt"
+    },
+    {
+      "unitId": 9,
+      "name": "Unit 9: Holidays",
+      "wordCount": 16,
+      "wordsFile": "unit-09-unit-9-holidays.txt",
+      "sentencesFile": "unit-09-unit-9-holidays-sentences.txt"
+    },
+    {
+      "unitId": 10,
+      "name": "Unit 10: People",
+      "wordCount": 11,
+      "wordsFile": "unit-10-unit-10-people.txt",
+      "sentencesFile": "unit-10-unit-10-people-sentences.txt"
+    }
+  ]
+}

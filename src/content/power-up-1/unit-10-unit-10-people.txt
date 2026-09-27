@@ -1,0 +1,11 @@
+doctor,医生
+farmer,农民
+pilot,飞行员
+policeman,警察
+singer,歌手
+young,年轻的
+beautiful,美丽的
+funny,有趣的
+happy,开心的
+sad,伤心的
+angry,生气的

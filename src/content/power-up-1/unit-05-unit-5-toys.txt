@@ -1,0 +1,14 @@
+ball,球
+car,小汽车
+doll,洋娃娃
+bike,自行车
+boat,小船
+train,火车
+plane,飞机
+robot,机器人
+kite,风筝
+monster,小怪物
+teddy bear,泰迪熊
+game,游戏
+puzzle,拼图
+scooter,滑板车

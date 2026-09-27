@@ -1,0 +1,16 @@
+bus,公共汽车
+helicopter,直升机
+motorbike,摩托车
+lorry,大货车
+truck,卡车
+elephant,大象
+giraffe,长颈鹿
+hippo,河马
+lion,狮子
+monkey,猴子
+snake,蛇
+tiger,老虎
+zebra,斑马
+crocodile,鳄鱼
+zoo,动物园
+park,公园

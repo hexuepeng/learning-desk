@@ -1,0 +1,14 @@
+bathroom,浴室
+bedroom,卧室
+kitchen,厨房
+living room,客厅
+bed,床
+clock,时钟
+lamp,台灯
+mirror,镜子
+phone,电话
+sofa,沙发
+table,桌子
+television,电视
+fridge,冰箱
+shower,淋浴

@@ -1,0 +1,187 @@
+unit_id	unit_name	english	chinese	example	example_zh
+0	Hello!	name	名字	My name is Zichen.	我的名字叫子宸
+0	Hello!	one	一	I have one apple.	我有一个苹果
+0	Hello!	two	二	I have two pens.	我有两支笔
+0	Hello!	three	三	Three little pigs.	三只小猪
+0	Hello!	four	四	Four legs on a chair.	椅子有四条腿
+0	Hello!	five	五	Five fingers on a hand.	一只手有五个手指
+0	Hello!	six	六	I see six birds.	我看见六只鸟
+0	Hello!	seven	七	Seven days in a week.	一周有七天
+0	Hello!	eight	八	The spider has eight legs.	蜘蛛有八条腿
+0	Hello!	nine	九	Nine balloons in the sky.	天上有九个气球
+0	Hello!	ten	十	I have ten toes.	我有十个脚趾头
+0	Hello!	red	红色	The apple is red.	苹果是红色的
+0	Hello!	blue	蓝色	The sky is blue.	大海是蓝色的
+0	Hello!	green	绿色	The grass is green.	草地是绿色的
+0	Hello!	yellow	黄色	The sun is yellow.	太阳是黄色的
+0	Hello!	orange	橙色	I like orange juice.	我喜欢橙汁
+0	Hello!	pink	粉色	She has a pink bag.	她有一个粉色的书包
+0	Hello!	purple	紫色	Grapes are purple.	葡萄是紫色的
+1	Unit 1: School	book	书	This is my book.	这是我的书
+1	Unit 1: School	pen	笔	I have a pen.	我有一支笔
+1	Unit 1: School	pencil	铅笔	The pencil is yellow.	铅笔是黄色的
+1	Unit 1: School	rubber	橡皮	Can I use your rubber?	我能用你的橡皮吗？
+1	Unit 1: School	ruler	尺子	The ruler is long.	尺子很长
+1	Unit 1: School	desk	课桌	Sit at your desk.	坐在你的课桌旁
+1	Unit 1: School	chair	椅子	The chair is red.	椅子是红色的
+1	Unit 1: School	bookcase	书架	The books are in the bookcase.	书在书架里
+1	Unit 1: School	cupboard	柜子	Put it in the cupboard.	把它放进柜子里
+1	Unit 1: School	computer	电脑	We use the computer.	我们使用电脑
+1	Unit 1: School	board	黑板	Look at the board.	看黑板
+1	Unit 1: School	map	地图	This is a map of China.	这是一张中国地图
+1	Unit 1: School	wall	墙壁	The wall is white.	墙是白色的
+1	Unit 1: School	floor	地板	Sit on the floor.	坐在地板上
+1	Unit 1: School	window	窗户	Open the window.	打开窗户
+1	Unit 1: School	door	门	Close the door.	关上门
+1	Unit 1: School	teacher	老师	She is my teacher.	她是我的老师
+1	Unit 1: School	student	学生	I am a student.	我是一名学生
+1	Unit 1: School	pencil case	铅笔盒	My pencil is in the pencil case.	我的铅笔在铅笔盒里
+1	Unit 1: School	bag	书包	My bag is blue.	我的书包是蓝色的
+1	Unit 1: School	in the bag	在书包里	The book is in the bag.	书在书包里
+1	Unit 1: School	on the desk	在桌子上	The pen is on the desk.	笔在桌子上
+1	Unit 1: School	under the chair	在椅子下面	The cat is under the chair.	猫在椅子下面
+1	Unit 1: School	next to the bookcase	在书架旁边	The chair is next to the bookcase.	椅子在书架旁边
+2	Unit 2: About Us	mom	妈妈	I love my mom.	我爱我妈妈
+2	Unit 2: About Us	dad	爸爸	My dad is tall.	我的爸爸很高
+2	Unit 2: About Us	sister	姐妹	I have a little sister.	我有一个小妹妹
+2	Unit 2: About Us	brother	兄弟	My brother is funny.	我的哥哥很有趣
+2	Unit 2: About Us	grandma	奶奶	Grandma is kind.	奶奶很和蔼
+2	Unit 2: About Us	grandpa	爷爷	Grandpa tells stories.	爷爷讲故事
+2	Unit 2: About Us	head	头	Touch your head.	摸摸你的头
+2	Unit 2: About Us	shoulders	肩膀	Two shoulders.	两个肩膀
+2	Unit 2: About Us	knees	膝盖	Touch your knees.	摸摸你的膝盖
+2	Unit 2: About Us	toes	脚趾	Wiggle your toes.	扭扭你的脚趾
+2	Unit 2: About Us	eyes	眼睛	I have two eyes.	我有两只眼睛
+2	Unit 2: About Us	ears	耳朵	I hear with my ears.	我用耳朵听声音
+2	Unit 2: About Us	mouth	嘴巴	Open your mouth.	张开你的嘴
+2	Unit 2: About Us	nose	鼻子	Touch your nose.	摸摸你的鼻子
+2	Unit 2: About Us	arms	手臂	Wave your arms.	挥动你的手臂
+2	Unit 2: About Us	legs	腿	I have long legs.	我有长腿
+2	Unit 2: About Us	hands	手	Clap your hands.	拍拍手
+2	Unit 2: About Us	fingers	手指	Point with your fingers.	用手指着
+2	Unit 2: About Us	feet	脚	Stamp your feet.	跺跺脚
+2	Unit 2: About Us	stomach	肚子	My stomach is full.	我的肚子饱了
+2	Unit 2: About Us	back	背部	My back is straight.	我的背很直
+2	Unit 2: About Us	hair	头发	My hair is black.	我的头发是黑色的
+2	Unit 2: About Us	face	脸	Wash your face.	洗洗脸
+3	Unit 3: Farm	cow	奶牛	The cow says moo.	奶牛哞哞叫
+3	Unit 3: Farm	duck	鸭子	The duck swims in the water.	鸭子在水里游泳
+3	Unit 3: Farm	goat	山羊	The goat likes grass.	山羊喜欢吃草
+3	Unit 3: Farm	horse	马	Can you ride a horse?	你会骑马吗？
+3	Unit 3: Farm	sheep	绵羊	The sheep is white and soft.	绵羊白白软软的
+3	Unit 3: Farm	chicken	鸡	The chicken lays eggs.	母鸡下蛋
+3	Unit 3: Farm	pig	猪	The pig is pink and fat.	小猪粉粉胖胖的
+3	Unit 3: Farm	donkey	驴	The donkey is gray.	驴子是灰色的
+3	Unit 3: Farm	big	大的	The elephant is big.	大象很大
+3	Unit 3: Farm	small	小的	The mouse is small.	老鼠很小
+3	Unit 3: Farm	old	旧的/老的	This is an old car.	这是一辆旧车
+3	Unit 3: Farm	new	新的	I have a new bike.	我有一辆新自行车
+3	Unit 3: Farm	long	长的	The snake is long.	蛇很长
+3	Unit 3: Farm	short	短的/矮的	The pencil is short.	铅笔很短
+3	Unit 3: Farm	clean	干净的	My hands are clean.	我的手很干净
+3	Unit 3: Farm	dirty	脏的	The dog is dirty.	小狗脏兮兮的
+4	Unit 4: Food	apple	苹果	An apple a day.	一天一个苹果
+4	Unit 4: Food	banana	香蕉	The banana is yellow.	香蕉是黄色的
+4	Unit 4: Food	cake	蛋糕	I like chocolate cake.	我喜欢巧克力蛋糕
+4	Unit 4: Food	cheese	奶酪	Mice love cheese.	老鼠爱奶酪
+4	Unit 4: Food	milk	牛奶	Drink your milk.	喝掉你的牛奶
+4	Unit 4: Food	juice	果汁	Apple juice is sweet.	苹果汁很甜
+4	Unit 4: Food	water	水	I am thirsty. Water, please.	我渴了，请给我水
+4	Unit 4: Food	bread	面包	Butter on the bread.	面包上抹黄油
+4	Unit 4: Food	egg	鸡蛋	One egg for breakfast.	早餐吃一个鸡蛋
+4	Unit 4: Food	fish	鱼	The fish can swim.	鱼会游泳
+4	Unit 4: Food	fruit	水果	Fruit is healthy.	水果很健康
+4	Unit 4: Food	meat	肉	I like to eat meat.	我喜欢吃肉
+4	Unit 4: Food	rice	米饭	We eat rice every day.	我们每天吃米饭
+4	Unit 4: Food	carrots	胡萝卜	Rabbits like carrots.	兔子喜欢胡萝卜
+4	Unit 4: Food	peas	豌豆	Peas are green.	豌豆是绿色的
+4	Unit 4: Food	potatoes	土豆	I like mashed potatoes.	我喜欢土豆泥
+4	Unit 4: Food	tomatoes	西红柿	Tomatoes are red.	西红柿是红色的
+4	Unit 4: Food	beans	豆子	Jump like a bean!	像豆子一样跳！
+5	Unit 5: Toys	ball	球	Kick the ball.	踢球
+5	Unit 5: Toys	car	小汽车	A fast red car.	一辆很快的红赛车
+5	Unit 5: Toys	doll	洋娃娃	The doll is pretty.	洋娃娃很漂亮
+5	Unit 5: Toys	bike	自行车	Ride your bike.	骑你的自行车
+5	Unit 5: Toys	boat	小船	The boat is on the water.	小船在水面上
+5	Unit 5: Toys	train	火车	Choo-choo! The train is coming.	呜呜！火车来了
+5	Unit 5: Toys	plane	飞机	The plane is in the sky.	飞机在天上
+5	Unit 5: Toys	robot	机器人	My robot can walk.	我的机器人会走路
+5	Unit 5: Toys	kite	风筝	Fly a kite.	放风筝
+5	Unit 5: Toys	monster	小怪物	A friendly monster.	一个友好的小怪物
+5	Unit 5: Toys	teddy bear	泰迪熊	Sleep with my teddy bear.	和泰迪熊一起睡觉
+5	Unit 5: Toys	game	游戏	Let's play a game.	我们来玩个游戏吧
+5	Unit 5: Toys	puzzle	拼图	Do a puzzle.	玩拼图
+5	Unit 5: Toys	scooter	滑板车	I have a blue scooter.	我有一个蓝色的滑板车
+6	Unit 6: Day Out	bus	公共汽车	Go to school by bus.	坐公共汽车上学
+6	Unit 6: Day Out	helicopter	直升机	The helicopter flies high.	直升机飞得很高
+6	Unit 6: Day Out	motorbike	摩托车	A loud motorbike.	一辆声音很大的摩托车
+6	Unit 6: Day Out	lorry	大货车	The lorry is very big.	大货车非常大
+6	Unit 6: Day Out	truck	卡车	A red truck.	一辆红色的卡车
+6	Unit 6: Day Out	elephant	大象	The elephant has a long nose.	大象长鼻子
+6	Unit 6: Day Out	giraffe	长颈鹿	The giraffe is very tall.	长颈鹿很高
+6	Unit 6: Day Out	hippo	河马	The hippo is in the water.	河马在水里
+6	Unit 6: Day Out	lion	狮子	The lion is the king.	狮子是森林之王
+6	Unit 6: Day Out	monkey	猴子	The monkey likes bananas.	猴子喜欢香蕉
+6	Unit 6: Day Out	snake	蛇	The snake has no legs.	蛇没有腿
+6	Unit 6: Day Out	tiger	老虎	The tiger has stripes.	老虎有条纹
+6	Unit 6: Day Out	zebra	斑马	The zebra is black and white.	斑马是黑白相间的
+6	Unit 6: Day Out	crocodile	鳄鱼	Look at the big crocodile.	看那只大鳄鱼
+6	Unit 6: Day Out	zoo	动物园	Let's go to the zoo.	我们去动物园吧
+6	Unit 6: Day Out	park	公园	Play in the park.	在公园里玩
+7	Unit 7: Sports	baseball	棒球	Play baseball.	打棒球
+7	Unit 7: Sports	basketball	篮球	Throw the basketball.	投篮
+7	Unit 7: Sports	football	足球	Play football together.	一起踢足球
+7	Unit 7: Sports	hockey	曲棍球	Hockey is fun.	曲棍球很有趣
+7	Unit 7: Sports	tennis	网球	Hit the tennis ball.	打网球
+7	Unit 7: Sports	catch	抓/接	Catch the ball!	接球！
+7	Unit 7: Sports	fly	飞/放风筝	Fly a kite in the wind.	在风里放风筝
+7	Unit 7: Sports	hit	打/击	Hit the ball with a bat.	用球棒击球
+7	Unit 7: Sports	jump	跳	Jump high!	跳高！
+7	Unit 7: Sports	kick	踢	Kick the ball to me.	把球踢给我
+7	Unit 7: Sports	run	跑	Run fast.	跑快点
+7	Unit 7: Sports	swim	游泳	I can swim like a fish.	我会像鱼一样游泳
+7	Unit 7: Sports	throw	扔/投	Throw the ball.	扔球
+7	Unit 7: Sports	skate	滑冰	I can skate on ice.	我会在冰上滑冰
+7	Unit 7: Sports	sing	唱歌	I like to sing.	我喜欢唱歌
+7	Unit 7: Sports	dance	跳舞	Let's dance!	我们跳舞吧！
+8	Unit 8: Home	bathroom	浴室	Wash your hands in the bathroom.	在浴室洗手
+8	Unit 8: Home	bedroom	卧室	Sleep in my bedroom.	在我的卧室睡觉
+8	Unit 8: Home	kitchen	厨房	Mom is in the kitchen.	妈妈在厨房
+8	Unit 8: Home	living room	客厅	Watch TV in the living room.	在客厅看电视
+8	Unit 8: Home	bed	床	My bed is soft.	我的床很软
+8	Unit 8: Home	clock	时钟	Look at the clock.	看时钟
+8	Unit 8: Home	lamp	台灯	Turn on the lamp.	开灯
+8	Unit 8: Home	mirror	镜子	Look in the mirror.	照镜子
+8	Unit 8: Home	phone	电话	Talk on the phone.	打电话
+8	Unit 8: Home	sofa	沙发	Sit on the sofa.	坐在沙发上
+8	Unit 8: Home	table	桌子	Eat dinner at the table.	在桌子旁吃晚饭
+8	Unit 8: Home	television	电视	I like watching television.	我喜欢看电视
+8	Unit 8: Home	fridge	冰箱	Milk is in the fridge.	牛奶在冰箱里
+8	Unit 8: Home	shower	淋浴	Take a shower.	洗个澡
+9	Unit 9: Holidays	shirt	衬衫	Put on your shirt.	穿上你的衬衫
+9	Unit 9: Holidays	jacket	夹克	It is cold. Wear a jacket.	很冷，穿上夹克
+9	Unit 9: Holidays	dress	连衣裙	A beautiful pink dress.	一条漂亮的粉色连衣裙
+9	Unit 9: Holidays	skirt	裙子	I like your skirt.	我喜欢你的裙子
+9	Unit 9: Holidays	socks	袜子	Two blue socks.	两只蓝袜子
+9	Unit 9: Holidays	trousers	长裤	My trousers are brown.	我的裤子是棕色的
+9	Unit 9: Holidays	T-shirt	T恤	I wear a T-shirt in summer.	我夏天穿T恤
+9	Unit 9: Holidays	shoes	鞋子	Tie your shoes.	系鞋带
+9	Unit 9: Holidays	hat	帽子	Wear a hat in the sun.	太阳底下戴帽子
+9	Unit 9: Holidays	sand	沙子	Play with sand.	玩沙子
+9	Unit 9: Holidays	sea	大海	The sea is blue.	大海是蓝色的
+9	Unit 9: Holidays	shells	贝壳	I find some shells.	我捡到一些贝壳
+9	Unit 9: Holidays	sun	太阳	The sun is hot.	太阳很烫
+9	Unit 9: Holidays	beach	沙滩	Let's go to the beach.	我们去沙滩吧
+9	Unit 9: Holidays	sunglasses	太阳镜	Wear your sunglasses.	戴上你的太阳镜
+9	Unit 9: Holidays	ice cream	冰淇淋	I love ice cream.	我爱冰淇淋
+10	Unit 10: People	doctor	医生	The doctor helps people.	医生帮助人们
+10	Unit 10: People	farmer	农民	The farmer grows food.	农民种粮食
+10	Unit 10: People	pilot	飞行员	The pilot flies the plane.	飞行员开飞机
+10	Unit 10: People	policeman	警察	The policeman is brave.	警察很勇敢
+10	Unit 10: People	singer	歌手	The singer sings well.	歌手唱歌很好听
+10	Unit 10: People	young	年轻的	The baby is young.	宝宝很年轻
+10	Unit 10: People	beautiful	美丽的	The flower is beautiful.	花朵很美丽
+10	Unit 10: People	funny	有趣的	The clown is funny.	小丑很有趣
+10	Unit 10: People	happy	开心的	I am very happy.	我很开心
+10	Unit 10: People	sad	伤心的	Don't be sad.	别伤心
+10	Unit 10: People	angry	生气的	Dad is angry.	爸爸生气了

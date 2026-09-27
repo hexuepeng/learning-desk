@@ -1,0 +1,16 @@
+shirt,衬衫
+jacket,夹克
+dress,连衣裙
+skirt,裙子
+socks,袜子
+trousers,长裤
+T-shirt,T恤
+shoes,鞋子
+hat,帽子
+sand,沙子
+sea,大海
+shells,贝壳
+sun,太阳
+beach,沙滩
+sunglasses,太阳镜
+ice cream,冰淇淋

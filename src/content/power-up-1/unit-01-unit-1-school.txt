@@ -1,0 +1,24 @@
+book,书
+pen,笔
+pencil,铅笔
+rubber,橡皮
+ruler,尺子
+desk,课桌
+chair,椅子
+bookcase,书架
+cupboard,柜子
+computer,电脑
+board,黑板
+map,地图
+wall,墙壁
+floor,地板
+window,窗户
+door,门
+teacher,老师
+student,学生
+pencil case,铅笔盒
+bag,书包
+in the bag,在书包里
+on the desk,在桌子上
+under the chair,在椅子下面
+next to the bookcase,在书架旁边

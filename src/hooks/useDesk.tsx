@@ -10,6 +10,8 @@ import {
 
 import { FAMILY_KET_PACK_TEXT } from '@/content/familyKetPack';
 import { createSampleWords } from '@/content/sampleWords';
+import { applyPowerUp1UnitImport } from '@/lib/powerUp1';
+import { applySentenceListImport } from '@/lib/sentenceImport';
 import { applyWordListImport, seedDefaultKetPackIfEmpty } from '@/lib/wordImport';
 import {
   addPageToBook,
@@ -54,7 +56,7 @@ import {
   markVocabDone,
 } from '@/lib/daily';
 import { normalizeIpa } from '@/lib/ipa';
-import { normalizeSentenceKey, parseSentenceList } from '@/lib/parseSentenceList';
+import { normalizeSentenceKey } from '@/lib/parseSentenceList';
 import {
   profileIdOf,
   projectProfile,
@@ -135,6 +137,16 @@ type DeskContextValue = {
     options?: { ketPack?: boolean; rebuildPack?: boolean },
   ) => { added: number; skipped: number; packAdded: number };
   importFamilyKetPack: () => { added: number; skipped: number; packAdded: number };
+  importPowerUp1Unit: (
+    unitId: number,
+    options?: { includeSentences?: boolean },
+  ) => {
+    added: number;
+    skipped: number;
+    packAdded: number;
+    sentencesAdded: number;
+    sentencesSkipped: number;
+  };
   setQuestDailyNewCount: (count: QuestNewCount) => void;
   seedSampleKetPack: () => void;
   touchQuestDay: () => void;
@@ -418,6 +430,47 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     [importWordText],
   );
 
+  const importPowerUp1Unit = useCallback(
+    (unitId: number, options?: { includeSentences?: boolean }) => {
+      let added = 0;
+      let skipped = 0;
+      let packAdded = 0;
+      let sentencesAdded = 0;
+      let sentencesSkipped = 0;
+      update((current) => {
+        const activeId = current.activeProfileId;
+        const result = applyPowerUp1UnitImport(
+          current.words,
+          questOf(current.questByProfile, activeId),
+          current.sentences,
+          activeId,
+          unitId,
+          { includeSentences: options?.includeSentences !== false },
+        );
+        added = result.added;
+        skipped = result.skipped;
+        packAdded = result.packAdded;
+        sentencesAdded = result.sentencesAdded;
+        sentencesSkipped = result.sentencesSkipped;
+        if (
+          result.added === 0 &&
+          result.skipped === 0 &&
+          result.packAdded === 0 &&
+          result.sentencesAdded === 0 &&
+          result.sentencesSkipped === 0
+        ) {
+          return current;
+        }
+        return withActiveQuest(
+          { ...current, words: result.words, sentences: result.sentences },
+          () => result.quest,
+        );
+      });
+      return { added, skipped, packAdded, sentencesAdded, sentencesSkipped };
+    },
+    [update],
+  );
+
   const setQuestDailyNewCount = useCallback(
     (count: QuestNewCount) => {
       update((current) =>
@@ -536,53 +589,22 @@ export function DeskProvider({ children }: { children: ReactNode }) {
 
   const importSentenceText = useCallback(
     (text: string, mode: 'append' | 'replace' = 'append') => {
-      const parsed = parseSentenceList(text);
-      if (parsed.length === 0) return { added: 0, skipped: 0 };
       const removedRecordings: string[] = [];
       let added = 0;
       let skipped = 0;
       update((current) => {
-        const activeId = current.activeProfileId;
-        if (mode === 'replace') {
-          for (const item of current.sentences) {
-            if (profileIdOf(item) === activeId && item.recordingUri) {
-              removedRecordings.push(item.recordingUri);
-            }
-          }
-        }
-        const base =
-          mode === 'replace'
-            ? current.sentences.filter((item) => profileIdOf(item) !== activeId)
-            : current.sentences;
-        const have = new Set(
-          base
-            .filter((item) => profileIdOf(item) === activeId)
-            .map((item) => normalizeSentenceKey(item.en)),
+        const result = applySentenceListImport(
+          current.sentences,
+          current.words,
+          current.activeProfileId,
+          text,
+          { mode },
         );
-        const incoming: Sentence[] = [];
-        added = 0;
-        skipped = 0;
-        const profileWords = wordsForProfile(current.words, activeId);
-        for (const item of parsed) {
-          const key = normalizeSentenceKey(item.en);
-          if (have.has(key)) {
-            skipped += 1;
-            continue;
-          }
-          have.add(key);
-          added += 1;
-          const wordIds = linkSentenceWordIds(item.en, profileWords);
-          const sentence: Sentence = {
-            id: createId('sentence'),
-            en: item.en,
-            createdAt: new Date().toISOString(),
-            profileId: activeId,
-          };
-          if (item.zh) sentence.zh = item.zh;
-          if (wordIds.length) sentence.wordIds = wordIds;
-          incoming.push(sentence);
-        }
-        return { ...current, sentences: [...incoming, ...base] };
+        added = result.added;
+        skipped = result.skipped;
+        removedRecordings.push(...result.removedRecordings);
+        if (result.added === 0 && result.skipped === 0) return current;
+        return { ...current, sentences: result.sentences };
       });
       for (const uri of removedRecordings) void deleteRecordingFile(uri);
       return { added, skipped };
@@ -1249,6 +1271,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setWordRecording,
       importWordText,
       importFamilyKetPack,
+      importPowerUp1Unit,
       setQuestDailyNewCount,
       seedSampleKetPack,
       touchQuestDay,
@@ -1305,6 +1328,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setWordRecording,
       importWordText,
       importFamilyKetPack,
+      importPowerUp1Unit,
       setQuestDailyNewCount,
       seedSampleKetPack,
       touchQuestDay,

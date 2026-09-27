@@ -46,6 +46,23 @@ describe('word import and default KET seed', () => {
     );
   });
 
+  it('can prepend a merged pack without dropping existing quest ids', () => {
+    const existing = [word('w1', 'apple', { ketPack: true }), word('w2', 'desk', { ketPack: true })];
+    const result = applyWordListImport(
+      existing,
+      { ...emptyQuestState(), packWordIds: ['w1', 'w2'] },
+      DEFAULT_PROFILE_ID,
+      ['school,学校', 'apple,苹果'].join('\n'),
+      { ketPack: true, packMerge: 'prepend' },
+    );
+    assert.equal(result.added, 1);
+    assert.equal(result.skipped, 1);
+    assert.deepEqual(
+      result.quest.packWordIds.map((id) => result.words.find((item) => item.id === id)?.en),
+      ['school', 'apple', 'desk'],
+    );
+  });
+
   it('seeds the built-in pack onto sample words like the one-tap import', () => {
     const samples = createSampleWords('t').map((item) => ({
       ...item,
