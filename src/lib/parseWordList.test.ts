@@ -4,7 +4,9 @@ import { describe, it } from 'node:test';
 import { readFileSync } from 'node:fs';
 
 import { FAMILY_KET_PACK_TEXT } from '../content/familyKetPack.ts';
+import { DEFAULT_KET_PACK_TEXT } from '../content/ket-a2-default-bundle.ts';
 import { answersMatch, parseWordList } from './parseWordList.ts';
+import { DEFAULT_KET_PACK_SIZE } from './wordImport.ts';
 
 describe('parseWordList', () => {
   it('parses space, comma, colon and tab separators', () => {
@@ -87,10 +89,22 @@ describe('parseWordList', () => {
     ]);
   });
 
-  it('loads the shipped family pack as 699 lines with optional IPA', () => {
+  it('loads the shipped default KET pack as 1792 unique lines with optional IPA', () => {
+    const fromTxt = readFileSync(new URL('../content/ket-a2-default-bundle.txt', import.meta.url), 'utf8');
+    const fromCsv = readFileSync(new URL('../content/ket-a2-default-bundle.csv', import.meta.url), 'utf8');
+    assert.equal(DEFAULT_KET_PACK_TEXT, fromTxt);
+    assert.equal(DEFAULT_KET_PACK_TEXT, fromCsv);
+    assert.equal(FAMILY_KET_PACK_TEXT, DEFAULT_KET_PACK_TEXT);
+    const parsed = parseWordList(DEFAULT_KET_PACK_TEXT);
+    assert.equal(parsed.length, DEFAULT_KET_PACK_SIZE);
+    assert.equal(parsed.filter((item) => item.ipa).length, 1527);
+    assert.equal(parsed[0]?.en, 'barbecue');
+    assert.equal(parsed.at(-1)?.en, 'zero');
+  });
+
+  it('still parses the older 699-word family pack kept as a reference file', () => {
     const fromTxt = readFileSync(new URL('../content/familyKetPack.txt', import.meta.url), 'utf8');
-    assert.equal(FAMILY_KET_PACK_TEXT, fromTxt);
-    const parsed = parseWordList(FAMILY_KET_PACK_TEXT);
+    const parsed = parseWordList(fromTxt);
     assert.equal(parsed.length, 699);
     assert.equal(parsed.filter((item) => item.ipa).length, 521);
     assert.equal(parsed[0]?.en, 'barbecue');

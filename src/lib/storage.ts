@@ -19,6 +19,7 @@ import {
   hydrateQuestPacks,
   normalizeQuestByProfile,
 } from './quest.ts';
+import { applyDefaultKetPack } from './wordImport.ts';
 import {
   defaultSentenceSettings,
   normalizeSentenceProgress,
@@ -32,8 +33,7 @@ import type { PersistedState, PracticeEvent, Word } from '../types/models.ts';
 export const STORAGE_KEY = 'learning-desk/v1';
 export const DEFAULT_PARENT_PIN = '1234';
 
-export function defaultState(): PersistedState {
-  const words = stampWords(createSampleWords(), DEFAULT_PROFILE_ID);
+function blankState(words: Word[]): PersistedState {
   return {
     version: 1,
     words,
@@ -61,13 +61,30 @@ export function defaultState(): PersistedState {
   };
 }
 
+export function defaultState(): PersistedState {
+  const words = stampWords(createSampleWords(), DEFAULT_PROFILE_ID);
+  const base = blankState(words);
+  const seeded = applyDefaultKetPack(
+    base.words,
+    base.questByProfile[DEFAULT_PROFILE_ID] ?? emptyQuestState(),
+    DEFAULT_PROFILE_ID,
+  );
+  return {
+    ...base,
+    words: seeded.words,
+    questByProfile: {
+      [DEFAULT_PROFILE_ID]: seeded.quest,
+    },
+  };
+}
+
 export function hydrateState(raw: unknown): PersistedState {
   return migrate(raw);
 }
 
 function migrate(raw: unknown): PersistedState {
-  const base = defaultState();
-  if (!raw || typeof raw !== 'object') return base;
+  if (!raw || typeof raw !== 'object') return defaultState();
+  const base = blankState(stampWords(createSampleWords(), DEFAULT_PROFILE_ID));
   const data = raw as Partial<PersistedState>;
   const profiles = normalizeProfiles(data.profiles);
   const activeProfileId = resolveActiveProfileId(

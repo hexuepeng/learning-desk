@@ -31,8 +31,8 @@ export default function DadDesk() {
         <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
         <Text style={styles.hint}>
-          闯关词库可在词表一键「导入 KET 包」，或粘贴后勾选「用于闯关词库」。每天新词 {quest.dailyNewCount}{' '}
-          个，和今日卡分开。
+          闯关词库新装会自动种入内置默认包，也可在词表再点「导入 KET 包」，或粘贴后勾选「用于闯关词库」。每天新词{' '}
+          {quest.dailyNewCount} 个，和今日卡分开。
         </Text>
         <KidButton label={t('sentenceList')} variant="secondary" onPress={() => router.push('/dad/sentences')} />
         <Card style={styles.toggle}>
