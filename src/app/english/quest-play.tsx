@@ -96,11 +96,7 @@ export default function QuestPlayScreen() {
               setSummary('复习会排在学会后的第 1、2、4、7 天。不计入今日英语卡。');
               return;
             }
-            if (!result.starGained) {
-              setNote('本轮有错题，再挑战一轮。');
-              return;
-            }
-            setNote(result.modeCleared ? '集齐三颗星，下一关！' : '全部答对，得了一颗星。');
+            setNote(result.modeCleared ? '这一关完成，下一关！' : '请再走完今日这批词。');
           }}
         />
       ) : (

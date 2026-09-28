@@ -19,6 +19,7 @@ import {
   planWordImportForQuest,
   pruneQuestWord,
   questDayCounts,
+  questModeCleared,
   setWordInKetPack,
 } from './quest.ts';
 import type { QuestState, Word } from '../types/models.ts';
@@ -129,30 +130,81 @@ describe('quest SRS', () => {
     assert.equal(after.items.a?.nextDue, null);
   });
 
-  it('three perfect rounds on the last mode complete the day and schedule review', () => {
-    const ids = ['a'];
-    let quest = ensureQuestDay(packQuest(ids), new Set(ids), '2026-09-20');
-    quest = {
-      ...quest,
-      day: quest.day ? { ...quest.day, stars: [3, 3, 2] } : quest.day,
-    };
-    const result = applyQuestRound(quest, 2, true);
+  it('one pass of the planned stage 1 set clears the stage and advances', () => {
+    const ids = Array.from({ length: 20 }, (_, i) => `w${i}`);
+    const quest = ensureQuestDay(packQuest(ids, { dailyNewCount: 20 }), new Set(ids), '2026-09-20');
+    assert.equal(quest.day?.ids.length, 20);
+    assert.equal(currentQuestMode(quest.day), 0);
+    const result = applyQuestRound(quest, 0, true);
     assert.equal(result.starGained, true);
     assert.equal(result.modeCleared, true);
-    assert.equal(result.dayComplete, true);
-    assert.equal(result.quest.day?.complete, true);
-    assert.equal(result.quest.items.a?.step, 1);
-    assert.equal(result.quest.items.a?.nextDue, '2026-09-21');
-    assert.equal(currentQuestMode(result.quest.day), 'done');
+    assert.equal(result.dayComplete, false);
+    assert.deepEqual(result.quest.day?.stars, [3, 0, 0]);
+    assert.equal(currentQuestMode(result.quest.day), 1);
+    assert.equal(result.quest.day?.complete, false);
   });
 
-  it('a wrong round does not award a star', () => {
+  it('finishing stage 1 with mistakes still marks the stage done', () => {
+    const ids = Array.from({ length: 20 }, (_, i) => `w${i}`);
+    const quest = ensureQuestDay(packQuest(ids, { dailyNewCount: 20 }), new Set(ids), '2026-09-20');
+    const result = applyQuestRound(quest, 0, false);
+    assert.equal(result.modeCleared, true);
+    assert.equal(result.starGained, true);
+    assert.deepEqual(result.quest.day?.stars, [1, 0, 0]);
+    assert.equal(questModeCleared(1), true);
+    assert.equal(currentQuestMode(result.quest.day), 1);
+  });
+
+  it('one pass per stage completes the day and schedules review', () => {
+    const ids = ['a'];
+    let quest = ensureQuestDay(packQuest(ids), new Set(ids), '2026-09-20');
+    const first = applyQuestRound(quest, 0, true);
+    assert.equal(currentQuestMode(first.quest.day), 1);
+    const second = applyQuestRound(first.quest, 1, true);
+    assert.equal(currentQuestMode(second.quest.day), 2);
+    const third = applyQuestRound(second.quest, 2, true);
+    assert.equal(third.modeCleared, true);
+    assert.equal(third.dayComplete, true);
+    assert.equal(third.quest.day?.complete, true);
+    assert.equal(third.quest.items.a?.step, 1);
+    assert.equal(third.quest.items.a?.nextDue, '2026-09-21');
+    assert.equal(currentQuestMode(third.quest.day), 'done');
+  });
+
+  it('same-day resume keeps finished stage 1 and continues at stage 2', () => {
+    const ids = Array.from({ length: 20 }, (_, i) => `w${i}`);
+    const existing = new Set(ids);
+    const first = ensureQuestDay(packQuest(ids, { dailyNewCount: 20 }), existing, '2026-09-20');
+    const afterStage1 = applyQuestRound(first, 0, true).quest;
+    const resumed = ensureQuestDay(afterStage1, existing, '2026-09-20');
+    assert.deepEqual(resumed.day?.ids, ids);
+    assert.deepEqual(resumed.day?.stars, [3, 0, 0]);
+    assert.equal(currentQuestMode(resumed.day), 1);
+    assert.equal(resumed.day?.complete, false);
+  });
+
+  it('legacy mid-day one-star progress counts as stage 1 already done', () => {
+    const ids = ['a', 'b'];
+    const existing = new Set(ids);
+    const first = ensureQuestDay(packQuest(ids, { dailyNewCount: 10 }), existing, '2026-09-20');
+    const legacy = {
+      ...first,
+      day: first.day ? { ...first.day, stars: [1, 0, 0] as const } : first.day,
+    };
+    const resumed = ensureQuestDay(legacy, existing, '2026-09-20');
+    assert.equal(currentQuestMode(resumed.day), 1);
+  });
+
+  it('stage 2 and 3 still need their own pass and do not skip ahead', () => {
     const ids = ['a'];
     const quest = ensureQuestDay(packQuest(ids), new Set(ids), '2026-09-20');
-    const result = applyQuestRound(quest, 0, false);
-    assert.equal(result.starGained, false);
-    assert.deepEqual(result.quest.day?.stars, [0, 0, 0]);
-    assert.equal(currentQuestMode(result.quest.day), 0);
+    const after1 = applyQuestRound(quest, 0, true);
+    assert.equal(currentQuestMode(after1.quest.day), 1);
+    const after2 = applyQuestRound(after1.quest, 1, false);
+    assert.equal(after2.modeCleared, true);
+    assert.equal(after2.dayComplete, false);
+    assert.deepEqual(after2.quest.day?.stars, [3, 1, 0]);
+    assert.equal(currentQuestMode(after2.quest.day), 2);
   });
 });
 
