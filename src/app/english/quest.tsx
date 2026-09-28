@@ -9,11 +9,11 @@ import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
 import {
   QUEST_MODES,
-  QUEST_STARS_TO_CLEAR,
   currentQuestMode,
   formatQuestStars,
   packWordsOf,
   questDayCounts,
+  questModeCleared,
 } from '@/lib/quest';
 
 export default function QuestHome() {
@@ -72,10 +72,9 @@ export default function QuestHome() {
           <View style={isTablet ? styles.modeRow : styles.modeCol}>
             {QUEST_MODES.map((item) => {
               const stars = quest.day?.stars[item.index] ?? 0;
-              const unlocked =
-                item.index === 0 || (quest.day?.stars[item.index - 1] ?? 0) >= QUEST_STARS_TO_CLEAR;
+              const unlocked = item.index === 0 || questModeCleared(quest.day?.stars[item.index - 1] ?? 0);
               const active = mode === item.index;
-              const done = stars >= QUEST_STARS_TO_CLEAR;
+              const done = questModeCleared(stars);
               return (
                 <Card key={item.index} style={isTablet ? styles.modeCard : undefined}>
                   <Text style={styles.modeNum}>第 {item.index + 1} 关</Text>

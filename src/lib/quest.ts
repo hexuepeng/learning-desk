@@ -234,10 +234,15 @@ export function questDayCounts(day: QuestDay | null): QuestDayCounts {
   return { newCount, reviewCount: Math.max(0, total - newCount), total };
 }
 
+/** 走完今日这批词一次即过关。旧存档里已有 1～2 星也视为本关已过，方便当天续关。 */
+export function questModeCleared(starCount: number): boolean {
+  return starCount > 0;
+}
+
 export function currentQuestMode(day: QuestDay | null): QuestModeIndex | 'done' {
   if (!day || day.complete) return 'done';
   for (let i = 0; i < QUEST_MODE_COUNT; i += 1) {
-    if (day.stars[i] < QUEST_STARS_TO_CLEAR && isQuestModeIndex(i)) return i;
+    if (!questModeCleared(day.stars[i]) && isQuestModeIndex(i)) return i;
   }
   return 'done';
 }
@@ -342,7 +347,11 @@ export type QuestRoundResult = {
   dayComplete: boolean;
 };
 
-/** 一轮走完今日全部词：全对得一星；三关各三星后推进间隔复习。 */
+/**
+ * 走完今日这批词一次即过本关，不再每关连刷三轮。
+ * 对错只影响星级：全对 ★★★，有错 ★☆☆；都算做完，不整关重来。
+ * 三关都过后才推进间隔复习。
+ */
 export function applyQuestRound(
   quest: QuestState,
   mode: QuestModeIndex,
@@ -352,23 +361,19 @@ export function applyQuestRound(
   if (!day || day.complete) {
     return { quest, starGained: false, modeCleared: false, dayComplete: Boolean(day?.complete) };
   }
-  if (!allCorrect) {
-    return { quest, starGained: false, modeCleared: false, dayComplete: false };
-  }
   const stars: QuestStars = [...day.stars];
-  if (stars[mode] >= QUEST_STARS_TO_CLEAR) {
-    const alreadyDone = stars.every((count) => count >= QUEST_STARS_TO_CLEAR);
+  if (questModeCleared(stars[mode])) {
+    const alreadyDone = stars.every((count) => questModeCleared(count));
     return { quest, starGained: false, modeCleared: true, dayComplete: alreadyDone };
   }
-  stars[mode] += 1;
-  const modeCleared = stars[mode] >= QUEST_STARS_TO_CLEAR;
-  const allCleared = stars.every((count) => count >= QUEST_STARS_TO_CLEAR);
+  stars[mode] = allCorrect ? QUEST_STARS_TO_CLEAR : 1;
+  const allCleared = stars.every((count) => questModeCleared(count));
   const next: QuestState = { ...quest, day: { ...day, stars } };
   if (allCleared) {
     const completed = completeQuestDay(next);
     return { quest: completed, starGained: true, modeCleared: true, dayComplete: true };
   }
-  return { quest: next, starGained: true, modeCleared, dayComplete: false };
+  return { quest: next, starGained: true, modeCleared: true, dayComplete: false };
 }
 
 export function setWordInKetPack(quest: QuestState, wordId: string, on: boolean): QuestState {

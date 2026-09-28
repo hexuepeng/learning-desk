@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { arrangeTileSize, computeLayout, nextEmptySlot, pickWordColumns } from './layout.ts';
+import {
+  arrangeTileSize,
+  computeLayout,
+  nextEmptySlot,
+  pickWordColumns,
+  playAnswerTypeSizes,
+} from './layout.ts';
 
 describe('computeLayout', () => {
   it('gives phone portrait modest taps and width', () => {
@@ -78,5 +84,16 @@ describe('pickWordColumns', () => {
     assert.equal(pickWordColumns(true), 2);
     assert.equal(pickWordColumns(computeLayout(820, 1180).isTablet), 2);
     assert.equal(pickWordColumns(computeLayout(1180, 820).isTablet), 2);
+  });
+});
+
+describe('playAnswerTypeSizes', () => {
+  it('makes English and IPA larger than the Chinese gloss', () => {
+    const phone = playAnswerTypeSizes(30, 17);
+    assert.ok(phone.en > phone.zh);
+    assert.ok(phone.ipa > phone.zh);
+    const tablet = playAnswerTypeSizes(40, 22);
+    assert.ok(tablet.en > tablet.zh);
+    assert.ok(tablet.ipa > tablet.zh);
   });
 });
