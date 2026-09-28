@@ -56,11 +56,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={isTablet && isLandscape ? styles.landRow : undefined}>
-        <Card
-          style={[styles.daily, isTablet && isLandscape && styles.landCol]}
-          onPress={() => router.push('/daily')}
-          accessibilityLabel={t('todayEnglish')}
-        >
+        <Card style={[styles.daily, isTablet && isLandscape && styles.landCol]}>
           <Text style={[styles.kicker, { fontSize: bodySize }]}>{t('todayEnglish')}</Text>
           <Text style={[styles.dailyTitle, { fontSize: Math.min(titleSize, 32) }]}>
             {complete ? t('todayDone') : formatDailyProgress(daily)}
