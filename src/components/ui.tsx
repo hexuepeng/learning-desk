@@ -65,7 +65,7 @@ export function Screen({
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
       {scroll ? (
         <ScrollView
           contentContainerStyle={[styles.scroll, { paddingHorizontal: pad }]}
@@ -146,14 +146,18 @@ export function Card({
   children,
   style,
   onPress,
+  accessibilityLabel,
 }: {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
+  accessibilityLabel?: string;
 }) {
   if (onPress) {
     return (
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
         onPress={onPress}
         style={({ pressed }) => [styles.card, { opacity: pressed ? 0.92 : 1 }, style]}
       >

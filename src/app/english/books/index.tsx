@@ -16,7 +16,11 @@ export default function BooksIndex() {
       <Text style={styles.section}>短绘本</Text>
       <View style={styles.col}>
         {MINI_BOOKS.map((book) => (
-          <Card key={book.id} onPress={() => router.push(`/english/books/${book.id}`)}>
+          <Card
+            key={book.id}
+            onPress={() => router.push(`/english/books/${book.id}`)}
+            accessibilityLabel={book.titleZh}
+          >
             <Text style={styles.art}>{book.coverArt}</Text>
             <Text style={styles.title}>{book.titleZh}</Text>
             <Text style={styles.meta}>{book.titleEn}</Text>
@@ -30,7 +34,11 @@ export default function BooksIndex() {
           <Text style={styles.meta}>还没有我家的书。选几张照片，写上一句英文说明即可。</Text>
         ) : (
           state.albumBooks.map((book) => (
-            <Card key={book.id} onPress={() => router.push(`/english/books/${book.id}`)}>
+            <Card
+              key={book.id}
+              onPress={() => router.push(`/english/books/${book.id}`)}
+              accessibilityLabel={book.title}
+            >
               <FamilyBookBadge />
               {book.pages[0] ? (
                 <Image

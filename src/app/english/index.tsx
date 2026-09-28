@@ -26,7 +26,7 @@ export default function EnglishHall() {
 function Tool({ title, hint, onPress }: { title: string; hint: string; onPress: () => void }) {
   const { isTablet, tap, bodySize } = useLayout();
   return (
-    <Card onPress={onPress} style={{ minHeight: tap + 36 }}>
+    <Card onPress={onPress} accessibilityLabel={title} style={{ minHeight: tap + 36 }}>
       <Text style={[styles.title, { fontSize: isTablet ? 30 : 26 }]}>{title}</Text>
       <Text style={[styles.hint, { fontSize: bodySize }]}>{hint}</Text>
     </Card>

@@ -49,6 +49,11 @@ export function computeLayout(width: number, height: number): DeskLayout {
   };
 }
 
+/** 听一听按钮：至少 44pt，并随 layout.tap 略放大，仍小于主 CTA。 */
+export function speakTapHeight(tap: number): number {
+  return Math.max(44, Math.round(tap * 0.8));
+}
+
 /** 排字母格子：优先单行放下，太长则按两行估宽，避免点不到。 */
 export function arrangeTileSize(
   wordLength: number,

@@ -151,28 +151,37 @@ function FillLetters({
     <View style={styles.block}>
       <Text style={[styles.prompt, { fontSize: titleSize }]}>{word.zh}</Text>
       <View style={[styles.rowWrap, { gap: tileGap }]}>
-        {puzzle.chars.map((item) => (
-          <Pressable
-            key={item.index}
-            onPress={() => {
-              if (!item.hidden || disabled) return;
-              setGuesses((current) => {
-                const next = { ...current };
-                delete next[item.index];
-                return next;
-              });
-            }}
-            style={[
-              styles.slot,
-              { minWidth: tile * 0.72, minHeight: tile },
-              item.hidden && styles.slotBlank,
-            ]}
-          >
-            <Text style={styles.slotText}>
-              {item.hidden ? (guesses[item.index] ?? '').toUpperCase() : item.ch.toUpperCase()}
-            </Text>
-          </Pressable>
-        ))}
+        {puzzle.chars.map((item) => {
+          const filled = item.hidden ? guesses[item.index] : item.ch;
+          return (
+            <Pressable
+              key={item.index}
+              accessibilityRole="button"
+              accessibilityLabel={
+                filled
+                  ? `第 ${item.index + 1} 格 ${filled}`
+                  : `第 ${item.index + 1} 格，空`
+              }
+              onPress={() => {
+                if (!item.hidden || disabled) return;
+                setGuesses((current) => {
+                  const next = { ...current };
+                  delete next[item.index];
+                  return next;
+                });
+              }}
+              style={[
+                styles.slot,
+                { minWidth: tile * 0.72, minHeight: tile },
+                item.hidden && styles.slotBlank,
+              ]}
+            >
+              <Text style={styles.slotText}>
+                {item.hidden ? (guesses[item.index] ?? '').toUpperCase() : item.ch.toUpperCase()}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
       <View style={[styles.rowWrap, { gap: tileGap }]}>
         {choices.map((letter) => (
@@ -180,6 +189,8 @@ function FillLetters({
             key={letter}
             disabled={disabled}
             onPress={() => put(letter)}
+            accessibilityRole="button"
+            accessibilityLabel={`字母 ${letter}`}
             style={[styles.tile, { minWidth: tile, minHeight: tile }]}
           >
             <Text style={styles.tileText}>{letter.toUpperCase()}</Text>
