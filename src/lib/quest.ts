@@ -27,6 +27,16 @@ export const QUEST_MODES: Array<{
   { index: 2, title: '跟读单词', hint: '跟着示范读，读完点「我读好了」' },
 ];
 
+/** 听选关每个选项都带中文，避免只给正确答案加释义。 */
+export function listenPickOptionParts(
+  en: string,
+  zh: string,
+): { label: string; subtitle?: string } {
+  const label = en.trim();
+  const subtitle = zh.trim();
+  return subtitle ? { label, subtitle } : { label };
+}
+
 /** 空词库时可先练的几个家庭示例词，不是商业词库。 */
 export const SAMPLE_KET_ENS = ['apple', 'book', 'cat', 'water', 'school', 'friend'] as const;
 

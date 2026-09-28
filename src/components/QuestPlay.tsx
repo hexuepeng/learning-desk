@@ -11,7 +11,7 @@ import { pickWordOptions } from '@/lib/dictation';
 import { hapticError, hapticSuccess } from '@/lib/haptics';
 import { pickWordColumns } from '@/lib/layout';
 import { playChineseCue, playCue } from '@/lib/playCue';
-import { QUEST_MODES } from '@/lib/quest';
+import { QUEST_MODES, listenPickOptionParts } from '@/lib/quest';
 import { t } from '@/i18n';
 import type { QuestModeIndex, Word } from '@/types/models';
 
@@ -79,11 +79,13 @@ function OptionGrid({
   pool,
   disabled,
   onAnswer,
+  showZh = false,
 }: {
   word: Word;
   pool: Word[];
   disabled: boolean;
   onAnswer: (correct: boolean) => void;
+  showZh?: boolean;
 }) {
   const { isTablet } = useLayout();
   const { state } = useDesk();
@@ -91,18 +93,22 @@ function OptionGrid({
   const columns = pickWordColumns(isTablet);
   return (
     <View style={[styles.options, columns > 1 && styles.optionsMulti]}>
-      {options.map((item, index) => (
-        <KidButton
-          key={`${item.id}-${index}`}
-          label={item.en}
-          variant="secondary"
-          disabled={disabled}
-          onPress={() => onAnswer(item.id === word.id)}
-          style={columns > 1 ? styles.optionHalf : undefined}
-        />
-      ))}
+      {options.map((item, index) => {
+        const parts = showZh ? listenPickOptionParts(item.en, item.zh) : { label: item.en };
+        return (
+          <KidButton
+            key={`${item.id}-${index}`}
+            label={parts.label}
+            subtitle={parts.subtitle}
+            variant="secondary"
+            disabled={disabled}
+            onPress={() => onAnswer(item.id === word.id)}
+            style={columns > 1 ? styles.optionHalf : undefined}
+          />
+        );
+      })}
       {state.showIpa ? (
-        <Text style={styles.optionHint}>选对后再看音标和中文</Text>
+        <Text style={styles.optionHint}>{showZh ? '选对后再看音标' : '选对后再看音标和中文'}</Text>
       ) : null}
     </View>
   );
@@ -124,7 +130,7 @@ function ListenPick({
     <View style={styles.block}>
       <Text style={[styles.prompt, { fontSize: titleSize }]}>听一听，选出单词</Text>
       <SpeakButton text={word.en} label="再听一遍" recordingUri={word.recordingUri} />
-      <OptionGrid word={word} pool={pool} disabled={disabled} onAnswer={onAnswer} />
+      <OptionGrid word={word} pool={pool} disabled={disabled} onAnswer={onAnswer} showZh />
     </View>
   );
 }
