@@ -1,33 +1,61 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { TTS_LANGUAGE, buildSpeakOptions, pickPreferredEnglishVoice } from './ttsVoice.ts';
+import {
+  TTS_LANGUAGE,
+  TTS_PITCH,
+  TTS_RATE,
+  buildSpeakOptions,
+  pickPreferredEnglishVoice,
+} from './ttsVoice.ts';
 
 describe('ttsVoice', () => {
-  it('prefers a British voice over US English', () => {
+  it('uses a slower kid-friendly English rate and near-natural pitch', () => {
+    assert.equal(TTS_LANGUAGE, 'en-GB');
+    assert.equal(TTS_RATE, 0.68);
+    assert.equal(TTS_PITCH, 1);
+    assert.ok(TTS_RATE >= 0.65 && TTS_RATE <= 0.72);
+  });
+
+  it('prefers a known British system voice over a generic en-GB voice', () => {
     const picked = pickPreferredEnglishVoice([
       { language: 'zh-CN', name: 'Tingting', identifier: 'zh' },
       { language: 'en-US', name: 'Samantha', identifier: 'us' },
-      { language: 'en-GB', name: 'Daniel', identifier: 'gb' },
+      { language: 'en-GB', name: 'British English', identifier: 'gb-generic' },
+      { language: 'en-GB', name: 'Daniel (Enhanced)', identifier: 'com.apple.voice.enhanced.en-GB.Daniel' },
     ]);
-    assert.equal(picked?.identifier, 'gb');
+    assert.equal(picked?.identifier, 'com.apple.voice.enhanced.en-GB.Daniel');
     assert.deepEqual(buildSpeakOptions(picked), {
       language: 'en-GB',
-      rate: 0.85,
-      pitch: 1.05,
-      voice: 'gb',
+      rate: TTS_RATE,
+      pitch: TTS_PITCH,
+      voice: 'com.apple.voice.enhanced.en-GB.Daniel',
     });
   });
 
-  it('falls back to any English voice, then to en-GB language only', () => {
+  it('matches preferred British names case-insensitively and ranks Daniel first', () => {
+    const kateFirst = pickPreferredEnglishVoice([
+      { language: 'en-GB', name: 'KATE', identifier: 'kate' },
+      { language: 'en-UK', name: 'daniel', identifier: 'daniel' },
+    ]);
+    assert.equal(kateFirst?.identifier, 'daniel');
+  });
+
+  it('falls back to any British voice, then any English, then en-GB language only', () => {
+    const genericGb = pickPreferredEnglishVoice([
+      { language: 'en-US', name: 'Samantha', identifier: 'us' },
+      { language: 'en-GB', name: 'UK English', identifier: 'gb' },
+    ]);
+    assert.equal(genericGb?.identifier, 'gb');
+
     const us = pickPreferredEnglishVoice([{ language: 'en-US', name: 'Samantha', identifier: 'us' }]);
     assert.equal(us?.identifier, 'us');
     assert.equal(buildSpeakOptions(us).language, 'en-US');
     assert.equal(pickPreferredEnglishVoice([{ language: 'zh-CN' }]), undefined);
     assert.deepEqual(buildSpeakOptions(undefined), {
       language: TTS_LANGUAGE,
-      rate: 0.85,
-      pitch: 1.05,
+      rate: TTS_RATE,
+      pitch: TTS_PITCH,
     });
   });
 });

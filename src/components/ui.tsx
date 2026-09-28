@@ -83,6 +83,7 @@ export function Screen({
 
 export function KidButton({
   label,
+  subtitle,
   onPress,
   variant = 'primary',
   disabled = false,
@@ -90,6 +91,7 @@ export function KidButton({
   style,
 }: {
   label: string;
+  subtitle?: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'dad' | 'success' | 'danger';
   disabled?: boolean;
@@ -105,10 +107,14 @@ export function KidButton({
     success: { bg: Colors.success, fg: '#fff' },
     danger: { bg: Colors.danger, fg: '#fff' },
   }[variant];
+  const caption = subtitle?.trim();
+  const subtitleSize = Math.max(13, buttonLabelSize - 4);
+  const subtitleColor = variant === 'secondary' || variant === 'ghost' ? Colors.muted : palette.fg;
 
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={caption ? `${label} ${caption}` : label}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -119,11 +125,19 @@ export function KidButton({
           opacity: disabled ? 0.45 : pressed ? 0.86 : 1,
           borderWidth: variant === 'ghost' ? 2 : 0,
           borderColor: Colors.line,
+          paddingVertical: caption ? 10 : undefined,
         },
         style,
       ]}
     >
-      <Text style={[styles.buttonLabel, { color: palette.fg, fontSize: buttonLabelSize }]}>{label}</Text>
+      <View style={styles.buttonCopy}>
+        <Text style={[styles.buttonLabel, { color: palette.fg, fontSize: buttonLabelSize }]}>{label}</Text>
+        {caption ? (
+          <Text style={[styles.buttonSubtitle, { color: subtitleColor, fontSize: subtitleSize }]}>
+            {caption}
+          </Text>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -253,9 +267,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  buttonCopy: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
   buttonLabel: {
     fontSize: 18,
     fontWeight: '800',
+    textAlign: 'center',
+  },
+  buttonSubtitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   card: {
     backgroundColor: Colors.paper,

@@ -1,6 +1,12 @@
 import * as Speech from 'expo-speech';
 
-import { buildSpeakOptions, pickPreferredEnglishVoice, type SpeechVoiceHint } from './ttsVoice.ts';
+import {
+  TTS_PITCH,
+  TTS_RATE,
+  buildSpeakOptions,
+  pickPreferredEnglishVoice,
+  type SpeechVoiceHint,
+} from './ttsVoice.ts';
 
 export { hasRecordingOverride, resolveSpeakSource } from './speakSource.ts';
 
@@ -19,7 +25,7 @@ function speakWithOptions(text: string, options: Parameters<typeof Speech.speak>
   Speech.speak(text, options);
 }
 
-/** 优先英式 en-GB 语音；没有则退回任意英语或只带 language，不抛错。 */
+/** 优先知名英式系统音（en-GB）；本机没装英式语音包时退回任意英语。 */
 export function speakEnglish(text: string): void {
   const trimmed = text.trim();
   if (!trimmed) return;
@@ -37,7 +43,7 @@ export function speakEnglish(text: string): void {
         speakWithOptions(trimmed, buildSpeakOptions());
       } catch {
         try {
-          speakWithOptions(trimmed, { rate: 0.85, pitch: 1.05 });
+          speakWithOptions(trimmed, { rate: TTS_RATE, pitch: TTS_PITCH });
         } catch {
           // 没有语音也不要崩
         }

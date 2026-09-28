@@ -12,6 +12,7 @@ import {
   emptyQuestState,
   hydrateQuestPacks,
   ketPackIdsInFileOrder,
+  listenPickOptionParts,
   mergeKetPackIds,
   nextDueAfterStep,
   packWordsOf,
@@ -218,5 +219,13 @@ describe('quest import pack', () => {
   it('keeps the sample demo list small and family-only', () => {
     assert.equal(SAMPLE_KET_ENS.length, 6);
     assert.ok(SAMPLE_KET_ENS.includes('apple'));
+  });
+
+  it('shows Chinese gloss on every listen-pick option, not only the answer', () => {
+    assert.deepEqual(listenPickOptionParts(' apple ', ' 苹果 '), {
+      label: 'apple',
+      subtitle: '苹果',
+    });
+    assert.deepEqual(listenPickOptionParts('book', ''), { label: 'book' });
   });
 });
