@@ -73,3 +73,16 @@ export function nextEmptySlot(slots: Array<unknown | null>, preferred = 0): numb
 export function pickWordColumns(isTablet: boolean): 1 | 2 {
   return isTablet ? 2 : 1;
 }
+
+/** 闯关 / 选词揭晓卡：英文词和 IPA 大于中文释义。 */
+export function playAnswerTypeSizes(titleSize: number, bodySize: number): {
+  en: number;
+  ipa: number;
+  zh: number;
+} {
+  return {
+    en: titleSize,
+    ipa: Math.max(bodySize + 4, Math.round(titleSize * 0.72)),
+    zh: bodySize,
+  };
+}

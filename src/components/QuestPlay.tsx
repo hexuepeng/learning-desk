@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { IpaText } from '@/components/IpaText';
+import { PlayAnswerReveal } from '@/components/PlayAnswerReveal';
 import { SpeakButton } from '@/components/SpeakButton';
 import { Card, KidButton } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
@@ -26,8 +27,7 @@ export function QuestPlay({
   mode: QuestModeIndex;
   onResolved: (correct: boolean) => void;
 }) {
-  const { titleSize, bodySize, isTablet } = useLayout();
-  const { state } = useDesk();
+  const { bodySize, isTablet } = useLayout();
   const meta = QUEST_MODES[mode];
   const [result, setResult] = useState<null | boolean>(null);
 
@@ -59,14 +59,10 @@ export function QuestPlay({
       {!answered && mode === 2 && <ReadAlong word={word} onDone={() => finish(true)} />}
       {result != null && (
         <View style={styles.result}>
-          <Text style={[styles.resultTitle, { fontSize: Math.min(titleSize, 28) }]}>
-            {mode === 2 ? '读得很好' : result ? '对啦！' : '再看一眼'}
-          </Text>
-          <Text style={[styles.answer, { fontSize: bodySize }]}>
-            {word.en} · {word.zh}
-          </Text>
-          <IpaText ipa={word.ipa} show={state.showIpa} style={[styles.ipa, { fontSize: bodySize }]} />
-          <SpeakButton text={word.en} recordingUri={word.recordingUri} />
+          <PlayAnswerReveal
+            title={mode === 2 ? '读得很好' : result ? '对啦！' : '再看一眼'}
+            word={word}
+          />
           <KidButton label={t('next')} onPress={() => onResolved(result)} />
         </View>
       )}
@@ -212,18 +208,6 @@ const styles = StyleSheet.create({
   result: {
     marginTop: Space.sm,
     gap: Space.sm,
-  },
-  resultTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.ink,
-  },
-  answer: {
-    fontSize: 20,
-    color: Colors.muted,
-  },
-  ipa: {
-    textAlign: 'left',
   },
   ipaCenter: {
     textAlign: 'center',
