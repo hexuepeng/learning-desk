@@ -19,7 +19,7 @@ export function IpaText({
 
 const styles = StyleSheet.create({
   ipa: {
-    color: Colors.muted,
+    color: Colors.ink,
     fontWeight: '700',
   },
 });

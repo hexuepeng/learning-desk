@@ -7,6 +7,7 @@ import {
   nextEmptySlot,
   pickWordColumns,
   playAnswerTypeSizes,
+  speakTapHeight,
 } from './layout.ts';
 
 describe('computeLayout', () => {
@@ -46,6 +47,16 @@ describe('computeLayout', () => {
     assert.equal(layout.compact, true);
     assert.equal(layout.titleSize, 26);
     assert.equal(layout.maxWidth, 680);
+  });
+});
+
+describe('speakTapHeight', () => {
+  it('never goes below 44pt and stays under the main tap target', () => {
+    assert.equal(speakTapHeight(40), 44);
+    assert.ok(speakTapHeight(56) >= 44);
+    assert.ok(speakTapHeight(56) < 56);
+    assert.ok(speakTapHeight(72) >= 44);
+    assert.ok(speakTapHeight(72) < 72);
   });
 });
 

@@ -56,7 +56,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={isTablet && isLandscape ? styles.landRow : undefined}>
-        <Card style={[styles.daily, isTablet && isLandscape && styles.landCol]} onPress={() => router.push('/daily')}>
+        <Card style={[styles.daily, isTablet && isLandscape && styles.landCol]}>
           <Text style={[styles.kicker, { fontSize: bodySize }]}>{t('todayEnglish')}</Text>
           <Text style={[styles.dailyTitle, { fontSize: Math.min(titleSize, 32) }]}>
             {complete ? t('todayDone') : formatDailyProgress(daily)}
@@ -95,23 +95,14 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View style={styles.extra}>
-        <KidButton
-          label={t('ketQuest')}
-          variant="secondary"
-          onPress={() => router.push('/english/quest')}
-        />
-        <KidButton
-          label={t('todaySentences')}
-          variant="secondary"
-          onPress={() => router.push('/english/sentences')}
-        />
-        <KidButton
-          label="错词复习（5 分钟）"
-          variant="secondary"
-          onPress={() => router.push('/english/review')}
-        />
-        <KidButton label={`💬 ${t('tellDad')}`} variant="secondary" onPress={() => router.push('/tell-dad')} />
+      <View style={styles.more}>
+        <Text style={[styles.moreLabel, { fontSize: bodySize }]}>更多练习</Text>
+        <View style={styles.moreLinks}>
+          <MoreLink label={t('ketQuest')} onPress={() => router.push('/english/quest')} />
+          <MoreLink label={t('todaySentences')} onPress={() => router.push('/english/sentences')} />
+          <MoreLink label="错词复习" onPress={() => router.push('/english/review')} />
+          <MoreLink label={t('tellDad')} onPress={() => router.push('/tell-dad')} />
+        </View>
       </View>
 
       <Pressable onPress={openDad} style={styles.version}>
@@ -137,6 +128,7 @@ function SubjectTile({
   return (
     <Card
       onPress={onPress}
+      accessibilityLabel={title}
       style={[
         styles.subject,
         { borderLeftColor: color },
@@ -147,6 +139,19 @@ function SubjectTile({
       <Text style={styles.subjectTitle}>{title}</Text>
       <Text style={styles.subjectMeta}>{live ? '可以学' : t('comingSoon')}</Text>
     </Card>
+  );
+}
+
+function MoreLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.moreLink, { opacity: pressed ? 0.7 : 1 }]}
+    >
+      <Text style={styles.moreLinkText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -254,8 +259,30 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 15,
   },
-  extra: {
-    gap: 12,
+  more: {
+    marginTop: Space.xs,
+    marginBottom: Space.sm,
+  },
+  moreLabel: {
+    color: Colors.muted,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  moreLinks: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  moreLink: {
+    minHeight: 44,
+    paddingRight: Space.md,
+    justifyContent: 'center',
+  },
+  moreLinkText: {
+    color: Colors.ink,
+    fontSize: 16,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+    textDecorationColor: Colors.line,
   },
   version: {
     minHeight: 48,

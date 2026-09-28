@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Space } from '@/constants/theme';
 import { useLayout } from '@/hooks/useLayout';
@@ -21,12 +21,35 @@ export function Celebration({
   subtitle?: string;
 }) {
   const { titleSize, bodySize } = useLayout();
+  const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
   const scale = useRef(new Animated.Value(0.7)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const bits = useRef(BURSTS.map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((value) => {
+        if (alive) setReduceMotion(value);
+      })
+      .catch(() => {
+        if (alive) setReduceMotion(false);
+      });
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion == null) return;
     hapticSuccess();
+    if (reduceMotion) {
+      scale.setValue(1);
+      opacity.setValue(1);
+      return;
+    }
     Animated.parallel([
       Animated.spring(scale, { toValue: 1, friction: 6, useNativeDriver: true }),
       Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
@@ -39,7 +62,19 @@ export function Celebration({
         }),
       ),
     ]).start();
-  }, [bits, opacity, scale]);
+  }, [bits, opacity, reduceMotion, scale]);
+
+  const copy = (
+    <>
+      <Text style={styles.burst}>完成</Text>
+      <Text style={[styles.title, { fontSize: titleSize }]}>{title}</Text>
+      {subtitle ? <Text style={[styles.sub, { fontSize: bodySize }]}>{subtitle}</Text> : null}
+    </>
+  );
+
+  if (reduceMotion) {
+    return <View style={styles.wrap}>{copy}</View>;
+  }
 
   return (
     <Animated.View style={[styles.wrap, { opacity, transform: [{ scale }] }]}>
@@ -71,9 +106,7 @@ export function Celebration({
           />
         ))}
       </View>
-      <Text style={styles.burst}>完成</Text>
-      <Text style={[styles.title, { fontSize: titleSize }]}>{title}</Text>
-      {subtitle ? <Text style={[styles.sub, { fontSize: bodySize }]}>{subtitle}</Text> : null}
+      {copy}
     </Animated.View>
   );
 }

@@ -43,7 +43,11 @@ export default function DadAlbums() {
           <Text style={styles.meta}>还没有相册书。先起个书名，再进去加照片。</Text>
         ) : (
           state.albumBooks.map((book) => (
-            <Card key={book.id} onPress={() => router.push(`/dad/albums/${book.id}`)}>
+            <Card
+              key={book.id}
+              onPress={() => router.push(`/dad/albums/${book.id}`)}
+              accessibilityLabel={book.title}
+            >
               <FamilyBookBadge compact />
               {book.pages[0] ? (
                 <Image
