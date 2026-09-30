@@ -1,9 +1,39 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { defaultState, hydrateState } from './storage.ts';
+import { decodeStoredState, defaultState, hydrateState } from './storage.ts';
 
 describe('storage migration', () => {
+  it('refuses damaged and future stored data instead of returning demo content', () => {
+    for (const raw of ['', '{broken', 'null', '[]', '{"version":2,"words":[]}', '{}']) {
+      assert.throws(() => decodeStoredState(raw), /原存档已保留/);
+    }
+    assert.deepEqual(decodeStoredState('{"version":1,"words":[]}').words, []);
+  });
+
+  it('keeps album ownership for every child when reading a full backup', () => {
+    const next = hydrateState({
+      version: 1,
+      words: [],
+      albumBooks: [
+        { id: 'b1', profileId: 'p1', title: 'A', pages: [] },
+        { id: 'b2', profileId: 'p2', title: 'B', pages: [] },
+      ],
+    });
+    assert.deepEqual(next.albumBooks.map((book) => book.profileId), ['p1', 'p2']);
+  });
+
+  it('validates stored nested data before migration and accepts a current saved state', () => {
+    const current = hydrateState(defaultState());
+    assert.deepEqual(decodeStoredState(JSON.stringify(current)), current);
+    current.questByProfile.profile_child.day = {
+      date: '2026-09-30', ids: ['w1'], newIds: ['w1'], stars: [0, 0, 0], complete: false,
+    };
+    const broken = JSON.parse(JSON.stringify(current));
+    broken.questByProfile.profile_child.day.ids = 'not-an-array';
+    assert.throws(() => decodeStoredState(JSON.stringify(broken)), /原存档已保留/);
+  });
+
   it('fills missing ipa on old words and defaults showIpa on', () => {
     const next = hydrateState({
       version: 1,
@@ -40,7 +70,7 @@ describe('storage migration', () => {
       ],
     });
     assert.deepEqual(next.questByProfile.profile_child?.packWordIds, ['w1']);
-    assert.equal(next.questByProfile.profile_child?.dailyNewCount, 20);
+    assert.equal(next.questByProfile.profile_child?.dailyNewCount, 5);
     assert.equal(next.words.find((word) => word.id === 'w1')?.ketPack, true);
     assert.ok(defaultState().words.filter((word) => word.ketPack).length >= 6);
   });

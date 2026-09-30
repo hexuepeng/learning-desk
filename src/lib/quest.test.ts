@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { parseWordList } from './parseWordList.ts';
 import {
   SAMPLE_KET_ENS,
+  applyQuestAnswer,
   applyQuestRound,
   clampQuestNewCount,
   completeQuestDay,
@@ -15,14 +16,17 @@ import {
   listenPickOptionParts,
   mergeKetPackIds,
   nextDueAfterStep,
+  normalizeQuestState,
   packWordsOf,
+  pendingQuestWordIds,
   planWordImportForQuest,
   pruneQuestWord,
+  questAnswerKey,
   questDayCounts,
   questModeCleared,
   setWordInKetPack,
 } from './quest.ts';
-import type { QuestState, Word } from '../types/models.ts';
+import type { QuestModeIndex, QuestNewCount, QuestState, Word } from '../types/models.ts';
 
 function word(id: string, en: string, ketPack = true): Word {
   return {
@@ -44,13 +48,16 @@ function packQuest(ids: string[], extra?: Partial<QuestState>): QuestState {
 }
 
 describe('quest SRS', () => {
-  it('clamps daily new count to 10 / 20 / 30', () => {
+  it('defaults to 5 and preserves the legacy 10 / 20 / 30 options', () => {
+    assert.equal(emptyQuestState().dailyNewCount, 5);
+    assert.equal(clampQuestNewCount(5), 5);
     assert.equal(clampQuestNewCount(10), 10);
     assert.equal(clampQuestNewCount(20), 20);
     assert.equal(clampQuestNewCount(30), 30);
     assert.equal(clampQuestNewCount(7), 10);
     assert.equal(clampQuestNewCount(99), 30);
-    assert.equal(clampQuestNewCount('nope'), 20);
+    assert.equal(clampQuestNewCount('nope'), 5);
+    assert.equal(normalizeQuestState({}).dailyNewCount, 5);
   });
 
   it('schedules nextDue at 1 / 2 / 4 / 7 days after first learn', () => {
@@ -74,7 +81,7 @@ describe('quest SRS', () => {
     assert.equal(next.items.a?.step, 0);
   });
 
-  it('respects daily new count and continues the cursor the next day', () => {
+  it('keeps the new-word cursor when the next day is full of review words', () => {
     const ids = Array.from({ length: 25 }, (_, i) => `w${i}`);
     const existing = new Set(ids);
     const day1 = ensureQuestDay(packQuest(ids, { dailyNewCount: 10 }), existing, '2026-09-20');
@@ -82,10 +89,12 @@ describe('quest SRS', () => {
     assert.deepEqual(day1.day?.newIds, ids.slice(0, 10));
     const finished = completeQuestDay(day1);
     const day2 = ensureQuestDay(finished, existing, '2026-09-21');
-    assert.deepEqual(day2.day?.newIds, ids.slice(10, 20));
+    assert.deepEqual(day2.day?.newIds, []);
     assert.deepEqual(day2.day?.ids.slice(0, 10), ids.slice(0, 10));
     assert.equal(questDayCounts(day2.day).reviewCount, 10);
-    assert.equal(questDayCounts(day2.day).newCount, 10);
+    assert.equal(questDayCounts(day2.day).newCount, 0);
+    assert.equal(day2.cursor, 10);
+    assert.equal(day2.items.w10, undefined);
   });
 
   it('keeps unfinished due words and does not re-issue them as new', () => {
@@ -133,7 +142,7 @@ describe('quest SRS', () => {
   it('one pass of the planned stage 1 set clears the stage and advances', () => {
     const ids = Array.from({ length: 20 }, (_, i) => `w${i}`);
     const quest = ensureQuestDay(packQuest(ids, { dailyNewCount: 20 }), new Set(ids), '2026-09-20');
-    assert.equal(quest.day?.ids.length, 20);
+    assert.equal(quest.day?.ids.length, 10);
     assert.equal(currentQuestMode(quest.day), 0);
     const result = applyQuestRound(quest, 0, true);
     assert.equal(result.starGained, true);
@@ -177,7 +186,7 @@ describe('quest SRS', () => {
     const first = ensureQuestDay(packQuest(ids, { dailyNewCount: 20 }), existing, '2026-09-20');
     const afterStage1 = applyQuestRound(first, 0, true).quest;
     const resumed = ensureQuestDay(afterStage1, existing, '2026-09-20');
-    assert.deepEqual(resumed.day?.ids, ids);
+    assert.deepEqual(resumed.day?.ids, ids.slice(0, 10));
     assert.deepEqual(resumed.day?.stars, [3, 0, 0]);
     assert.equal(currentQuestMode(resumed.day), 1);
     assert.equal(resumed.day?.complete, false);
@@ -205,6 +214,131 @@ describe('quest SRS', () => {
     assert.equal(after2.dayComplete, false);
     assert.deepEqual(after2.quest.day?.stars, [3, 1, 0]);
     assert.equal(currentQuestMode(after2.quest.day), 2);
+  });
+});
+
+describe('quest daily limit and resumable answers', () => {
+  const today = '2026-09-30';
+  const timestamp = '2026-09-30T09:00:00.000Z';
+
+  for (const [dueCount, dailyNewCount, availableNew, reviews, fresh] of [
+    [0, 5, 100, 0, 5],
+    [7, 5, 100, 7, 3],
+    [12, 20, 100, 10, 0],
+    [0, 30, 100, 0, 10],
+    [2, 5, 1, 2, 1],
+    [0, 5, 0, 0, 0],
+  ]) {
+    it(`plans ${reviews} reviews and ${fresh} new words for ${dueCount} due / ${dailyNewCount} max / ${availableNew} new`, () => {
+      const oldIds = Array.from({ length: dueCount }, (_, i) => `old${i}`);
+      const newIds = Array.from({ length: availableNew }, (_, i) => `new${i}`);
+      const ids = [...oldIds, ...newIds];
+      const items = Object.fromEntries(oldIds.map((id) => [
+        id, { learnedOn: '2026-09-20', step: 1, nextDue: '2026-09-21' },
+      ]));
+      const next = ensureQuestDay(packQuest(ids, {
+        items, dailyNewCount: dailyNewCount as QuestNewCount,
+      }), new Set(ids), today);
+      assert.deepEqual(questDayCounts(next.day), { reviewCount: reviews, newCount: fresh, total: reviews + fresh });
+      assert.deepEqual(next.day?.newIds, newIds.slice(0, fresh));
+      assert.equal(next.cursor, dueCount + fresh);
+      for (const id of oldIds.slice(reviews)) assert.deepEqual(next.items[id], items[id]);
+      for (const id of newIds.slice(fresh)) assert.equal(next.items[id], undefined);
+    });
+  }
+
+  it('selects the oldest ten due words with stable pack-order ties', () => {
+    const ids = Array.from({ length: 100 }, (_, i) => `w${i}`);
+    const items = Object.fromEntries(ids.map((id, i) => [
+      id, { learnedOn: '2026-09-01', step: 1, nextDue: i >= 90 ? '2026-09-10' : '2026-09-20' },
+    ]));
+    const next = ensureQuestDay(packQuest(ids, { items }), new Set(ids), today);
+    assert.deepEqual(next.day?.ids, ids.slice(90));
+    assert.deepEqual(next.items.w0, items.w0);
+  });
+
+  it('keeps a legacy 50-word day and one-star stage when upgrading, then caps the next day', () => {
+    const ids = Array.from({ length: 50 }, (_, i) => `w${i}`);
+    const legacy = normalizeQuestState({
+      ...packQuest(ids, { dailyNewCount: 20 }),
+      day: { date: today, ids, newIds: ids, stars: [1, 0, 0], complete: false },
+    });
+    const resumed = ensureQuestDay(legacy, new Set(ids), today);
+    assert.deepEqual(resumed.day?.ids, ids);
+    assert.deepEqual(resumed.day?.answers, {});
+    assert.equal(currentQuestMode(resumed.day), 1);
+    assert.deepEqual(pendingQuestWordIds(resumed.day, 0), []);
+    assert.equal(ensureQuestDay(resumed, new Set(ids), '2026-10-01').day?.ids.length, 10);
+  });
+
+  it('resumes from the fifth unsubmitted word after a serialize/reload and keeps the first answer', () => {
+    const ids = Array.from({ length: 10 }, (_, i) => `w${i}`);
+    let quest = ensureQuestDay(packQuest(ids, { dailyNewCount: 10 }), new Set(ids), today);
+    for (const wordId of ids.slice(0, 4)) {
+      quest = applyQuestAnswer(quest, {
+        profileId: 'child', date: today, mode: 0, wordId, outcome: 'incorrect',
+      }, today, timestamp).quest;
+    }
+    const resumed = normalizeQuestState(JSON.parse(JSON.stringify(quest)));
+    assert.deepEqual(pendingQuestWordIds(resumed.day, 0), ids.slice(4));
+    const duplicate = applyQuestAnswer(resumed, {
+      profileId: 'child', date: today, mode: 0, wordId: ids[0], outcome: 'correct',
+    }, today, 'later');
+    assert.equal(duplicate.accepted, false);
+    assert.equal(duplicate.quest, resumed);
+    assert.deepEqual(resumed.day?.answers?.[questAnswerKey(0, ids[0])], { outcome: 'incorrect', submittedAt: timestamp });
+  });
+
+  it('commits the final answer, stage stars and daily review step together only once', () => {
+    let quest = ensureQuestDay(packQuest(['a']), new Set(['a']), today);
+    for (const mode of [0, 1, 2] as QuestModeIndex[]) {
+      const result = applyQuestAnswer(quest, {
+        profileId: 'child', date: today, mode, wordId: 'a',
+        outcome: mode === 2 ? 'self-reported' : mode === 0 ? 'incorrect' : 'correct',
+      }, today, timestamp);
+      quest = result.quest;
+      assert.equal(result.accepted, true);
+      assert.equal(result.dayComplete, mode === 2);
+    }
+    assert.deepEqual(quest.day?.stars, [1, 3, 3]);
+    assert.equal(quest.day?.answers?.['2:a'].outcome, 'self-reported');
+    assert.equal(quest.items.a.step, 1);
+    assert.equal(quest.items.a.nextDue, '2026-10-01');
+    const repeat = applyQuestAnswer(quest, {
+      profileId: 'child', date: today, mode: 2, wordId: 'a', outcome: 'self-reported',
+    }, today, timestamp);
+    assert.equal(repeat.accepted, false);
+    assert.equal(repeat.quest, quest);
+  });
+
+  it('rejects yesterday, another stage, a deleted word and self-report in a choice stage', () => {
+    const quest = ensureQuestDay(packQuest(['a']), new Set(['a']), today);
+    const input = { profileId: 'child', date: today, mode: 0 as const, wordId: 'a', outcome: 'correct' as const };
+    for (const invalid of [
+      { ...input, date: '2026-09-29' },
+      { ...input, mode: 1 as const },
+      { ...input, wordId: 'deleted' },
+      { ...input, outcome: 'self-reported' as const },
+    ]) {
+      assert.equal(applyQuestAnswer(quest, invalid, today, timestamp).quest, quest);
+    }
+    assert.equal(applyQuestAnswer(quest, input, '2026-10-01', timestamp).quest, quest);
+    assert.deepEqual(quest.day?.answers, {});
+  });
+
+  it('removes deleted answers and leaves an empty task without granting completion', () => {
+    let quest = ensureQuestDay(packQuest(['a', 'b']), new Set(['a', 'b']), today);
+    quest = applyQuestAnswer(quest, {
+      profileId: 'child', date: today, mode: 0, wordId: 'a', outcome: 'correct',
+    }, today, timestamp).quest;
+    const oneLeft = pruneQuestWord(quest, 'a');
+    assert.deepEqual(oneLeft.day?.answers, {});
+    assert.deepEqual(pendingQuestWordIds(oneLeft.day, 0), ['b']);
+    const empty = pruneQuestWord(oneLeft, 'b');
+    assert.equal(empty.day?.complete, false);
+    assert.deepEqual(empty.day?.stars, [0, 0, 0]);
+    assert.equal(applyQuestRound(empty, 0, true).quest, empty);
+    assert.equal(completeQuestDay(empty), empty);
   });
 });
 

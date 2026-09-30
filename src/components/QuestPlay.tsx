@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { IpaText } from '@/components/IpaText';
@@ -14,7 +14,7 @@ import { pickWordColumns } from '@/lib/layout';
 import { playChineseCue, playCue } from '@/lib/playCue';
 import { QUEST_MODES, listenPickOptionParts } from '@/lib/quest';
 import { t } from '@/i18n';
-import type { QuestModeIndex, Word } from '@/types/models';
+import type { QuestAnswerOutcome, QuestModeIndex, Word } from '@/types/models';
 
 export function QuestPlay({
   word,
@@ -25,11 +25,14 @@ export function QuestPlay({
   word: Word;
   pool: Word[];
   mode: QuestModeIndex;
-  onResolved: (correct: boolean) => void;
+  onResolved: (outcome: QuestAnswerOutcome) => Promise<void>;
 }) {
   const { bodySize, isTablet } = useLayout();
   const meta = QUEST_MODES[mode];
   const [result, setResult] = useState<null | boolean>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const submitting = useRef(false);
 
   useEffect(() => {
     setResult(null);
@@ -45,6 +48,20 @@ export function QuestPlay({
   };
 
   const answered = result != null;
+  const submit = async () => {
+    if (result == null || submitting.current) return;
+    submitting.current = true;
+    setSaving(true);
+    setSaveError(false);
+    try {
+      await onResolved(mode === 2 ? 'self-reported' : result ? 'correct' : 'incorrect');
+    } catch {
+      setSaveError(true);
+    } finally {
+      submitting.current = false;
+      setSaving(false);
+    }
+  };
 
   return (
     <Card>
@@ -60,10 +77,17 @@ export function QuestPlay({
       {result != null && (
         <View style={styles.result}>
           <PlayAnswerReveal
-            title={mode === 2 ? '读得很好' : result ? '对啦！' : '再看一眼'}
+            title={mode === 2 ? '跟读完成' : result ? '对啦！' : '再看一眼'}
             word={word}
           />
-          <KidButton label={t('next')} onPress={() => onResolved(result)} />
+          <Text style={[styles.hint, saveError && styles.error]} accessibilityLiveRegion="polite">
+            {saveError ? '这题还没保存好，请再试一次。' : '点“下一题”保存本题进度。'}
+          </Text>
+          <KidButton
+            label={saving ? '正在保存…' : saveError ? '重试保存' : t('next')}
+            disabled={saving}
+            onPress={() => void submit()}
+          />
         </View>
       )}
     </Card>
@@ -208,6 +232,9 @@ const styles = StyleSheet.create({
   result: {
     marginTop: Space.sm,
     gap: Space.sm,
+  },
+  error: {
+    color: Colors.danger,
   },
   ipaCenter: {
     textAlign: 'center',

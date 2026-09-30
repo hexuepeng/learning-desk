@@ -28,10 +28,14 @@ import {
 } from './sentences.ts';
 import { emptyStarState, normalizeStarState } from './stars.ts';
 import { emptyStreak } from './streak.ts';
+import { createWriteQueue } from './operationGate.ts';
+import { assertPersistedStateShape } from './stateValidation.ts';
 import type { PersistedState, PracticeEvent, Word } from '../types/models.ts';
 
 export const STORAGE_KEY = 'learning-desk/v1';
 export const DEFAULT_PARENT_PIN = '1234';
+export const RECOVERY_STORAGE_KEY = 'learning-desk/unreadable-state/v1';
+const writes = createWriteQueue();
 
 function blankState(words: Word[]): PersistedState {
   return {
@@ -129,19 +133,48 @@ function migrate(raw: unknown): PersistedState {
 }
 
 export async function loadState(): Promise<PersistedState> {
+  let raw: string | null;
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    return hydrateState(JSON.parse(raw) as unknown);
+    raw = await AsyncStorage.getItem(STORAGE_KEY);
   } catch {
-    return defaultState();
+    throw new Error('暂时无法读取本机存档，请重试。原存档没有被替换。');
+  }
+  if (raw === null) return defaultState();
+  return decodeStoredState(raw);
+}
+
+export function decodeStoredState(raw: string): PersistedState {
+  try {
+    const data: unknown = JSON.parse(raw);
+    assertPersistedStateShape(data);
+    return hydrateState(data);
+  } catch {
+    throw new Error('存档损坏或版本暂不支持。原存档已保留，可以重试或从备份恢复。');
   }
 }
 
+/** 用户确认恢复前留住无法读取的原文，不覆盖唯一副本。 */
+export async function preserveUnreadableState(): Promise<void> {
+  await writes.run(async () => {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (raw !== null && await AsyncStorage.getItem(RECOVERY_STORAGE_KEY) === null) {
+      await AsyncStorage.setItem(RECOVERY_STORAGE_KEY, raw);
+    }
+  });
+}
+
 export async function saveState(state: PersistedState): Promise<void> {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const snapshot = JSON.stringify(state);
+  await writes.run(() => AsyncStorage.setItem(STORAGE_KEY, snapshot));
+}
+
+/** 恢复事务回退时保留原文，包括损坏但仍需留存的旧存档。 */
+export async function restoreRawState(raw: string | null): Promise<void> {
+  await writes.run(() => raw === null
+    ? AsyncStorage.removeItem(STORAGE_KEY)
+    : AsyncStorage.setItem(STORAGE_KEY, raw));
 }
 
 export async function clearState(): Promise<void> {
-  await AsyncStorage.removeItem(STORAGE_KEY);
+  await writes.run(() => AsyncStorage.removeItem(STORAGE_KEY));
 }

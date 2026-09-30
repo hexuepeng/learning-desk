@@ -9,9 +9,11 @@ import { useLayout } from '@/hooks/useLayout';
 import { t } from '@/i18n';
 import {
   QUEST_MODES,
+  QUEST_DAILY_WORD_LIMIT,
   currentQuestMode,
   formatQuestStars,
   packWordsOf,
+  pendingQuestWordIds,
   questDayCounts,
   questModeCleared,
 } from '@/lib/quest';
@@ -30,6 +32,10 @@ export default function QuestHome() {
   const counts = questDayCounts(quest.day);
   const mode = currentQuestMode(quest.day);
   const complete = quest.day?.complete === true;
+  const started = (quest.day?.stars.some(questModeCleared) ?? false) ||
+    Object.keys(quest.day?.answers ?? {}).length > 0;
+  const completedCount = mode === 'done' ? counts.total :
+    counts.total - pendingQuestWordIds(quest.day, mode).length;
 
   return (
     <Screen
@@ -56,17 +62,29 @@ export default function QuestHome() {
           <Card style={styles.hero}>
             <Text style={styles.kicker}>今日闯关</Text>
             <Text style={[styles.title, { fontSize: isTablet ? 30 : 26 }]}>
-              {complete
-                ? '今天的三关都过啦'
-                : `今天 ${counts.newCount} 个新词，${counts.reviewCount} 个复习词`}
+              {counts.total === 0
+                ? '今天没有待复习的词'
+                : complete
+                  ? '今天的闯关完成啦'
+                  : `今天复习 ${counts.reviewCount} 个词，认识 ${counts.newCount} 个新词`}
             </Text>
             <Text style={[styles.meta, { fontSize: bodySize }]}>
-              词库 {pack.length} · 每天新词 {quest.dailyNewCount} · 已安排 {quest.cursor}
+              {counts.total === 0
+                ? '今天没有安排新的练习，明天再来看看。'
+                : started && mode !== 'done'
+                  ? `第 ${mode + 1} 关 · 已完成 ${completedCount}/${counts.total}`
+                  : `一共 ${counts.total} 个词，每个词练习三关。`}
             </Text>
+            {counts.total > QUEST_DAILY_WORD_LIMIT && (
+              <Text style={styles.meta}>今天继续原来的任务，新的每日上限明天生效。</Text>
+            )}
             <KidButton
-              label={complete ? '明天再来复习' : counts.total === 0 ? '词库先学完啦' : t('startQuest')}
-              disabled={complete || counts.total === 0}
-              onPress={() => router.push('/english/quest-play')}
+              label={complete ? '回首页' : counts.total === 0 ? '回英语馆' : started ? '继续练习' : '开始今天的闯关'}
+              onPress={() => {
+                if (counts.total === 0) router.replace('/english');
+                else if (complete) router.replace('/');
+                else router.push('/english/quest-play');
+              }}
             />
           </Card>
           <View style={isTablet ? styles.modeRow : styles.modeCol}>
@@ -82,7 +100,7 @@ export default function QuestHome() {
                   <Text style={styles.meta}>{item.hint}</Text>
                   <Text style={styles.stars}>{formatQuestStars(stars)}</Text>
                   <Text style={styles.pill}>
-                    {done ? '已通关' : !unlocked ? '先过上一关' : active ? '进行中' : '待挑战'}
+                    {done ? '已通关' : !unlocked ? '先过上一关' : active && started ? '进行中' : '待挑战'}
                   </Text>
                 </Card>
               );

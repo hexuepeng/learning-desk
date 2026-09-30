@@ -53,8 +53,8 @@ describe('Power Up 1 family unit packs', () => {
         new URL(`../content/${unit.sentencesFile}`, import.meta.url),
         'utf8',
       );
-      assert.equal(unit.wordsText, fromWords);
-      assert.equal(unit.sentencesText, fromSentences);
+      assert.equal(unit.wordsText, fromWords.replace(/\r\n/g, '\n'));
+      assert.equal(unit.sentencesText, fromSentences.replace(/\r\n/g, '\n'));
       const parsedWords = parseWordList(unit.wordsText);
       const parsedSentences = parseSentenceList(unit.sentencesText);
       assert.equal(parsedWords.length, unit.wordCount);

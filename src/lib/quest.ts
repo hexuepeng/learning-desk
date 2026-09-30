@@ -1,6 +1,8 @@
 import type { ParsedWord } from './parseWordList.ts';
 import { addDays, todayKey } from './util.ts';
 import type {
+  QuestAnswer,
+  QuestAnswerOutcome,
   QuestDay,
   QuestModeIndex,
   QuestNewCount,
@@ -12,8 +14,9 @@ import type {
 
 /** 首次学会后第 1、2、4、7 天复习。 */
 export const QUEST_REVIEW_OFFSETS = [1, 2, 4, 7] as const;
-export const DEFAULT_QUEST_NEW_COUNT: QuestNewCount = 20;
-export const QUEST_NEW_COUNTS: QuestNewCount[] = [10, 20, 30];
+export const DEFAULT_QUEST_NEW_COUNT: QuestNewCount = 5;
+export const QUEST_NEW_COUNTS: QuestNewCount[] = [5, 10, 20, 30];
+export const QUEST_DAILY_WORD_LIMIT = 10;
 export const QUEST_STARS_TO_CLEAR = 3;
 export const QUEST_MODE_COUNT = 3;
 
@@ -52,6 +55,7 @@ export function emptyQuestState(): QuestState {
 
 export function clampQuestNewCount(value: unknown): QuestNewCount {
   const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n) || n <= 5) return DEFAULT_QUEST_NEW_COUNT;
   if (n <= 10) return 10;
   if (n >= 30) return 30;
   return 20;
@@ -65,6 +69,35 @@ function isQuestModeIndex(value: number): value is QuestModeIndex {
   return value === 0 || value === 1 || value === 2;
 }
 
+export function questAnswerKey(mode: QuestModeIndex, wordId: string): string {
+  return `${mode}:${wordId}`;
+}
+
+function validQuestOutcome(mode: QuestModeIndex, outcome: unknown): outcome is QuestAnswerOutcome {
+  return mode === 2 ? outcome === 'self-reported' : outcome === 'correct' || outcome === 'incorrect';
+}
+
+function normalizeQuestAnswers(raw: unknown, ids: string[]): Record<string, QuestAnswer> {
+  const answers: Record<string, QuestAnswer> = {};
+  if (!raw || typeof raw !== 'object') return answers;
+  const values = raw as Record<string, Partial<QuestAnswer> | null>;
+  for (const mode of QUEST_MODES) {
+    for (const id of ids) {
+      const key = questAnswerKey(mode.index, id);
+      const answer = values[key];
+      if (
+        answer &&
+        validQuestOutcome(mode.index, answer.outcome) &&
+        typeof answer.submittedAt === 'string' &&
+        answer.submittedAt
+      ) {
+        answers[key] = { outcome: answer.outcome, submittedAt: answer.submittedAt };
+      }
+    }
+  }
+  return answers;
+}
+
 export function normalizeQuestDay(raw: unknown): QuestDay | null {
   if (!raw || typeof raw !== 'object') return null;
   const data = raw as Partial<QuestDay>;
@@ -75,9 +108,11 @@ export function normalizeQuestDay(raw: unknown): QuestDay | null {
     Math.min(QUEST_STARS_TO_CLEAR, Math.max(0, Number(starsRaw[1] ?? 0) || 0)),
     Math.min(QUEST_STARS_TO_CLEAR, Math.max(0, Number(starsRaw[2] ?? 0) || 0)),
   ];
-  const ids = Array.isArray(data.ids) ? data.ids.filter((id): id is string => typeof id === 'string') : [];
+  const ids = Array.isArray(data.ids)
+    ? [...new Set(data.ids.filter((id): id is string => typeof id === 'string' && id.length > 0))]
+    : [];
   const newIds = Array.isArray(data.newIds)
-    ? data.newIds.filter((id): id is string => typeof id === 'string')
+    ? [...new Set(data.newIds.filter((id): id is string => typeof id === 'string' && ids.includes(id)))]
     : [];
   return {
     date: data.date,
@@ -85,6 +120,7 @@ export function normalizeQuestDay(raw: unknown): QuestDay | null {
     newIds,
     stars,
     complete: Boolean(data.complete),
+    answers: normalizeQuestAnswers(data.answers, ids),
   };
 }
 
@@ -157,7 +193,7 @@ export function packWordsOf(words: Word[], packWordIds: string[]): Word[] {
 }
 
 export function livingPackIds(packWordIds: string[], existingIds: Set<string>): string[] {
-  return packWordIds.filter((id) => existingIds.has(id));
+  return [...new Set(packWordIds.filter((id) => existingIds.has(id)))];
 }
 
 export type WordImportPlan = {
@@ -240,11 +276,17 @@ export function questModeCleared(starCount: number): boolean {
 }
 
 export function currentQuestMode(day: QuestDay | null): QuestModeIndex | 'done' {
-  if (!day || day.complete) return 'done';
+  if (!day || day.complete || day.ids.length === 0) return 'done';
   for (let i = 0; i < QUEST_MODE_COUNT; i += 1) {
     if (!questModeCleared(day.stars[i]) && isQuestModeIndex(i)) return i;
   }
   return 'done';
+}
+
+/** 当前关的位置只从已提交答案推导；旧存档已过关时不要求补交答案。 */
+export function pendingQuestWordIds(day: QuestDay | null, mode: QuestModeIndex): string[] {
+  if (!day || day.complete || questModeCleared(day.stars[mode])) return [];
+  return day.ids.filter((id) => !day.answers?.[questAnswerKey(mode, id)]);
 }
 
 export function formatQuestStars(count: number): string {
@@ -268,15 +310,18 @@ export function advanceQuestItem(item: QuestWordItem): QuestWordItem {
 }
 
 function pruneDay(day: QuestDay, existingIds: Set<string>): QuestDay {
+  const ids = day.ids.filter((id) => existingIds.has(id));
   return {
     ...day,
-    ids: day.ids.filter((id) => existingIds.has(id)),
-    newIds: day.newIds.filter((id) => existingIds.has(id)),
+    ids,
+    newIds: day.newIds.filter((id) => ids.includes(id)),
+    answers: normalizeQuestAnswers(day.answers, ids),
+    complete: ids.length > 0 && day.complete,
   };
 }
 
 /**
- * 若今日尚未建卡：未完成的到期复习 + 按词库顺序最多 N 个新词。
+ * 若今日尚未建卡：最早到期的复习优先，新词补足剩余名额，总共最多 10 词。
  * 今日已有卡则只清掉已删的词，不重抽。
  */
 export function ensureQuestDay(
@@ -288,21 +333,25 @@ export function ensureQuestDay(
   const items = { ...quest.items };
 
   if (quest.day?.date === today) {
-    return {
+    return finishAnsweredQuestMode({
       ...quest,
       packWordIds,
-      day: pruneDay(quest.day, existingIds),
-    };
+      day: pruneDay(quest.day, new Set(packWordIds)),
+    });
   }
 
-  const due = packWordIds.filter((id) => {
-    const item = items[id];
-    return Boolean(item?.nextDue && item.nextDue <= today);
-  });
+  const due = packWordIds
+    .filter((id) => {
+      const item = items[id];
+      return Boolean(item?.nextDue && item.nextDue <= today);
+    })
+    .sort((a, b) => (items[a].nextDue ?? '').localeCompare(items[b].nextDue ?? ''))
+    .slice(0, QUEST_DAILY_WORD_LIMIT);
 
   const newIds: string[] = [];
+  const newLimit = Math.min(quest.dailyNewCount, QUEST_DAILY_WORD_LIMIT - due.length);
   for (const id of packWordIds) {
-    if (newIds.length >= quest.dailyNewCount) break;
+    if (newIds.length >= newLimit) break;
     if (items[id]) continue;
     newIds.push(id);
     items[id] = { learnedOn: today, step: 0, nextDue: today };
@@ -320,13 +369,14 @@ export function ensureQuestDay(
       newIds,
       stars: emptyQuestStars(),
       complete: false,
+      answers: {},
     },
   };
 }
 
 export function completeQuestDay(quest: QuestState): QuestState {
   const day = quest.day;
-  if (!day || day.complete) return quest;
+  if (!day || day.complete || day.ids.length === 0) return quest;
   const items = { ...quest.items };
   for (const id of day.ids) {
     const item = items[id];
@@ -358,13 +408,16 @@ export function applyQuestRound(
   allCorrect: boolean,
 ): QuestRoundResult {
   const day = quest.day;
-  if (!day || day.complete) {
+  if (!day || day.complete || day.ids.length === 0) {
     return { quest, starGained: false, modeCleared: false, dayComplete: Boolean(day?.complete) };
   }
   const stars: QuestStars = [...day.stars];
   if (questModeCleared(stars[mode])) {
     const alreadyDone = stars.every((count) => questModeCleared(count));
     return { quest, starGained: false, modeCleared: true, dayComplete: alreadyDone };
+  }
+  if (currentQuestMode(day) !== mode) {
+    return { quest, starGained: false, modeCleared: false, dayComplete: false };
   }
   stars[mode] = allCorrect ? QUEST_STARS_TO_CLEAR : 1;
   const allCleared = stars.every((count) => questModeCleared(count));
@@ -376,27 +429,82 @@ export function applyQuestRound(
   return { quest: next, starGained: true, modeCleared: true, dayComplete: false };
 }
 
+function finishAnsweredQuestMode(quest: QuestState): QuestState {
+  const mode = currentQuestMode(quest.day);
+  if (mode === 'done' || !quest.day || pendingQuestWordIds(quest.day, mode).length > 0) return quest;
+  const allCorrect = quest.day.ids.every(
+    (id) => quest.day?.answers?.[questAnswerKey(mode, id)]?.outcome !== 'incorrect',
+  );
+  return applyQuestRound(quest, mode, allCorrect).quest;
+}
+
+export type QuestAnswerInput = {
+  profileId: string;
+  date: string;
+  mode: QuestModeIndex;
+  wordId: string;
+  outcome: QuestAnswerOutcome;
+};
+
+export type QuestAnswerResult = QuestRoundResult & { accepted: boolean };
+
+/** 一次提交同时保存本题、关卡星级和末关结算；档案边界由调用方检查。 */
+export function applyQuestAnswer(
+  quest: QuestState,
+  input: QuestAnswerInput,
+  today = todayKey(),
+  submittedAt = new Date().toISOString(),
+): QuestAnswerResult {
+  const day = quest.day;
+  const unchanged: QuestAnswerResult = {
+    quest,
+    accepted: false,
+    starGained: false,
+    modeCleared: Boolean(day && questModeCleared(day.stars[input.mode])),
+    dayComplete: Boolean(day?.complete),
+  };
+  if (
+    !day || day.complete || day.date !== today || input.date !== day.date ||
+    currentQuestMode(day) !== input.mode || !day.ids.includes(input.wordId) ||
+    !validQuestOutcome(input.mode, input.outcome)
+  ) return unchanged;
+
+  const key = questAnswerKey(input.mode, input.wordId);
+  if (day.answers?.[key]) return unchanged;
+  const next: QuestState = {
+    ...quest,
+    day: {
+      ...day,
+      answers: { ...day.answers, [key]: { outcome: input.outcome, submittedAt } },
+    },
+  };
+  if (pendingQuestWordIds(next.day, input.mode).length > 0) {
+    return { ...unchanged, quest: next, accepted: true };
+  }
+  const allCorrect = day.ids.every(
+    (id) => next.day?.answers?.[questAnswerKey(input.mode, id)]?.outcome !== 'incorrect',
+  );
+  return { ...applyQuestRound(next, input.mode, allCorrect), accepted: true };
+}
+
 export function setWordInKetPack(quest: QuestState, wordId: string, on: boolean): QuestState {
   if (on) {
     return { ...quest, packWordIds: mergeKetPackIds(quest.packWordIds, [wordId]) };
   }
-  return {
+  return finishAnsweredQuestMode({
     ...quest,
     packWordIds: quest.packWordIds.filter((id) => id !== wordId),
     day: quest.day
-      ? {
-          ...quest.day,
-          ids: quest.day.ids.filter((id) => id !== wordId),
-          newIds: quest.day.newIds.filter((id) => id !== wordId),
-        }
+      ? pruneDay(quest.day, new Set(quest.day.ids.filter((id) => id !== wordId)))
       : quest.day,
-  };
+  });
 }
 
 export function pruneQuestWord(quest: QuestState, wordId: string): QuestState {
-  const { [wordId]: _removed, ...items } = quest.items;
+  const next = setWordInKetPack(quest, wordId, false);
+  const { [wordId]: _removed, ...items } = next.items;
   return {
-    ...setWordInKetPack(quest, wordId, false),
+    ...next,
     items,
   };
 }

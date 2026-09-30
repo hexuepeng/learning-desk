@@ -13,9 +13,10 @@ import {
   useParentClipRecorder,
 } from '@/hooks/useParentClipRecorder';
 import { playCue } from '@/lib/playCue';
-import { QUEST_NEW_COUNTS } from '@/lib/quest';
+import { QUEST_DAILY_WORD_LIMIT, QUEST_NEW_COUNTS, questDayCounts } from '@/lib/quest';
 import { parseWordList } from '@/lib/parseWordList';
 import { filterWords } from '@/lib/wordsView';
+import { todayKey } from '@/lib/util';
 
 export default function DadWords() {
   const {
@@ -47,6 +48,16 @@ export default function DadWords() {
 
   const preview = parseWordList(bulk);
   const rows = useMemo(() => filterWords(state.words, query), [state.words, query]);
+  const today = todayKey();
+  const counts = questDayCounts(quest.day);
+  const plannedIds = new Set(quest.day?.ids ?? []);
+  const newIds = new Set(quest.day?.newIds ?? []);
+  const dueIds = quest.packWordIds.filter((id) => {
+    const item = quest.items[id];
+    return Boolean(item?.nextDue && item.nextDue <= today) && !newIds.has(id) &&
+      !(quest.day?.complete && plannedIds.has(id));
+  });
+  const deferredCount = dueIds.filter((id) => !plannedIds.has(id)).length;
 
   const startClip = async (wordId: string) => {
     const outcome = await clip.start({ kind: 'word', id: wordId });
@@ -80,10 +91,17 @@ export default function DadWords() {
           <View>
       <Card style={styles.toggle}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.label}>每天新词</Text>
+          <Text style={styles.label}>每天新词上限</Text>
           <Text style={styles.meta}>
-            KET 闯关每天新学 10 / 20 / 30 个（默认 20）。今日已抽好的卡从明天起按新数量。词库 {quest.packWordIds.length}{' '}
-            · 已安排 {quest.cursor}
+            新词最多 {quest.dailyNewCount} 个；新词与复习合计最多 {QUEST_DAILY_WORD_LIMIT} 个。复习优先，剩余名额安排新词，默认新词上限 5 个。每个词练习三关。
+          </Text>
+          <Text style={styles.meta}>
+            待复习 {dueIds.length} · 本日安排 {counts.total}（复习 {counts.reviewCount} / 新词 {counts.newCount}）· 延后复习 {deferredCount}
+          </Text>
+          <Text style={styles.meta}>
+            {counts.total > QUEST_DAILY_WORD_LIMIT
+              ? '保留今天原来的任务，新的每日上限明天生效。'
+              : '今日任务已固定，修改上限或导入新词从明天起生效。'}
           </Text>
           <View style={styles.countRow}>
             {QUEST_NEW_COUNTS.map((count) => (

@@ -76,7 +76,7 @@ export default function HomeScreen() {
           ) : (
             <Text style={[styles.muted, { fontSize: bodySize }]}>绘本可另外看，不计入今日进度</Text>
           )}
-          <KidButton label={complete ? '再练一会儿' : t('startToday')} onPress={() => router.push('/daily')} />
+          <KidButton label={complete ? '今日学习已完成' : t('startToday')} disabled={complete} onPress={() => router.push('/daily')} />
         </Card>
 
         <View style={isTablet && isLandscape ? styles.landCol : undefined}>

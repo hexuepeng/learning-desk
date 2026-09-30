@@ -2,7 +2,7 @@
   "expo": {
     "name": "学习台",
     "slug": "learning-desk",
-    "version": "0.1.25",
+    "version": "0.1.27",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "learningdesk",
@@ -51,7 +51,8 @@
           "enableBackgroundPlayback": false,
           "enableBackgroundRecording": false
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

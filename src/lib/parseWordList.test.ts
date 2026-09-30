@@ -92,8 +92,8 @@ describe('parseWordList', () => {
   it('loads the shipped default KET pack as 1792 unique lines with optional IPA', () => {
     const fromTxt = readFileSync(new URL('../content/ket-a2-default-bundle.txt', import.meta.url), 'utf8');
     const fromCsv = readFileSync(new URL('../content/ket-a2-default-bundle.csv', import.meta.url), 'utf8');
-    assert.equal(DEFAULT_KET_PACK_TEXT, fromTxt);
-    assert.equal(DEFAULT_KET_PACK_TEXT, fromCsv);
+    assert.equal(DEFAULT_KET_PACK_TEXT, fromTxt.replace(/\r\n/g, '\n'));
+    assert.equal(DEFAULT_KET_PACK_TEXT, fromCsv.replace(/\r\n/g, '\n'));
     assert.equal(FAMILY_KET_PACK_TEXT, DEFAULT_KET_PACK_TEXT);
     const parsed = parseWordList(DEFAULT_KET_PACK_TEXT);
     assert.equal(parsed.length, DEFAULT_KET_PACK_SIZE);

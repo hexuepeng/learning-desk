@@ -151,11 +151,18 @@ export type SentenceSettings = {
   countTowardDaily: boolean;
 };
 
-export type QuestNewCount = 10 | 20 | 30;
+export type QuestNewCount = 5 | 10 | 20 | 30;
 
 export type QuestModeIndex = 0 | 1 | 2;
 
 export type QuestStars = [number, number, number];
+
+export type QuestAnswerOutcome = 'correct' | 'incorrect' | 'self-reported';
+
+export type QuestAnswer = {
+  outcome: QuestAnswerOutcome;
+  submittedAt: string;
+};
 
 /** 每个闯关词的间隔复习进度。nextDue 按首次学会日 + 1/2/4/7 天。 */
 export type QuestWordItem = {
@@ -170,6 +177,8 @@ export type QuestDay = {
   newIds: string[];
   stars: QuestStars;
   complete: boolean;
+  /** 键为「关卡序号:wordId」；旧存档缺省为空，已有星级仍优先。 */
+  answers?: Record<string, QuestAnswer>;
 };
 
 /** 按孩子档案保存的闯关状态。默认不计入今日卡。 */
