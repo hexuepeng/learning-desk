@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 import { Celebration } from '@/components/Celebration';
@@ -10,17 +10,13 @@ import { useDesk } from '@/hooks/useDesk';
 import {
   QUEST_MODES,
   currentQuestMode,
-  formatQuestStars,
   packWordsOf,
+  pendingQuestWordIds,
 } from '@/lib/quest';
-import type { QuestModeIndex, Word } from '@/types/models';
+import { todayKey } from '@/lib/util';
 
 export default function QuestPlayScreen() {
-  const { ready, quest, state, touchQuestDay, applyQuestRound } = useDesk();
-  const [index, setIndex] = useState(0);
-  const [wrong, setWrong] = useState(false);
-  const [note, setNote] = useState('');
-  const [summary, setSummary] = useState<string | null>(null);
+  const { ready, quest, state, touchQuestDay, submitQuestAnswer } = useDesk();
 
   useEffect(() => {
     if (ready) touchQuestDay();
@@ -30,78 +26,66 @@ export default function QuestPlayScreen() {
     () => packWordsOf(state.words, quest.packWordIds),
     [state.words, quest.packWordIds],
   );
-  const queue = useMemo(() => {
-    const map = new Map(state.words.map((word) => [word.id, word]));
-    return (quest.day?.ids ?? [])
-      .map((id) => map.get(id))
-      .filter((word): word is Word => Boolean(word));
-  }, [quest.day?.ids, state.words]);
-
   const mode = currentQuestMode(quest.day);
-  const word = queue[index];
+  const pendingIds = mode === 'done' ? [] : pendingQuestWordIds(quest.day, mode);
+  const word = state.words.find((item) => item.id === pendingIds[0]);
 
   if (!ready) return <LoadingScreen />;
 
-  if (!quest.day || mode === 'done' || queue.length === 0) {
+  if (!quest.day || quest.day.ids.length === 0) {
     return (
       <Screen title="KET 闯关" back>
         <Card>
-          <Text style={styles.body}>
-            {quest.day?.complete ? '今天已经过完三关了。' : '今天没有待学的闯关词。'}
-          </Text>
-          <KidButton label="回闯关首页" onPress={() => router.replace('/english/quest')} />
+          <Text style={styles.body}>今天没有待复习的词，也没有待学的新词。</Text>
+          <KidButton label="回英语馆" onPress={() => router.replace('/english')} />
         </Card>
       </Screen>
     );
   }
 
-  if (summary) {
+  if (quest.day.complete || mode === 'done') {
     return (
       <Screen title="KET 闯关" back>
         <Card>
-          <Celebration title="今日三关完成" subtitle={summary} />
-          <KidButton label="回闯关首页" onPress={() => router.replace('/english/quest')} />
+          <Celebration
+            title="今天的闯关完成啦"
+            subtitle={`今天练习了 ${quest.day.ids.length} 个词，三关都完成了。明天再来！`}
+          />
+          <KidButton label="回首页" onPress={() => router.replace('/')} />
         </Card>
       </Screen>
     );
   }
 
-  const playMode = mode as QuestModeIndex;
-  const stars = quest.day.stars[playMode];
+  const date = quest.day.date;
+  const profileId = state.activeProfileId;
   const pool = pack.length >= 2 ? pack : state.words;
+  const completedCount = quest.day.ids.length - pendingIds.length;
 
   return (
     <Screen
-      title={`第 ${playMode + 1} 关 · ${QUEST_MODES[playMode].title}`}
-      subtitle={`${formatQuestStars(stars)} · ${index + 1}/${queue.length}${note ? ` · ${note}` : ''}`}
+      title={`第 ${mode + 1} 关 · ${QUEST_MODES[mode].title}`}
+      subtitle={`第 ${mode + 1} 关 · 已完成 ${completedCount}/${quest.day.ids.length}`}
       back
     >
       {word ? (
         <QuestPlay
+          key={`${profileId}:${date}:${mode}:${word.id}`}
           word={word}
           pool={pool}
-          mode={playMode}
-          onResolved={(correct) => {
-            const nextWrong = wrong || !correct;
-            const last = index + 1 >= queue.length;
-            if (!last) {
-              setWrong(nextWrong);
-              setIndex(index + 1);
+          mode={mode}
+          onResolved={async (outcome) => {
+            if (date !== todayKey()) {
+              touchQuestDay();
               return;
             }
-            const result = applyQuestRound(playMode, !nextWrong);
-            setWrong(false);
-            setIndex(0);
-            if (result.dayComplete) {
-              setSummary('复习会排在学会后的第 1、2、4、7 天。不计入今日英语卡。');
-              return;
-            }
-            setNote(result.modeCleared ? '这一关完成，下一关！' : '请再走完今日这批词。');
+            await submitQuestAnswer({ profileId, date, mode, wordId: word.id, outcome });
           }}
         />
       ) : (
         <Card>
-          <Text style={styles.body}>这张卡片的单词找不到了，请让爸爸检查闯关词库。</Text>
+          <Text style={styles.body}>词表已更新，请返回闯关首页继续。</Text>
+          <KidButton label="回闯关首页" onPress={() => router.replace('/english/quest')} />
         </Card>
       )}
     </Screen>

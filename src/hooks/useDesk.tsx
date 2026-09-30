@@ -4,9 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { AppState } from 'react-native';
 
 import { FAMILY_KET_PACK_TEXT } from '@/content/familyKetPack';
 import { createSampleWords } from '@/content/sampleWords';
@@ -66,7 +68,7 @@ import {
   wordsForProfile,
 } from '@/lib/profile';
 import {
-  applyQuestRound as applyQuestRoundToState,
+  applyQuestAnswer,
   clampQuestNewCount,
   ensureQuestDay,
   isSampleKetEn,
@@ -75,7 +77,7 @@ import {
   pruneQuestWord,
   questOf,
   setWordInKetPack,
-  type QuestRoundResult,
+  type QuestAnswerInput,
 } from '@/lib/quest';
 import {
   composeSentenceDrafts as buildSentenceDrafts,
@@ -92,7 +94,9 @@ import {
   countSession,
   starsForSession,
 } from '@/lib/stars';
-import { clearState, defaultState, loadState, saveState } from '@/lib/storage';
+import { clearState, defaultState, loadState, preserveUnreadableState, saveState } from '@/lib/storage';
+import { createOperationGate } from '@/lib/operationGate';
+import { hasPendingBackupRestore, recoverInterruptedBackupRestore } from '@/lib/backupFiles';
 import { applyDailyComplete } from '@/lib/streak';
 import { createId, todayKey } from '@/lib/util';
 import { buildFeedbackText } from '@/lib/feedback';
@@ -104,7 +108,6 @@ import type {
   PersistedState,
   PracticeEvent,
   Profile,
-  QuestModeIndex,
   QuestNewCount,
   QuestState,
   Sentence,
@@ -115,6 +118,11 @@ import type {
 
 type DeskContextValue = {
   ready: boolean;
+  loadError: string | null;
+  saveError: string | null;
+  backupBusy: boolean;
+  retryLoad: () => Promise<void>;
+  retrySave: () => Promise<void>;
   state: PersistedState;
   profiles: Profile[];
   activeProfileId: string;
@@ -150,7 +158,7 @@ type DeskContextValue = {
   setQuestDailyNewCount: (count: QuestNewCount) => void;
   seedSampleKetPack: () => void;
   touchQuestDay: () => void;
-  applyQuestRound: (mode: QuestModeIndex, allCorrect: boolean) => QuestRoundResult;
+  submitQuestAnswer: (input: QuestAnswerInput) => Promise<void>;
   quest: QuestState;
   upsertSentence: (input: { id?: string; en: string; zh?: string; tags?: string | string[] }) => void;
   removeSentence: (id: string) => void;
@@ -196,7 +204,8 @@ type DeskContextValue = {
   removeAlbumBook: (id: string) => Promise<void>;
   resetDemo: () => Promise<void>;
   exportSnapshot: () => PersistedState;
-  replaceState: (next: PersistedState) => void;
+  replaceState: (next: PersistedState) => Promise<void>;
+  withBackupSnapshot: <T>(work: (snapshot: PersistedState) => Promise<T>) => Promise<T>;
   progressFor: (wordId: string) => WordProgress;
   dictationTypeFor: (wordId: string) => DictationType;
 };
@@ -230,27 +239,101 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<PersistedState>(defaultState);
   const [parentUnlocked, setParentUnlocked] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const stateRef = useRef(state);
+  const readyRef = useRef(false);
+  const loadErrorRef = useRef(false);
+  const loading = useRef(false);
+  const backupTransaction = useRef<{ replaced: boolean } | null>(null);
+  const gate = useRef(createOperationGate()).current;
 
-  useEffect(() => {
-    void (async () => {
+  const publish = useCallback((next: PersistedState) => {
+    stateRef.current = next;
+    setState(next);
+  }, []);
+
+  const retryLoad = useCallback(async () => {
+    if (loading.current || gate.blocked) return;
+    loading.current = true;
+    try {
+      await recoverInterruptedBackupRestore();
       const loaded = seedDefaultKetPackIfEmpty(await loadState());
       const dated = withEnsuredQuest({
         ...loaded,
         daily: ensureTodayLesson(loaded.daily, loaded.words, loaded.progress),
       });
-      setState(dated);
+      await saveState(dated);
+      publish(dated);
+      loadErrorRef.current = false;
+      setLoadError(null);
+      readyRef.current = true;
       setReady(true);
-    })();
-  }, []);
+    } catch (error) {
+      readyRef.current = false;
+      setReady(false);
+      loadErrorRef.current = true;
+      setLoadError(error instanceof Error ? error.message : '无法读取本机存档，请重试或恢复备份。');
+    } finally {
+      loading.current = false;
+    }
+  }, [gate, publish]);
 
-  useEffect(() => {
-    if (!ready) return;
-    void saveState(state);
-  }, [ready, state]);
+  useEffect(() => { void retryLoad(); }, [retryLoad]);
+
+  // 已登记的媒体操作可在备份等待它结束时完成状态更新。
+  const updateFromMedia = useCallback((recipe: (current: PersistedState) => PersistedState) => {
+    const next = recipe(stateRef.current);
+    if (next === stateRef.current) return;
+    publish(next);
+    void saveState(next).then(() => setSaveError(null), () => {
+      setSaveError('本机保存失败，请重试。暂时不要关闭应用。');
+    });
+  }, [publish]);
 
   const update = useCallback((recipe: (current: PersistedState) => PersistedState) => {
-    setState((current) => recipe(current));
-  }, []);
+    if (!readyRef.current || gate.blocked) return;
+    updateFromMedia(recipe);
+  }, [gate, updateFromMedia]);
+
+  const cleanupMedia = useCallback((work: () => Promise<void>) => {
+    if (!readyRef.current) return;
+    void gate.mutate(work).catch(() => setSaveError('文件操作未完成，请稍后重试。'));
+  }, [gate]);
+
+  const mutateMedia = useCallback(async <T,>(work: () => Promise<T>): Promise<T> => {
+    if (!readyRef.current) throw new Error('存档尚未恢复，请先完成恢复或重试。');
+    return gate.mutate(work);
+  }, [gate]);
+
+  const retrySave = useCallback(async () => {
+    await gate.freeze(async () => {
+      if (!readyRef.current) return;
+      await saveState(stateRef.current);
+      setSaveError(null);
+    });
+  }, [gate]);
+
+  const refreshDate = useCallback(() => {
+    if (!readyRef.current || gate.blocked) return;
+    const current = stateRef.current;
+    const date = todayKey();
+    if (current.daily?.date === date && questOf(current.questByProfile, current.activeProfileId).day?.date === date) return;
+    update((previous) => withEnsuredQuest({
+      ...previous,
+      daily: ensureTodayLesson(previous.daily, previous.words, previous.progress),
+    }));
+  }, [gate, update]);
+
+  useEffect(() => {
+    refreshDate();
+    const subscription = AppState.addEventListener('change', (status) => {
+      if (status === 'active') refreshDate();
+    });
+    const timer = setInterval(refreshDate, 30_000);
+    return () => { subscription.remove(); clearInterval(timer); };
+  }, [ready, backupBusy, refreshDate]);
 
   const unlockParent = useCallback(
     (pin: string) => {
@@ -329,9 +412,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           (quest) => pruneQuestWord(quest, id),
         );
       });
-      if (recordingUri) void deleteRecordingFile(recordingUri);
+      if (recordingUri) cleanupMedia(() => deleteRecordingFile(recordingUri));
     },
-    [update],
+    [update, cleanupMedia],
   );
 
   const setWordKetPack = useCallback(
@@ -352,10 +435,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const setWordRecording = useCallback(
-    async (wordId: string, sourceUri: string | null) => {
+    async (wordId: string, sourceUri: string | null) => mutateMedia(async () => {
       if (!sourceUri) {
         let previous: string | null | undefined;
-        update((current) => {
+        updateFromMedia((current) => {
           previous = current.words.find((word) => word.id === wordId)?.recordingUri;
           return {
             ...current,
@@ -372,7 +455,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         wordRecordingRelativePath(wordId, guessAudioExt(sourceUri)),
       );
       let previous: string | null | undefined;
-      update((current) => {
+      updateFromMedia((current) => {
         previous = current.words.find((word) => word.id === wordId)?.recordingUri;
         if (!current.words.some((word) => word.id === wordId)) return current;
         return {
@@ -383,8 +466,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         };
       });
       if (previous && previous !== stored) await deleteRecordingFile(previous);
-    },
-    [update],
+    }),
+    [mutateMedia, updateFromMedia],
   );
 
   const importWordText = useCallback(
@@ -419,10 +502,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         }
         return withActiveQuest({ ...current, words: result.words }, () => result.quest);
       });
-      for (const uri of removedRecordings) void deleteRecordingFile(uri);
+      for (const uri of removedRecordings) cleanupMedia(() => deleteRecordingFile(uri));
       return { added, skipped, packAdded };
     },
-    [update],
+    [update, cleanupMedia],
   );
 
   const importFamilyKetPack = useCallback(
@@ -514,20 +597,26 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     update((current) => withEnsuredQuest(current));
   }, [update]);
 
-  const applyQuestRound = useCallback(
-    (mode: QuestModeIndex, allCorrect: boolean) => {
-      const profileId = resolveActiveProfileId(state.profiles, state.activeProfileId);
-      const existing = new Set(wordsForProfile(state.words, profileId).map((word) => word.id));
-      const quest = ensureQuestDay(questOf(state.questByProfile, profileId), existing);
-      const result = applyQuestRoundToState(quest, mode, allCorrect);
-      update((current) => ({
+  const submitQuestAnswer = useCallback(async (input: QuestAnswerInput) => {
+    await gate.freeze(async () => {
+      const current = stateRef.current;
+      const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+      if (!readyRef.current || profileId !== input.profileId || input.date !== todayKey()) {
+        throw new Error('今天的任务或孩子档案已变化，请重新进入练习。');
+      }
+      const existing = new Set(wordsForProfile(current.words, profileId).map((word) => word.id));
+      const quest = ensureQuestDay(questOf(current.questByProfile, profileId), existing);
+      const result = applyQuestAnswer(quest, input);
+      if (!result.accepted) return;
+      const next = {
         ...current,
-        questByProfile: patchQuest(current.questByProfile ?? {}, profileId, result.quest),
-      }));
-      return result;
-    },
-    [state.activeProfileId, state.profiles, state.questByProfile, state.words, update],
-  );
+        questByProfile: patchQuest(current.questByProfile, profileId, result.quest),
+      };
+      await saveState(next);
+      publish(next);
+      setSaveError(null);
+    });
+  }, [gate, publish]);
 
   const upsertSentence = useCallback(
     (input: { id?: string; en: string; zh?: string; tags?: string | string[] }) => {
@@ -582,9 +671,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           sentences: current.sentences.filter((item) => item.id !== id),
         };
       });
-      if (recordingUri) void deleteRecordingFile(recordingUri);
+      if (recordingUri) cleanupMedia(() => deleteRecordingFile(recordingUri));
     },
-    [update],
+    [update, cleanupMedia],
   );
 
   const importSentenceText = useCallback(
@@ -606,17 +695,17 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         if (result.added === 0 && result.skipped === 0) return current;
         return { ...current, sentences: result.sentences };
       });
-      for (const uri of removedRecordings) void deleteRecordingFile(uri);
+      for (const uri of removedRecordings) cleanupMedia(() => deleteRecordingFile(uri));
       return { added, skipped };
     },
-    [update],
+    [update, cleanupMedia],
   );
 
   const setSentenceRecording = useCallback(
-    async (sentenceId: string, sourceUri: string | null) => {
+    async (sentenceId: string, sourceUri: string | null) => mutateMedia(async () => {
       if (!sourceUri) {
         let previous: string | null | undefined;
-        update((current) => {
+        updateFromMedia((current) => {
           previous = current.sentences.find((item) => item.id === sentenceId)?.recordingUri;
           return {
             ...current,
@@ -633,7 +722,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         sentenceRecordingRelativePath(sentenceId, guessAudioExt(sourceUri)),
       );
       let previous: string | null | undefined;
-      update((current) => {
+      updateFromMedia((current) => {
         previous = current.sentences.find((item) => item.id === sentenceId)?.recordingUri;
         if (!current.sentences.some((item) => item.id === sentenceId)) return current;
         return {
@@ -644,8 +733,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         };
       });
       if (previous && previous !== stored) await deleteRecordingFile(previous);
-    },
-    [update],
+    }),
+    [mutateMedia, updateFromMedia],
   );
 
   const composeSentenceDrafts = useCallback(() => {
@@ -782,8 +871,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         packWordIds: mergeKetPackIds(quest.packWordIds, packIds),
       }));
     });
-    for (const uri of removed) void deleteRecordingFile(uri);
-  }, [state.words, update]);
+    for (const uri of removed) cleanupMedia(() => deleteRecordingFile(uri));
+  }, [state.words, update, cleanupMedia]);
 
   const setDictationType = useCallback(
     (type: DictationType, on: boolean) => {
@@ -986,7 +1075,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const addAlbumBook = useCallback(
-    async (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => {
+    async (book: Omit<AlbumBook, 'id' | 'createdAt'> & { id?: string }) => mutateMedia(async () => {
       const id = book.id ?? createId('album');
       const pages: AlbumPage[] = [];
       for (const page of book.pages) {
@@ -1017,13 +1106,13 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         ),
         profileId: state.activeProfileId,
       };
-      update((current) => ({
+      updateFromMedia((current) => ({
         ...current,
         albumBooks: upsertAlbumBook(current.albumBooks, next),
       }));
       return id;
-    },
-    [state.activeProfileId, update],
+    }),
+    [state.activeProfileId, mutateMedia, updateFromMedia],
   );
 
   const updateAlbumBook = useCallback(
@@ -1041,7 +1130,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const addAlbumPage = useCallback(
-    async (bookId: string, page: Omit<AlbumPage, 'id'> & { id?: string }) => {
+    async (bookId: string, page: Omit<AlbumPage, 'id'> & { id?: string }) => mutateMedia(async () => {
       const pageId = page.id ?? createId('page');
       const photoUri = await persistAlbumPhoto(page.photoUri, bookId, pageId);
       const recordingUri = page.recordingUri
@@ -1055,7 +1144,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         () => pageId,
       );
       let added = false;
-      update((current) => {
+      updateFromMedia((current) => {
         const book = current.albumBooks.find((item) => item.id === bookId);
         if (!book) return current;
         added = true;
@@ -1065,8 +1154,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         };
       });
       return added ? pageId : null;
-    },
-    [update],
+    }),
+    [mutateMedia, updateFromMedia],
   );
 
   const updateAlbumPage = useCallback(
@@ -1088,10 +1177,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   );
 
   const setAlbumPageRecording = useCallback(
-    async (bookId: string, pageId: string, sourceUri: string | null) => {
+    async (bookId: string, pageId: string, sourceUri: string | null) => mutateMedia(async () => {
       if (!sourceUri) {
         let previous: string | null | undefined;
-        update((current) => {
+        updateFromMedia((current) => {
           const book = current.albumBooks.find((item) => item.id === bookId);
           previous = book?.pages.find((item) => item.id === pageId)?.recordingUri;
           if (!book) return current;
@@ -1111,7 +1200,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         albumPageRecordingRelativePath(bookId, pageId, guessAudioExt(sourceUri)),
       );
       let previous: string | null | undefined;
-      update((current) => {
+      updateFromMedia((current) => {
         const book = current.albumBooks.find((item) => item.id === bookId);
         previous = book?.pages.find((item) => item.id === pageId)?.recordingUri;
         if (!book) return current;
@@ -1124,15 +1213,15 @@ export function DeskProvider({ children }: { children: ReactNode }) {
         };
       });
       if (previous && previous !== stored) await deleteRecordingFile(previous);
-    },
-    [update],
+    }),
+    [mutateMedia, updateFromMedia],
   );
 
   const removeAlbumPage = useCallback(
-    async (bookId: string, pageId: string) => {
+    async (bookId: string, pageId: string) => mutateMedia(async () => {
       let photoUri: string | undefined;
       let recordingUri: string | null | undefined;
-      update((current) => {
+      updateFromMedia((current) => {
         const book = current.albumBooks.find((item) => item.id === bookId);
         const page = book?.pages.find((item) => item.id === pageId);
         photoUri = page?.photoUri;
@@ -1145,20 +1234,20 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       });
       if (photoUri) await deleteAlbumPhoto(photoUri);
       if (recordingUri) await deleteRecordingFile(recordingUri);
-    },
-    [update],
+    }),
+    [mutateMedia, updateFromMedia],
   );
 
   const removeAlbumBook = useCallback(
-    async (id: string) => {
+    async (id: string) => mutateMedia(async () => {
       await deleteAlbumBookFiles(id);
       await deleteAlbumBookRecordings(id);
-      update((current) => ({
+      updateFromMedia((current) => ({
         ...current,
         albumBooks: removeAlbumBookById(current.albumBooks, id),
       }));
-    },
-    [update],
+    }),
+    [mutateMedia, updateFromMedia],
   );
 
   const renameActiveProfile = useCallback(
@@ -1219,30 +1308,76 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     [update],
   );
 
-  const resetDemo = useCallback(async () => {
+  const resetDemo = useCallback(async () => mutateMedia(async () => {
     await clearAllAlbumFiles();
     await clearAllRecordingFiles();
     await clearState();
     const fresh = defaultState();
-    setState(
-      withEnsuredQuest({
+    const next = withEnsuredQuest({
         ...fresh,
         daily: ensureTodayLesson(null, fresh.words, fresh.progress),
-      }),
-    );
+      });
+    await saveState(next);
+    publish(next);
     setParentUnlocked(false);
-  }, []);
+  }), [mutateMedia, publish]);
 
-  const exportSnapshot = useCallback(() => state, [state]);
+  const exportSnapshot = useCallback(() => stateRef.current, []);
 
-  const replaceState = useCallback((next: PersistedState) => {
-    setState(
-      withEnsuredQuest({
-        ...next,
-        daily: ensureTodayLesson(next.daily, next.words, next.progress),
-      }),
-    );
-  }, []);
+  const replaceState = useCallback(async (next: PersistedState) => {
+    if (loadErrorRef.current) await preserveUnreadableState();
+    await saveState(next);
+    if (backupTransaction.current) {
+      stateRef.current = next;
+      backupTransaction.current.replaced = true;
+      return;
+    }
+    publish(next);
+    readyRef.current = true;
+    loadErrorRef.current = false;
+    setReady(true);
+    setLoadError(null);
+    setSaveError(null);
+  }, [publish]);
+
+  const withBackupSnapshot = useCallback(async <T,>(work: (snapshot: PersistedState) => Promise<T>) => {
+    if (gate.blocked) throw new Error('正在保存或备份，请稍后再试。');
+    setBackupBusy(true);
+    try {
+      return await gate.freeze(async () => {
+        if (readyRef.current) await saveState(stateRef.current);
+        const snapshot = JSON.parse(JSON.stringify(stateRef.current)) as PersistedState;
+        const transaction = { replaced: false };
+        backupTransaction.current = transaction;
+        try {
+          const result = await work(snapshot);
+          if (transaction.replaced) {
+            publish(stateRef.current);
+            readyRef.current = true;
+            loadErrorRef.current = false;
+            setReady(true);
+            setLoadError(null);
+            setSaveError(null);
+          }
+          return result;
+        } catch (error) {
+          stateRef.current = snapshot;
+          // 回退未完成时保留 journal，停止写入，交给重试或冷启动恢复。
+          if (await hasPendingBackupRestore().catch(() => true)) {
+            readyRef.current = false;
+            loadErrorRef.current = true;
+            setReady(false);
+            setLoadError('上次恢复尚未完成，已暂停保存以保护原存档。请重试恢复，暂时不要关闭应用。');
+          }
+          throw error;
+        } finally {
+          backupTransaction.current = null;
+        }
+      });
+    } finally {
+      setBackupBusy(false);
+    }
+  }, [gate, publish]);
 
   const visibleState = useMemo(() => projectProfile(state), [state]);
   const quest = useMemo(() => {
@@ -1253,6 +1388,11 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   const value = useMemo<DeskContextValue>(
     () => ({
       ready,
+      loadError,
+      saveError,
+      backupBusy,
+      retryLoad,
+      retrySave,
       state: visibleState,
       profiles: state.profiles,
       activeProfileId: visibleState.activeProfileId,
@@ -1275,7 +1415,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setQuestDailyNewCount,
       seedSampleKetPack,
       touchQuestDay,
-      applyQuestRound,
+      submitQuestAnswer,
       quest,
       upsertSentence,
       removeSentence,
@@ -1306,11 +1446,17 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       resetDemo,
       exportSnapshot,
       replaceState,
+      withBackupSnapshot,
       progressFor,
       dictationTypeFor,
     }),
     [
       ready,
+      loadError,
+      saveError,
+      backupBusy,
+      retryLoad,
+      retrySave,
       state,
       visibleState,
       renameActiveProfile,
@@ -1332,7 +1478,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setQuestDailyNewCount,
       seedSampleKetPack,
       touchQuestDay,
-      applyQuestRound,
+      submitQuestAnswer,
       quest,
       upsertSentence,
       removeSentence,
@@ -1363,6 +1509,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       resetDemo,
       exportSnapshot,
       replaceState,
+      withBackupSnapshot,
       progressFor,
       dictationTypeFor,
     ],

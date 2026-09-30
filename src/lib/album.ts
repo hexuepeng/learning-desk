@@ -77,6 +77,9 @@ export function normalizeAlbumBook(raw: unknown): AlbumBook | null {
     title: defaultAlbumTitle(typeof data.title === 'string' ? data.title : ''),
     pages,
     createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
+    ...(typeof data.profileId === 'string' && data.profileId.trim()
+      ? { profileId: data.profileId }
+      : {}),
   };
 }
 
