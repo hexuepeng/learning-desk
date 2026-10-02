@@ -2,7 +2,7 @@
 
 家庭定制学习台：给 8 岁孩子用的多学科壳，**英语先行**（背词 / 默写 / 绘本）。爸爸根据孩子反馈加工具。内容是本机家长词包，不捆绑商业词库或教材。
 
-当前开发版本 **0.1.27**，包含前两次迭代。iPhone + iPad（平板是孩子主设备）；系统分享、跨设备媒体恢复和横竖屏仍需真机验收。
+当前开发版本 **0.1.28**（EAS / TestFlight 配置）。产品功能仍是 0.1.27 的两次迭代。iPhone + iPad（平板是孩子主设备）；系统分享、跨设备媒体恢复和横竖屏仍需真机验收。
 
 后续开发见 [版本迭代计划](docs/版本迭代计划.md)，包含 0.1.26—0.1.31 路线及逐版实现、迁移和验收要求。
 
@@ -29,7 +29,7 @@
 - **英式音标**：词可带可选英式 IPA（存成 `/ˈæpl/`，导入时可省略斜杠）。书桌开关「显示音标」默认开；孩子背词、默写揭晓答案时显示在英文下面。示例词包只给少量核对过的音标，不批量编造、不内置商业词库
 - **默写台阶**：选单词 → 填字母 → 排字母 → 看中文写 → 听写。默认前三档开、自动升降开；书桌可一键打开挑战档（看中文写 + 听写），键盘题会提示字母数、听写可反复听
 - **发音**：设备优先英式 `en-GB` TTS（语速约 0.68，音高接近自然）。有多种英式系统音时，优先选 Daniel / Kate / Serena / Martha / Arthur 等常见高质量音色，再退回任意 `en-GB` / `en-UK`，最后才用其他英语。听感仍取决于本机是否安装了英式语音包，应用不捆绑云端 TTS。若该词（或绘本页）有家长录音，孩子点「听一听」优先播录音。删掉录音后回到 TTS
-- **不做**：上架、EAS 正式包、云同步、账号、广告、社交、AI 对话、真数学/语文
+- **不做**：公开商店商品、云同步、账号、广告、社交、AI 对话、真数学/语文。家庭 TestFlight 只备了 `eas.json`，尚未关联 Expo 项目，也未提交
 
 ## 在 iPhone / iPad 上用 Expo Go 试
 
@@ -42,7 +42,7 @@ npx expo start
 ```
 
 3. 用相机扫终端里的 QR。iPhone 和 iPad 都可以。同一 Wi-Fi，或用 `npx expo start --tunnel`。
-4. 孩子主用 **iPad**；爸爸可用 iPhone 点开书桌（首页底部 `v0.1.27` 连点 5 次，密码 `1234`）。
+4. 孩子主用 **iPad**；爸爸可用 iPhone 点开书桌（首页底部 `v0.1.28` 连点 5 次，密码 `1234`）。
 
 ### 试家长录音覆盖 TTS
 
@@ -69,10 +69,41 @@ npm run typecheck
 npx expo start --web   # 浏览器粗看；TTS/相册/相机/麦克风在 Web 上能力有限
 ```
 
+## iPad TestFlight（EAS）
+
+配置在仓库根目录 `eas.json`。目标是把 **production** 商店包交到 TestFlight，再装到 iPad（`supportsTablet: true`，bundle id `com.hexuepeng.learningdesk`）。
+
+| profile | 用途 |
+| --- | --- |
+| `development` | iOS 模拟器包（`distribution: internal`，`ios.simulator: true`）。没有 `expo-dev-client`，不是开发客户端 |
+| `preview` | internal / ad hoc，装到 Apple Developer 里已登记的设备 |
+| `production` | App Store / TestFlight。`autoIncrement: true`，且 `cli.appVersionSource` 为 `remote`，EAS 远程递增 iOS `buildNumber`。用户可见版本仍是 `app.json` 的 `version` |
+
+`eas-cli` 未写入依赖。脚本会临时用 `npx eas-cli`：
+
+```bash
+npm run eas:build:ios            # production，TestFlight 用这个
+npm run eas:build:ios:preview    # ad hoc / internal
+npm run eas:build:ios:simulator  # 模拟器
+```
+
+提交到 TestFlight（同样不要在没有凭据时运行）：
+
+```bash
+npx eas-cli submit --platform ios --profile production
+```
+
+还缺的步骤都在仓库外，需要已有 Expo 账号和 Apple Developer / App Store Connect 权限的人来做：
+
+1. `npx eas-cli login`，然后 `npx eas-cli init`，把项目关联到 Expo。成功后才会出现 `expo.extra.eas.projectId`。不要编造 projectId。
+2. 首次 `eas build` 时让 EAS 配置 iOS 分发证书和描述文件。凭据留在 EAS，不要提交 `.p8`、`.p12` 或 mobileprovision。
+3. `preview` 的 ad hoc 包还要先登记 iPad 的 UDID。TestFlight 走 `production`，不靠 UDID 清单。
+4. App Store Connect 里创建 App（bundle id 与上面一致）后，再用 `eas submit` 上传。加密出口合规已在 `app.json` 设为 `ITSAppUsesNonExemptEncryption: false`。
+
 ## 还是桩 / 未做
 
 - 数学、语文只有说明页
-- 无云同步、无账号、无 EAS/App Store 提交
+- 无云同步、无账号。EAS 配置已在仓库，Expo 项目关联和 App Store Connect 提交仍待人工完成
 - 相册书依赖本机相册 / 相机权限，录音依赖麦克风；平时保存在本机，备份由家长主动选择外部保存位置
 
 ## 版本
