@@ -2,7 +2,8 @@
   "expo": {
     "name": "学习台",
     "slug": "learning-desk",
-    "version": "0.1.28",
+    "owner": "hexuepengs-team",
+    "version": "0.1.29",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "learningdesk",
@@ -54,6 +55,11 @@
       ],
       "expo-sharing"
     ],
+    "extra": {
+      "eas": {
+        "projectId": "11cba1d7-51b3-4a0a-8050-b507357ed707"
+      }
+    },
     "experiments": {
       "typedRoutes": true
     }
