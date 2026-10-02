@@ -1,7 +1,7 @@
 {
   "name": "learning-desk",
   "main": "expo-router/entry",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "private": true,
   "description": "家庭定制学习台：英语先行的多学科学习 App",
   "scripts": {
@@ -10,6 +10,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "eas:build:ios": "npx eas-cli build --platform ios --profile production",
+    "eas:build:ios:preview": "npx eas-cli build --platform ios --profile preview",
+    "eas:build:ios:simulator": "npx eas-cli build --platform ios --profile development",
     "test": "node --experimental-strip-types --test src/lib/*.test.ts",
     "icons": "node scripts/generate-icons.mjs"
   },
