@@ -19,6 +19,19 @@ export function VocabCard({
   onKnown: () => void;
   onNotYet: () => void;
 }) {
+  // 换词后重挂载，中文重新盖上；同一词内再点仍可切换。
+  return <VocabCardFace key={word.id} word={word} onKnown={onKnown} onNotYet={onNotYet} />;
+}
+
+function VocabCardFace({
+  word,
+  onKnown,
+  onNotYet,
+}: {
+  word: Word;
+  onKnown: () => void;
+  onNotYet: () => void;
+}) {
   const { isTablet, compact } = useLayout();
   const { state } = useDesk();
   const [showZh, setShowZh] = useState(false);
