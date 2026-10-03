@@ -9,6 +9,7 @@ import { Colors, Radius, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { useLayout } from '@/hooks/useLayout';
 import { formatDailyProgress, isDailyComplete } from '@/lib/daily';
+import { weeklyEmptyChildCopy } from '@/lib/weekly';
 import { consecutiveThreeStarDays, todaysStars } from '@/lib/stars';
 import { todayKey } from '@/lib/util';
 import { APP_VERSION } from '@/constants/version';
@@ -64,7 +65,9 @@ export default function HomeScreen() {
           {hasWords ? (
             <DailyProgress daily={daily} />
           ) : (
-            <Text style={[styles.muted, { fontSize: bodySize }]}>请爸爸先加词表</Text>
+            <Text style={[styles.muted, { fontSize: bodySize }]}>
+              {daily?.scope === 'weekly' ? weeklyEmptyChildCopy() : '请爸爸先加词表'}
+            </Text>
           )}
           {todayStars ? (
             <>

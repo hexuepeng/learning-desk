@@ -19,6 +19,7 @@ import {
   hydrateQuestPacks,
   normalizeQuestByProfile,
 } from './quest.ts';
+import { migrateContentFields } from './weekly.ts';
 import { applyDefaultKetPack } from './wordImport.ts';
 import {
   defaultSentenceSettings,
@@ -62,6 +63,12 @@ function blankState(words: Word[]): PersistedState {
         packWordIds: words.filter((word) => word.ketPack).map((word) => word.id),
       },
     },
+    contentGroups: [],
+    weeklyByProfile: {},
+    dailyByProfile: {},
+    legacyDaily: null,
+    contentSchema: 1,
+    contentMigration: { legacyDailyAttributed: true },
   };
 }
 
@@ -128,6 +135,14 @@ function migrate(raw: unknown): PersistedState {
       normalizeQuestByProfile(data.questByProfile),
       words,
       profileIdOf,
+    ),
+    ...migrateContentFields(
+      {
+        ...data,
+        daily: data.daily ?? null,
+      },
+      words,
+      activeProfileId,
     ),
   };
 }

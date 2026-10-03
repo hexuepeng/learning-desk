@@ -98,12 +98,60 @@ export type StreakState = {
   stickers: string[];
 };
 
+export type DailyScope = 'library' | 'weekly';
+
 export type DailyLesson = {
   date: string;
   vocabWordIds: string[];
   dictationWordIds: string[];
   completedVocabIds: string[];
   completedDictationIds: string[];
+  /** 0.1.31 起按孩子保存。缺省表示尚未归属的旧卡。 */
+  profileId?: string;
+  /** 旧页面提交必须带上这张卡的标识，避免串到后来的孩子或新卡。 */
+  cardId?: string;
+  /** library 沿用整份词表；weekly 只从本周清单抽。 */
+  scope?: DailyScope;
+};
+
+export type ContentSourceKind = 'pdf' | 'textbook' | 'parent';
+
+export type ContentSource = {
+  id: string;
+  kind: ContentSourceKind;
+  /** 文件名、教材名，或「家长自建」。 */
+  label: string;
+  /** 页码、条目或单元。可以空。 */
+  locator?: string;
+};
+
+export type ContentGroup = {
+  id: string;
+  profileId: string;
+  name: string;
+  sources: ContentSource[];
+  wordIds: string[];
+  createdAt: string;
+};
+
+/** 家长判断，不是考试成绩，也不表示已经会拼。 */
+export type WeeklyReadiness = 'ready-to-spell' | 'familiarize';
+
+export type WeeklySelection = {
+  enabled: boolean;
+  wordIds: string[];
+  readiness: Record<string, WeeklyReadiness>;
+};
+
+export type WeeklyPlan = WeeklySelection & {
+  profileId: string;
+  /** 当天已经有卡时，新选择留到 effectiveOn 再生效。 */
+  pending: (WeeklySelection & { effectiveOn: string }) | null;
+};
+
+export type ContentMigration = {
+  /** 旧的全局今日卡只归属一次，避免导入或重启时复制完成记录。 */
+  legacyDailyAttributed: boolean;
 };
 
 export type StarRating = 1 | 2 | 3;
@@ -212,4 +260,15 @@ export type PersistedState = {
   activeProfileId: string;
   /** 每个孩子档案一份闯关 / SRS 进度 */
   questByProfile: Record<string, QuestState>;
+  /** 按孩子分组。删分组不删词。 */
+  contentGroups: ContentGroup[];
+  /** 每个孩子一份本周清单。缺省档案表示还没开。 */
+  weeklyByProfile: Record<string, WeeklyPlan>;
+  /** 0.1.31 起今日卡按档案保存。 */
+  dailyByProfile: Record<string, DailyLesson>;
+  /** 无法唯一归属的旧全局今日卡。只作说明，不复制完成记录。 */
+  legacyDaily: DailyLesson | null;
+  /** 本模块添加式迁移。只接受 1；更高版本拒绝而不是清空。 */
+  contentSchema: 1;
+  contentMigration: ContentMigration;
 };

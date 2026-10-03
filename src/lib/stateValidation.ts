@@ -147,11 +147,74 @@ export function assertPersistedStateShape(raw: unknown, complete = false): asser
     }
     field(stars, 'celebrationKey', (value) => value === null || text(value), complete);
   }
-  if (data.daily !== undefined && data.daily !== null) {
-    const daily = record(data.daily, '今日卡');
+  if (data.contentSchema !== undefined && data.contentSchema !== 1) {
+    throw new Error('这份存档的数据版本暂不支持，请先更新学习台');
+  }
+  if (complete && data.contentSchema !== 1) invalid('内容迁移版本');
+  const checkLesson = (daily: Row, label: string) => {
     field(daily, 'date', date);
     for (const name of ['vocabWordIds', 'dictationWordIds', 'completedVocabIds', 'completedDictationIds']) field(daily, name, uniqueStrings);
+    field(daily, 'profileId', nonempty, false);
+    field(daily, 'cardId', nonempty, false);
+    field(daily, 'scope', (value) => value === 'library' || value === 'weekly', false);
+    if (daily.profileId !== undefined && profileIds.size && !profileIds.has(daily.profileId as string)) invalid(`${label}档案不存在`);
+  };
+  if (data.daily !== undefined && data.daily !== null) {
+    checkLesson(record(data.daily, '今日卡'), '今日卡');
   } else if (complete && data.daily === undefined) invalid('今日卡字段缺失');
+  if (complete || data.dailyByProfile !== undefined) {
+    for (const [profileId, value] of Object.entries(record(data.dailyByProfile ?? (complete ? undefined : {}), '按档案今日卡'))) {
+      if (profileIds.size && !profileIds.has(profileId)) invalid('今日卡档案不存在');
+      const lesson = record(value, '按档案今日卡');
+      checkLesson(lesson, '按档案今日卡');
+      if (lesson.profileId !== undefined && lesson.profileId !== profileId) invalid('今日卡档案不一致');
+    }
+  }
+  if (data.legacyDaily !== undefined && data.legacyDaily !== null) checkLesson(record(data.legacyDaily, '旧今日卡'), '旧今日卡');
+  else if (complete && data.legacyDaily === undefined) invalid('旧今日卡字段缺失');
+  if (complete || data.contentGroups !== undefined) {
+    rows(data.contentGroups ?? (complete ? undefined : []), '内容分组').forEach((group) => {
+      field(group, 'name', text);
+      field(group, 'createdAt', text);
+      field(group, 'profileId', nonempty);
+      contentProfile(group);
+      field(group, 'wordIds', uniqueStrings);
+      if (!Array.isArray(group.sources)) invalid('内容来源');
+      for (const source of group.sources as unknown[]) {
+        const row = record(source, '内容来源');
+        field(row, 'id', nonempty);
+        field(row, 'kind', (value) => value === 'pdf' || value === 'textbook' || value === 'parent');
+        field(row, 'label', nonempty);
+        field(row, 'locator', text, false);
+      }
+    });
+  }
+  if (complete || data.weeklyByProfile !== undefined) {
+    for (const [profileId, value] of Object.entries(record(data.weeklyByProfile ?? (complete ? undefined : {}), '本周清单'))) {
+      if (profileIds.size && !profileIds.has(profileId)) invalid('本周清单档案不存在');
+      const plan = record(value, '本周清单');
+      field(plan, 'profileId', (id) => id === profileId);
+      field(plan, 'enabled', bool);
+      field(plan, 'wordIds', uniqueStrings);
+      const readiness = record(plan.readiness ?? {}, '准备情况');
+      for (const readinessValue of Object.values(readiness)) {
+        if (readinessValue !== 'ready-to-spell' && readinessValue !== 'familiarize') invalid('准备情况');
+      }
+      if (plan.pending !== null && plan.pending !== undefined) {
+        const pending = record(plan.pending, '待生效本周清单');
+        field(pending, 'enabled', bool);
+        field(pending, 'wordIds', uniqueStrings);
+        field(pending, 'effectiveOn', date);
+        const pendingReadiness = record(pending.readiness ?? {}, '待生效准备情况');
+        for (const readinessValue of Object.values(pendingReadiness)) {
+          if (readinessValue !== 'ready-to-spell' && readinessValue !== 'familiarize') invalid('准备情况');
+        }
+      } else if (complete && plan.pending === undefined) invalid('待生效本周清单');
+    }
+  }
+  if (complete || data.contentMigration !== undefined) {
+    field(record(data.contentMigration, '内容迁移'), 'legacyDailyAttributed', bool);
+  }
 
   for (const [profileId, value] of Object.entries(record(data.questByProfile ?? (complete ? undefined : {}), '闯关进度'))) {
     if (profileIds.size && !profileIds.has(profileId)) invalid('闯关档案不存在');

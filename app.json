@@ -3,7 +3,7 @@
     "name": "学习台",
     "slug": "learning-desk",
     "owner": "hexuepengs-team",
-    "version": "0.1.30",
+    "version": "0.1.31",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "learningdesk",

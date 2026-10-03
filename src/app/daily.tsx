@@ -10,6 +10,7 @@ import { Card, KidButton, LoadingScreen, Screen } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { formatDailyProgress, isDailyComplete, nextDailyStep } from '@/lib/daily';
+import { weeklyEmptyChildCopy } from '@/lib/weekly';
 import { consecutiveThreeStarDays, shouldShowThreeStarCelebration, todaysStars } from '@/lib/stars';
 import { todayKey } from '@/lib/util';
 
@@ -18,11 +19,15 @@ export default function DailyScreen() {
   if (!ready) return <LoadingScreen />;
 
   const daily = state.daily;
+  const claim = daily?.profileId && daily.cardId ? { profileId: daily.profileId, cardId: daily.cardId } : undefined;
   if (!daily || (daily.vocabWordIds.length === 0 && daily.dictationWordIds.length === 0)) {
+    const weeklyEmpty = daily?.scope === 'weekly';
     return (
       <Screen title="今日英语" back>
         <Card>
-          <Text style={styles.body}>词表还是空的。请爸爸先加一些单词。</Text>
+          <Text style={styles.body}>
+            {weeklyEmpty ? weeklyEmptyChildCopy() : '词表还是空的。请爸爸先加一些单词。'}
+          </Text>
           <KidButton label="去英语馆看看" onPress={() => router.replace('/english')} />
         </Card>
       </Screen>
@@ -82,8 +87,8 @@ export default function DailyScreen() {
         <Card>
           <VocabCard
             word={word}
-            onKnown={() => markVocab(word.id, true, true)}
-            onNotYet={() => markVocab(word.id, false, true)}
+            onKnown={() => markVocab(word.id, true, true, claim)}
+            onNotYet={() => markVocab(word.id, false, true, claim)}
           />
         </Card>
       ) : (
@@ -91,7 +96,7 @@ export default function DailyScreen() {
           word={word}
           pool={state.words}
           type={dictationTypeFor(word.id)}
-          onResolved={(correct) => markDictation(word.id, correct, true)}
+          onResolved={(correct) => markDictation(word.id, correct, true, undefined, claim)}
         />
       )}
       <View style={styles.foot}>
