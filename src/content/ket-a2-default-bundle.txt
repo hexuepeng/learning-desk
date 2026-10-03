@@ -1582,8 +1582,8 @@ spanish,西班牙语；西班牙的,/'spæniʃ/
 spare,剩余；备用品,/spˈeə/
 speak,说；说话,/spˈiːk/
 speaker,说话人；讲演者,/spˈiːkɐ/
-special,专辑；专车,/spˈɛʃəl/
-spell,符咒；魅力,/spˈɛl/
+special,特别的；特殊的,/spˈɛʃəl/
+spell,拼写,/spˈɛl/
 spelling,拼；拼字,/spˈɛlɪŋ/
 spider,蜘蛛；设圈套者,/spˈaɪdɐ/
 spoon,匙；调羹,/spˈuːn/
@@ -1663,7 +1663,7 @@ thirty-first,第三十一,/'θɜ:ti:f'ɜ:st/
 thousand,千,/θˈaʊzənd/
 three,三,/θɹˈiː/
 throw,投；掷,/θɹˈəʊ/
-tidy,椅子的背罩；装杂物的容器,/tˈaɪdi/
+tidy,整洁的；整理,/tˈaɪdi/
 tidy up,整理,
 tie,带子；线,/tˈaɪ/
 till,直到；在...以前,/tˈɪl/
@@ -1741,7 +1741,7 @@ washing-up,洗餐具；待洗餐具,
 way,路；路线,/wˈeɪ/
 web,网；蛛丝,/wˈɛb/
 web page,WEB页,
-weekday,周日；平日,/wˈiːkdeɪ/
+weekday,工作日；平日,/wˈiːkdeɪ/
 weekly,周刊；周报,/wˈiːkli/
 welcome,欢迎；欢迎词,/wˈɛlkʌm/
 well,井；泉水,/wˈɛl/

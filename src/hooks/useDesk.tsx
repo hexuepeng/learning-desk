@@ -52,11 +52,26 @@ import {
 } from '@/lib/dictation';
 import {
   addWordToDaily,
-  ensureTodayLesson,
   isDailyComplete,
   markDictationDone,
   markVocabDone,
 } from '@/lib/daily';
+import {
+  acceptDailyClaim,
+  addWordToContentGroups,
+  applyGlossCorrections,
+  commitWeeklySelection,
+  createContentGroup,
+  detachWord,
+  findProfileWord,
+  importProofreadPack,
+  removeContentGroup,
+  resolveActiveLearningDay,
+  setWeeklyReadiness,
+  withActiveDaily,
+  type DailyClaim,
+} from '@/lib/weekly';
+import { PROOFREAD_STARTER } from '@/content/proofreadStarterPack';
 import { normalizeIpa } from '@/lib/ipa';
 import { normalizeSentenceKey } from '@/lib/parseSentenceList';
 import {
@@ -112,6 +127,8 @@ import type {
   QuestState,
   Sentence,
   StarRating,
+  WeeklyReadiness,
+  WeeklySelection,
   Word,
   WordProgress,
 } from '@/types/models';
@@ -173,12 +190,20 @@ type DeskContextValue = {
   setDictationType: (type: DictationType, on: boolean) => void;
   setAutoAdjust: (on: boolean) => void;
   enableChallengeModes: () => void;
-  markVocab: (wordId: string, known: boolean, daily?: boolean) => void;
+  saveWeeklySelection: (selection: WeeklySelection) => void;
+  setWeeklyWordReadiness: (wordId: string, readiness: WeeklyReadiness) => void;
+  createWordGroup: (name: string) => void;
+  addSelectedWordsToGroup: (groupId: string, wordIds: string[]) => void;
+  removeWordGroup: (groupId: string) => void;
+  importProofreadStarter: () => { added: number; linked: number };
+  applyWordGlossCorrections: (picks: Array<{ wordId: string; suggested: string }>) => void;
+  markVocab: (wordId: string, known: boolean, daily?: boolean, claim?: DailyClaim) => void;
   markDictation: (
     wordId: string,
     correct: boolean,
     daily?: boolean,
     source?: PracticeEvent['source'],
+    claim?: DailyClaim,
   ) => WordProgress;
   awardDictationStars: (correct: number, wrong: number) => { stars: StarRating; celebrate: boolean };
   addFeedback: (kind: FeedbackKind, note?: string) => void;
@@ -211,6 +236,10 @@ type DeskContextValue = {
 };
 
 const DeskContext = createContext<DeskContextValue | null>(null);
+
+function settleDay(current: PersistedState): PersistedState {
+  return resolveActiveLearningDay(withEnsuredQuest(current), todayKey());
+}
 
 function withEnsuredQuest(current: PersistedState): PersistedState {
   const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
@@ -260,10 +289,7 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     try {
       await recoverInterruptedBackupRestore();
       const loaded = seedDefaultKetPackIfEmpty(await loadState());
-      const dated = withEnsuredQuest({
-        ...loaded,
-        daily: ensureTodayLesson(loaded.daily, loaded.words, loaded.progress),
-      });
+      const dated = settleDay(loaded);
       await saveState(dated);
       publish(dated);
       loadErrorRef.current = false;
@@ -319,11 +345,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     if (!readyRef.current || gate.blocked) return;
     const current = stateRef.current;
     const date = todayKey();
-    if (current.daily?.date === date && questOf(current.questByProfile, current.activeProfileId).day?.date === date) return;
-    update((previous) => withEnsuredQuest({
-      ...previous,
-      daily: ensureTodayLesson(previous.daily, previous.words, previous.progress),
-    }));
+    const activeId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+    const lesson = current.dailyByProfile[activeId] ?? null;
+    const preview = resolveActiveLearningDay(current, date, () => 0);
+    const nextLesson = preview.dailyByProfile[activeId];
+    const planSame = JSON.stringify(current.weeklyByProfile[activeId] ?? null) === JSON.stringify(preview.weeklyByProfile[activeId] ?? null);
+    const questReady = questOf(current.questByProfile, activeId).day?.date === date;
+    if (questReady && lesson?.cardId && lesson.cardId === nextLesson?.cardId && planSame) return;
+    update((previous) => settleDay(previous));
   }, [gate, update]);
 
   useEffect(() => {
@@ -407,9 +436,12 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       let recordingUri: string | null | undefined;
       update((current) => {
         recordingUri = current.words.find((word) => word.id === id)?.recordingUri;
-        return withActiveQuest(
-          { ...current, words: current.words.filter((word) => word.id !== id) },
-          (quest) => pruneQuestWord(quest, id),
+        return detachWord(
+          withActiveQuest(
+            { ...current, words: current.words.filter((word) => word.id !== id) },
+            (quest) => pruneQuestWord(quest, id),
+          ),
+          id,
         );
       });
       if (recordingUri) cleanupMedia(() => deleteRecordingFile(recordingUri));
@@ -827,8 +859,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       if (!cleanEn) return 'already';
       let result: 'added' | 'already' = 'added';
       update((current) => {
+        const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
         let words = current.words;
-        let word = words.find((item) => item.en.toLowerCase() === cleanEn.toLowerCase());
+        let word = findProfileWord(words, profileId, cleanEn);
         if (!word) {
           word = {
             id: createId('word'),
@@ -836,15 +869,17 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             zh: cleanZh,
             source: 'parent',
             createdAt: new Date().toISOString(),
-            profileId: current.activeProfileId,
+            profileId,
           };
           words = [word, ...words];
         }
-        const today = ensureTodayLesson(current.daily, words, current.progress);
+        const settled = settleDay({ ...current, words });
+        const today = settled.dailyByProfile[profileId] ?? settled.daily;
+        if (!today) return settled;
         const already =
           today.vocabWordIds.includes(word.id) || today.dictationWordIds.includes(word.id);
         result = already ? 'already' : 'added';
-        return { ...current, words, daily: addWordToDaily(today, word.id) };
+        return withActiveDaily(settled, addWordToDaily(today, word.id));
       });
       return result;
     },
@@ -931,8 +966,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   };
 
   const markVocab = useCallback(
-    (wordId: string, known: boolean, daily = false) => {
+    (wordId: string, known: boolean, daily = false, claim?: DailyClaim) => {
       update((current) => {
+        if (daily && !acceptDailyClaim(current, claim, wordId, 'vocab')) return current;
         const prev = current.progress[wordId] ?? emptyProgress(wordId);
         const progress = {
           ...current.progress,
@@ -943,8 +979,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             lastPracticedAt: new Date().toISOString(),
           },
         };
-        const nextDaily =
-          daily && current.daily ? markVocabDone(current.daily, wordId) : current.daily;
+        const activeId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+        const lesson = current.dailyByProfile[activeId] ?? current.daily;
+        const nextDaily = daily && lesson ? markVocabDone(lesson, wordId) : lesson;
         const event: PracticeEvent = {
           id: createId('pr'),
           date: todayKey(),
@@ -953,21 +990,22 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           wordId,
           correct: known,
         };
-        return maybeAwardStreak({
+        const next = {
           ...current,
           progress,
-          daily: nextDaily,
           practiceLog: capPracticeLog([event, ...current.practiceLog]),
-        });
+        };
+        return maybeAwardStreak(nextDaily ? withActiveDaily(next, nextDaily) : next);
       });
     },
     [update],
   );
 
   const markDictation = useCallback(
-    (wordId: string, correct: boolean, daily = false, source?: PracticeEvent['source']) => {
+    (wordId: string, correct: boolean, daily = false, source?: PracticeEvent['source'], claim?: DailyClaim) => {
       let nextProgress = emptyProgress(wordId);
       update((current) => {
+        if (daily && !acceptDailyClaim(current, claim, wordId, 'dictation')) return current;
         const prev = current.progress[wordId] ?? emptyProgress(wordId);
         nextProgress = applyDictationResult(
           prev,
@@ -976,8 +1014,9 @@ export function DeskProvider({ children }: { children: ReactNode }) {
           new Date().toISOString(),
         );
         const progress = { ...current.progress, [wordId]: nextProgress };
-        const nextDaily =
-          daily && current.daily ? markDictationDone(current.daily, wordId) : current.daily;
+        const activeId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+        const lesson = current.dailyByProfile[activeId] ?? current.daily;
+        const nextDaily = daily && lesson ? markDictationDone(lesson, wordId) : lesson;
         const event: PracticeEvent = {
           id: createId('pr'),
           date: todayKey(),
@@ -1001,13 +1040,8 @@ export function DeskProvider({ children }: { children: ReactNode }) {
             starsForSession(counted.correct, counted.wrong),
           ).next;
         }
-        return maybeAwardStreak({
-          ...current,
-          progress,
-          daily: nextDaily,
-          practiceLog,
-          stars,
-        });
+        const next = { ...current, progress, practiceLog, stars };
+        return maybeAwardStreak(nextDaily ? withActiveDaily(next, nextDaily) : next);
       });
       return nextProgress;
     },
@@ -1266,14 +1300,14 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       if (!trimmed) return null;
       const id = createId('profile');
       update((current) =>
-        seedDefaultKetPackIfEmpty({
+        settleDay(seedDefaultKetPackIfEmpty({
           ...current,
           profiles: [
             ...current.profiles,
             { id, name: trimmed, createdAt: new Date().toISOString(), archived: false },
           ],
           activeProfileId: id,
-        }),
+        })),
       );
       return id;
     },
@@ -1283,12 +1317,10 @@ export function DeskProvider({ children }: { children: ReactNode }) {
   const switchProfile = useCallback(
     (id: string) => {
       update((current) =>
-        withEnsuredQuest(
-          seedDefaultKetPackIfEmpty({
-            ...current,
-            activeProfileId: resolveActiveProfileId(current.profiles, id),
-          }),
-        ),
+        settleDay(seedDefaultKetPackIfEmpty({
+          ...current,
+          activeProfileId: resolveActiveProfileId(current.profiles, id),
+        })),
       );
     },
     [update],
@@ -1298,11 +1330,11 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     (id: string) => {
       update((current) => {
         const profiles = setProfileArchived(current.profiles, id, true);
-        return {
+        return settleDay({
           ...current,
           profiles,
           activeProfileId: resolveActiveProfileId(profiles, current.activeProfileId),
-        };
+        });
       });
     },
     [update],
@@ -1313,14 +1345,100 @@ export function DeskProvider({ children }: { children: ReactNode }) {
     await clearAllRecordingFiles();
     await clearState();
     const fresh = defaultState();
-    const next = withEnsuredQuest({
-        ...fresh,
-        daily: ensureTodayLesson(null, fresh.words, fresh.progress),
-      });
+    const next = settleDay(fresh);
     await saveState(next);
     publish(next);
     setParentUnlocked(false);
   }), [mutateMedia, publish]);
+
+  const saveWeeklySelection = useCallback((selection: WeeklySelection) => {
+    update((current) => {
+      const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+      const date = todayKey();
+      const plan = commitWeeklySelection(
+        current.weeklyByProfile[profileId],
+        profileId,
+        selection,
+        date,
+        current.dailyByProfile[profileId] ?? null,
+      );
+      const withPlan = {
+        ...current,
+        weeklyByProfile: { ...current.weeklyByProfile, [profileId]: plan },
+      };
+      return plan.pending ? withPlan : resolveActiveLearningDay(withPlan, date);
+    });
+  }, [update]);
+
+  const setWeeklyWordReadiness = useCallback((wordId: string, readiness: WeeklyReadiness) => {
+    update((current) => {
+      const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+      const plan = current.weeklyByProfile[profileId];
+      if (!plan) return current;
+      const next = setWeeklyReadiness(
+        plan,
+        wordId,
+        readiness,
+        todayKey(),
+        current.dailyByProfile[profileId] ?? null,
+      );
+      return { ...current, weeklyByProfile: { ...current.weeklyByProfile, [profileId]: next } };
+    });
+  }, [update]);
+
+  const createWordGroup = useCallback((name: string) => {
+    update((current) => {
+      const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+      return {
+        ...current,
+        contentGroups: createContentGroup(current.contentGroups, {
+          profileId,
+          name,
+          now: new Date().toISOString(),
+        }),
+      };
+    });
+  }, [update]);
+
+  const addSelectedWordsToGroup = useCallback((groupId: string, wordIds: string[]) => {
+    update((current) => {
+      const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+      return {
+        ...current,
+        contentGroups: wordIds.reduce(
+          (groups, wordId) => addWordToContentGroups(groups, profileId, wordId, [groupId]),
+          current.contentGroups,
+        ),
+      };
+    });
+  }, [update]);
+
+  const removeWordGroup = useCallback((groupId: string) => {
+    update((current) => ({ ...current, contentGroups: removeContentGroup(current.contentGroups, groupId) }));
+  }, [update]);
+
+  const importProofreadStarter = useCallback(() => {
+    let added = 0;
+    let linked = 0;
+    update((current) => {
+      const profileId = resolveActiveProfileId(current.profiles, current.activeProfileId);
+      const result = importProofreadPack({
+        words: current.words,
+        groups: current.contentGroups,
+        profileId,
+        entries: PROOFREAD_STARTER,
+        now: new Date().toISOString(),
+      });
+      added = result.added;
+      linked = result.linked;
+      return { ...current, words: result.words, contentGroups: result.groups };
+    });
+    return { added, linked };
+  }, [update]);
+
+  const applyWordGlossCorrections = useCallback((picks: Array<{ wordId: string; suggested: string }>) => {
+    update((current) => ({ ...current, words: applyGlossCorrections(current.words, picks) }));
+  }, [update]);
 
   const exportSnapshot = useCallback(() => stateRef.current, []);
 
@@ -1430,6 +1548,13 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setDictationType,
       setAutoAdjust,
       enableChallengeModes,
+      saveWeeklySelection,
+      setWeeklyWordReadiness,
+      createWordGroup,
+      addSelectedWordsToGroup,
+      removeWordGroup,
+      importProofreadStarter,
+      applyWordGlossCorrections,
       markVocab,
       markDictation,
       awardDictationStars,
@@ -1493,6 +1618,13 @@ export function DeskProvider({ children }: { children: ReactNode }) {
       setDictationType,
       setAutoAdjust,
       enableChallengeModes,
+      saveWeeklySelection,
+      setWeeklyWordReadiness,
+      createWordGroup,
+      addSelectedWordsToGroup,
+      removeWordGroup,
+      importProofreadStarter,
+      applyWordGlossCorrections,
       markVocab,
       markDictation,
       awardDictationStars,

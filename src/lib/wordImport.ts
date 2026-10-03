@@ -76,7 +76,8 @@ export function applyWordListImport(
   const base = mode === 'replace' ? words.filter((word) => profileIdOf(word) !== profileId) : words;
   const profileWords = wordsForProfile(base, profileId);
   const plan = planWordImportForQuest(parsed, profileWords);
-  const have = new Set(base.map((word) => word.en.toLowerCase()));
+  // 只在当前孩子的词里去重。另一个孩子的同名词要各自保留。
+  const have = new Set(profileWords.map((word) => word.en.toLowerCase()));
   const incoming: Word[] = [];
   let added = 0;
   let skipped = plan.skipped;

@@ -81,6 +81,25 @@ describe('word import and default KET seed', () => {
     assert.equal(result.words.find((item) => item.id === result.quest.packWordIds.at(-1))?.en, 'zero');
   });
 
+  it('keeps the same English word on two child profiles', () => {
+    const existing = [word('a1', 'apple', { profileId: 'p1', recordingUri: 'recordings/a1.m4a' })];
+    const result = applyWordListImport(
+      existing,
+      emptyQuestState(),
+      'p2',
+      'apple,苹果',
+      { now: 't', createId: () => 'a2' },
+    );
+    assert.equal(result.added, 1);
+    assert.equal(result.skipped, 0);
+    const apples = result.words
+      .filter((item) => item.en.toLowerCase() === 'apple')
+      .sort((left, right) => left.id.localeCompare(right.id));
+    assert.deepEqual(apples.map((item) => item.id), ['a1', 'a2']);
+    assert.deepEqual(apples.map((item) => item.profileId), ['p1', 'p2']);
+    assert.equal(apples.find((item) => item.id === 'a1')?.recordingUri, 'recordings/a1.m4a');
+  });
+
   it('seeds only when the living quest pack is empty', () => {
     const empty: PersistedState = {
       version: 1,

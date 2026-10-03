@@ -5,6 +5,7 @@ import { Card, KidButton, Screen, SectionLabel } from '@/components/ui';
 import { Colors, Space } from '@/constants/theme';
 import { useDesk } from '@/hooks/useDesk';
 import { dailyProgress } from '@/lib/daily';
+import { legacyDailyCopy } from '@/lib/weekly';
 import { t } from '@/i18n';
 
 export default function DadDesk() {
@@ -12,6 +13,7 @@ export default function DadDesk() {
   const unread = state.feedback.filter((item) => !item.read).length;
   const unhandled = state.feedback.filter((item) => !item.handled).length;
   const { done, total } = dailyProgress(state.daily);
+  const legacy = legacyDailyCopy(state.legacyDaily);
 
   return (
     <Screen title={t('dadDesk')} subtitle="进度、词表、默写台阶、我家的书、孩子留言。全部本机。" back>
@@ -29,7 +31,9 @@ export default function DadDesk() {
         <KidButton label={t('dictationSettings')} variant="secondary" onPress={() => router.push('/dad/dictation')} />
         <SectionLabel>内容</SectionLabel>
         <KidButton label="孩子档案" variant="secondary" onPress={() => router.push('/dad/profiles')} />
+        <KidButton label="本周选词" variant="secondary" onPress={() => router.push('/dad/weekly')} />
         <KidButton label={t('wordList')} variant="secondary" onPress={() => router.push('/dad/words')} />
+        {legacy ? <Text style={styles.hint}>{legacy}</Text> : null}
         <Text style={styles.hint}>
           闯关词库新装会自动种入内置默认包，也可在词表再点「导入 KET 包」，或按单元导入 Power Up 1
           家庭包（追加、不覆盖），或粘贴后勾选「用于闯关词库」。每天新词 {quest.dailyNewCount}{' '}
