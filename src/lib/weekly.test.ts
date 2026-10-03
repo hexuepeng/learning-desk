@@ -132,8 +132,11 @@ describe('0.1.31 weekly selection', () => {
   it('AC-SP31-03 gives each child a separate apple', () => {
     const first = applyWordListImport([], emptyQuestState(), 'p1', 'apple,苹果', { createId: () => 'a1' });
     const second = applyWordListImport(first.words, emptyQuestState(), 'p2', 'apple,苹果', { createId: () => 'a2' });
-    const apples = second.words.filter((item) => item.en === 'apple');
-    assert.deepEqual(apples.map((item) => [item.id, item.profileId]), [['a1', 'p1'], ['a2', 'p2']]);
+    const apples = second.words
+      .filter((item) => item.en === 'apple')
+      .map((item) => [item.id, item.profileId])
+      .sort((left, right) => left[0].localeCompare(right[0]));
+    assert.deepEqual(apples, [['a1', 'p1'], ['a2', 'p2']]);
   });
 
   it('AC-SP31-04 stays empty, small, or skips deleted words without borrowing or finishing', () => {

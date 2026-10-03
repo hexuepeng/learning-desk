@@ -127,7 +127,6 @@ function migrate(raw: unknown): PersistedState {
     streak: data.streak ?? emptyStreak(),
     stars: normalizeStarState(data.stars),
     practiceLog: Array.isArray(data.practiceLog) ? (data.practiceLog as PracticeEvent[]) : [],
-    daily: data.daily ?? null,
     parentPin: data.parentPin?.match(/^\d{4}$/) ? data.parentPin : DEFAULT_PARENT_PIN,
     profiles,
     activeProfileId,
